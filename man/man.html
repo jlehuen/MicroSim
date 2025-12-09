@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>man</title>
+
+
+<style type="text/css">
+body {
+  font-family: Helvetica, arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: white;
+  padding: 30px; }
+
+body > *:first-child {
+  margin-top: 0 !important; }
+body > *:last-child {
+  margin-bottom: 0 !important; }
+
+a {
+  color: #4183C4; }
+a.absent {
+  color: #cc0000; }
+a.anchor {
+  display: block;
+  padding-left: 30px;
+  margin-left: -30px;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0; }
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 20px 0 10px;
+  padding: 0;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+  cursor: text;
+  position: relative; }
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor {
+  background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA09pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoMTMuMCAyMDEyMDMwNS5tLjQxNSAyMDEyLzAzLzA1OjIxOjAwOjAwKSAgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OUM2NjlDQjI4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OUM2NjlDQjM4ODBGMTFFMTg1ODlEODNERDJBRjUwQTQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo5QzY2OUNCMDg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo5QzY2OUNCMTg4MEYxMUUxODU4OUQ4M0REMkFGNTBBNCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsQhXeAAAABfSURBVHjaYvz//z8DJYCRUgMYQAbAMBQIAvEqkBQWXI6sHqwHiwG70TTBxGaiWwjCTGgOUgJiF1J8wMRAIUA34B4Q76HUBelAfJYSA0CuMIEaRP8wGIkGMA54bgQIMACAmkXJi0hKJQAAAABJRU5ErkJggg==) no-repeat 10px center;
+  text-decoration: none; }
+
+h1 tt, h1 code {
+  font-size: inherit; }
+
+h2 tt, h2 code {
+  font-size: inherit; }
+
+h3 tt, h3 code {
+  font-size: inherit; }
+
+h4 tt, h4 code {
+  font-size: inherit; }
+
+h5 tt, h5 code {
+  font-size: inherit; }
+
+h6 tt, h6 code {
+  font-size: inherit; }
+
+h1 {
+  font-size: 28px;
+  color: black; }
+
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid #cccccc;
+  color: black; }
+
+h3 {
+  font-size: 18px; }
+
+h4 {
+  font-size: 16px; }
+
+h5 {
+  font-size: 14px; }
+
+h6 {
+  color: #777777;
+  font-size: 14px; }
+
+p, blockquote, ul, ol, dl, li, table, pre {
+  margin: 15px 0; }
+
+hr {
+  background: transparent url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAECAYAAACtBE5DAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OENDRjNBN0E2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OENDRjNBN0I2NTZBMTFFMEI3QjRBODM4NzJDMjlGNDgiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo4Q0NGM0E3ODY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo4Q0NGM0E3OTY1NkExMUUwQjdCNEE4Mzg3MkMyOUY0OCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PqqezsUAAAAfSURBVHjaYmRABcYwBiM2QSA4y4hNEKYDQxAEAAIMAHNGAzhkPOlYAAAAAElFTkSuQmCC) repeat-x 0 0;
+  border: 0 none;
+  color: #cccccc;
+  height: 4px;
+  padding: 0;
+}
+
+body > h2:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+body > h1:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+  body > h1:first-child + h2 {
+    margin-top: 0;
+    padding-top: 0; }
+body > h3:first-child, body > h4:first-child, body > h5:first-child, body > h6:first-child {
+  margin-top: 0;
+  padding-top: 0; }
+
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 {
+  margin-top: 0;
+  padding-top: 0; }
+
+h1 p, h2 p, h3 p, h4 p, h5 p, h6 p {
+  margin-top: 0; }
+
+li p.first {
+  display: inline-block; }
+li {
+  margin: 0; }
+ul, ol {
+  padding-left: 30px; }
+
+ul :first-child, ol :first-child {
+  margin-top: 0; }
+
+dl {
+  padding: 0; }
+  dl dt {
+    font-size: 14px;
+    font-weight: bold;
+    font-style: italic;
+    padding: 0;
+    margin: 15px 0 5px; }
+    dl dt:first-child {
+      padding: 0; }
+    dl dt > :first-child {
+      margin-top: 0; }
+    dl dt > :last-child {
+      margin-bottom: 0; }
+  dl dd {
+    margin: 0 0 15px;
+    padding: 0 15px; }
+    dl dd > :first-child {
+      margin-top: 0; }
+    dl dd > :last-child {
+      margin-bottom: 0; }
+
+blockquote {
+  border-left: 4px solid #dddddd;
+  padding: 0 15px;
+  color: #777777; }
+  blockquote > :first-child {
+    margin-top: 0; }
+  blockquote > :last-child {
+    margin-bottom: 0; }
+
+table {
+  padding: 0;border-collapse: collapse; }
+  table tr {
+    border-top: 1px solid #cccccc;
+    background-color: white;
+    margin: 0;
+    padding: 0; }
+    table tr:nth-child(2n) {
+      background-color: #f8f8f8; }
+    table tr th {
+      font-weight: bold;
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr td {
+      border: 1px solid #cccccc;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr th :first-child, table tr td :first-child {
+      margin-top: 0; }
+    table tr th :last-child, table tr td :last-child {
+      margin-bottom: 0; }
+
+img {
+  max-width: 100%; }
+
+span.frame {
+  display: block;
+  overflow: hidden; }
+  span.frame > span {
+    border: 1px solid #dddddd;
+    display: block;
+    float: left;
+    overflow: hidden;
+    margin: 13px 0 0;
+    padding: 7px;
+    width: auto; }
+  span.frame span img {
+    display: block;
+    float: left; }
+  span.frame span span {
+    clear: both;
+    color: #333333;
+    display: block;
+    padding: 5px 0 0; }
+span.align-center {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-center > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: center; }
+  span.align-center span img {
+    margin: 0 auto;
+    text-align: center; }
+span.align-right {
+  display: block;
+  overflow: hidden;
+  clear: both; }
+  span.align-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px 0 0;
+    text-align: right; }
+  span.align-right span img {
+    margin: 0;
+    text-align: right; }
+span.float-left {
+  display: block;
+  margin-right: 13px;
+  overflow: hidden;
+  float: left; }
+  span.float-left span {
+    margin: 13px 0 0; }
+span.float-right {
+  display: block;
+  margin-left: 13px;
+  overflow: hidden;
+  float: right; }
+  span.float-right > span {
+    display: block;
+    overflow: hidden;
+    margin: 13px auto 0;
+    text-align: right; }
+
+code, tt {
+  margin: 0 2px;
+  padding: 0 5px;
+  white-space: nowrap;
+  border: 1px solid #eaeaea;
+  background-color: #f8f8f8;
+  border-radius: 3px; }
+
+pre code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent; }
+
+.highlight pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #cccccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px; }
+  pre code, pre tt {
+    background-color: transparent;
+    border: none; }
+
+sup {
+    font-size: 0.83em;
+    vertical-align: super;
+    line-height: 0;
+}
+
+kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-size: 11px;
+  line-height: 10px;
+  color: #555;
+  vertical-align: middle;
+  background-color: #fcfcfc;
+  border: solid 1px #ccc;
+  border-bottom-color: #bbb;
+  border-radius: 3px;
+  box-shadow: inset 0 -1px 0 #bbb
+}
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+@media screen and (min-width: 914px) {
+    body {
+        width: 854px;
+        margin:0 auto;
+    }
+}
+@media print {
+	table, pre {
+		page-break-inside: avoid;
+	}
+	pre {
+		word-wrap: break-word;
+	}
+  body {
+    padding: 2cm; 
+  }
+}
+</style>
+
+<style type="text/css">
+/**
+ * prism.js default theme for JavaScript, CSS and HTML
+ * Based on dabblet (http://dabblet.com)
+ * @author Lea Verou
+ */
+
+code[class*="language-"],
+pre[class*="language-"] {
+	color: black;
+	background: none;
+	text-shadow: 0 1px white;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
+
+	-webkit-hyphens: none;
+	-moz-hyphens: none;
+	-ms-hyphens: none;
+	hyphens: none;
+}
+
+pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
+code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection {
+	text-shadow: none;
+	background: #b3d4fc;
+}
+
+pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
+code[class*="language-"]::selection, code[class*="language-"] ::selection {
+	text-shadow: none;
+	background: #b3d4fc;
+}
+
+@media print {
+	code[class*="language-"],
+	pre[class*="language-"] {
+		text-shadow: none;
+	}
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+	padding: 1em;
+	margin: .5em 0;
+	overflow: auto;
+}
+
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+	background: #f5f2f0;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+	color: slategray;
+}
+
+.token.punctuation {
+	color: #999;
+}
+
+.namespace {
+	opacity: .7;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+	color: #905;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+	color: #690;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+	color: #a67f59;
+	background: hsla(0, 0%, 100%, .5);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+	color: #07a;
+}
+
+.token.function {
+	color: #DD4A68;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+	color: #e90;
+}
+
+.token.important,
+.token.bold {
+	font-weight: bold;
+}
+.token.italic {
+	font-style: italic;
+}
+
+.token.entity {
+	cursor: help;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style>
+img[alt=center] {
+    display: block;
+    margin: 0 auto;
+}
+img[alt=sep] {
+    display: block;
+    margin: 0 auto;
+    margin-top: 50px;
+    margin-bottom: 40px;
+}
+pre[alt=term] {
+    background: #1E2832;
+    color: #7DCE10;
+}
+code {
+    background: yellow;
+}
+</style>
+
+<h1 id="toc_0">MicroSim 8 bits</h1>
+
+<h2 id="toc_1">1. Introduction</h2>
+
+<p>MicroSim est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l&#39;apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (adresses 8 bits) ainsi que plusieurs périphériques virtuels interactifs.</p>
+
+<p>L&#39;objectif est d&#39;illustrer les concepts fondamentaux de l&#39;architecture des ordinateurs, tels que les registres, la mémoire, la pile, et le fonctionnement interne d&#39;un CPU à travers un jeu d&#39;instructions simple, mais complet et réaliste.</p>
+
+<p>MicroSim est multiplateforme (car développé en Java) et comme il embarque sa propre machine virtuelle, il est autonome : pas besoin d&#39;installer Java sur la machine hôte. Pour l&#39;instant, seuls les binaires Macos et Linux sont packagés.</p>
+
+<p>Ce projet est inspiré de deux autres projets open-source similaires :</p>
+
+<ul>
+<li>Le simulateur <a href="https://github.com/dwhinham/Microprocessor-Simulator">x86 Microprocessor Simulator</a> de C. N. Bauers, hébergé par Dale Whinham.</li>
+<li>Le simulateur en ligne <a href="https://github.com/Schweigi/assembler-simulator">Simple 8-bit Assembler Simulator</a> de Marco Schweighauser.</li>
+</ul>
+
+<h2 id="toc_2">2. Interface principale</h2>
+
+<p>L&#39;interface du simulateur comprends plusieurs zones qui vous permettent d&#39;écrire, d&#39;exécuter et de déboguer du code x86. Le contenu de la mémoire et des registres sont actualisés en continu pendant l&#39;exécution, à vitesse ajustable ou en mode pas-à-pas :</p>
+
+<p><img src="img/main.png" alt="center"></p>
+
+<h3 id="toc_3">L&#39;éditeur de code :</h3>
+
+<p>C&#39;est la zone où vous écrivez votre programme en assembleur. L&#39;éditeur offre une coloration syntaxique pour une meilleure lisibilité, ainsi qu&#39;une fonction de reformatage (beautifier) afin de normaliser la mise en forme du code.</p>
+
+<h3 id="toc_4">Le panneau des registres :</h3>
+
+<p>Situé à gauche de l&#39;éditeur, ce panneau affiche en temps réel l&#39;état de tous les registres du CPU :</p>
+
+<ul>
+<li><strong>Registres généraux :</strong> <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code></li>
+<li><strong>Registres spécialisés :</strong> <code>IP</code> (Instruction Pointer) et <code>SP</code> (Stack Pointer)</li>
+<li><strong>Registre d&#39;état (flags) :</strong> <code>SR</code> affiche les drapeaux <code>...SZOCF</code> qui indiquent le résultat de la dernière opération.</li>
+</ul>
+
+<h3 id="toc_5">La barre d&#39;outils :</h3>
+
+<p>Située au dessus de l&#39;éditeur, elle donne accès aux fonctionnalités principales :</p>
+
+<ul>
+<li>Créer un nouveau fichier assembleur ou ouvrir un fichier existant ;</li>
+<li>Assembler le code source en code exécutable et le charger en mémoire ;</li>
+<li>Contrôler l&#39;exécution du programme en continu ou en mode pas-à-pas ;</li>
+<li>Accéder à la mémoire RAM et aux périphériques virtuels.</li>
+</ul>
+
+<h3 id="toc_6">La mémoire RAM :</h3>
+
+<p>Il est possible de visualiser le contenu de la mémoire vive (RAM) sou forme d&#39;une table de 16x16 octets notés sous forme hexadécimale ou ASCII. C&#39;est un outil essentiel pour déboguer et comprendre comment vos données et votre code sont stockés. La visualisation indique également les emplacements pointés par les regitres <code>IP</code> (en rouge) et <code>SP</code> (en bleu) :</p>
+
+<p><img src="img/ram.png" alt="center"></p>
+
+<h2 id="toc_7">3. Les périphériques virtuels</h2>
+
+<p>MicroSim inclus plusieurs périphériques d&#39;entrée/sortie qui peuvent être contrôlés par programme :</p>
+
+<h3 id="toc_8">Le terminal ASCII (mapé en mémoire) :</h3>
+
+<p>C&#39;est un petit écran texte de 4 lignes de 16 colonnes. Pour afficher un caractère, il suffit d&#39;écrire son code ASCII en RAM dans la zone-mémoire située entre les adresses <code>0xC0</code> et <code>0xFF</code> (soit 64 caractères) :</p>
+
+<p><img src="img/ascii.png" alt="center"></p>
+
+<h3 id="toc_9">Le clavier (via le port 01) :</h3>
+
+<p>Le clavier permet d&#39;entrer des caractères via l&#39;intruction <code>IN 0x01</code> qui déclenche une attente d&#39;une action sur le clavier physique de l&#39;ordinateur. Le code ASCII de la touche actionnée sera placé dans le registre <code>AL</code> :</p>
+
+<p><img src="img/keyboard.png" alt="center"></p>
+
+<h3 id="toc_10">Les feux tricolores (via le port 02) :</h3>
+
+<p>Ce périphérique simule deux feux de circulation qu&#39;il est possible de contrôler via l&#39;intruction <code>OUT 0x02</code>. L&#39;octet présent dans le regitre <code>AL</code> sera envoyé au périphérique :</p>
+
+<p><img src="img/lights.png" alt="center"></p>
+
+<h3 id="toc_11">Le système de chauffage (via le port 03) :</h3>
+
+<p>Ce périphérique représente un système de chauffage composé d&#39;une chaudière pilotée via l&#39;instruction <code>OUT 0x03</code> et d&#39;un thermostat accessible via l&#39;intruction <code>IN 0x03</code>. L&#39;objectif est de piloter la chaudière pour maintenir une température constante :</p>
+
+<p><img src="img/heater.png" alt="center"></p>
+
+<h2 id="toc_12">4. Guide de démarrage rapide</h2>
+
+<ol>
+<li> <strong>Écrivez votre code :</strong> Tapez votre programme dans l&#39;éditeur de code.</li>
+<li> <strong>Assemblez-le :</strong> Cliquez sur le bouton &ldquo;Assembler&rdquo;. Les erreurs de syntaxe seront affichées dans une fenêtre de dialogue.</li>
+<li> <strong>Exécutez votre programme :</strong>
+
+<ul>
+<li>Cliquez sur &ldquo;Exécuter&rdquo; pour lancer le programme et réglez la vitesse d&#39;exécution.</li>
+<li>Cliquez sur &ldquo;Pas à pas&rdquo; pour exécuter une instruction à la fois et observer les effets de chaque instruction sur les registres et la mémoire.</li>
+</ul></li>
+<li> <strong>Déboguez :</strong> Utilisez le mode &ldquo;Pas à pas&rdquo; et les fenêtres des périphériques pour trouver et corriger les erreurs dans votre logique.</li>
+</ol>
+
+<p><img src="img/sep.png" alt="sep"></p>
+
+<p><center></p>
+
+<h1 id="toc_13">Manuel de référence de l&#39;assembleur</h1>
+
+<p></center></p>
+
+<h2 id="toc_14">1. Concepts de base</h2>
+
+<h3 id="toc_15">Les registres <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code>, <code>SP</code>, <code>IP</code>, <code>SR</code> :</h3>
+
+<p>Les registres sont des zones de stockage ultra-rapides intégrées au CPU. Leur taille correspond à la taille des bus internes du microprocesseur (soit 8 bits), Pour manipuler une donnée, le processeur doit d&#39;abord la charger depuis la mémoire dans un de ses registres. On distingue les registres à usage général et les registres spécialisés :</p>
+
+<ul>
+<li><strong>Registres généraux <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code> :</strong> Utilisés pour les calculs (<code>ADD</code>, <code>SUB</code>, etc.), les comparaisons (<code>CMP</code>) et le stockage temporaire de données (<code>MOV</code>).</li>
+<li><strong>Pointeur de pile <code>SP</code> :</strong> Un registre spécial qui contient l&#39;adresse du sommet de la pile. Il est modifié par les instructions dédiées <code>PUSH</code> et <code>POP</code>.</li>
+<li><strong>Pointeur d&#39;instruction <code>IP</code> :</strong> Pointe toujours vers la prochaine instruction à exécuter. Vous ne le modifiez jamais directement, mais via les instructions de saut (<code>JMP</code>, <code>CALL</code>, etc.).</li>
+<li><strong>Le registre d&#39;état <code>SR</code> :</strong> Contient des drapeaux (flags) qui donnent des informations sur le résultat de la dernière opération effectuée. C&#39;est un octet de la forme <code>...SZOCF</code> où chaque lettre correspond à un bit significatif :</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: center">Bit</th>
+<th style="text-align: center">Nom</th>
+<th>Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: center"><code>S</code></td>
+<td style="text-align: center">Sign</td>
+<td>indique un résultat <strong>négatif</strong> pour les nombres <strong>signés en complément à 2</strong> (correspond à la valeur du MSB)</td>
+</tr>
+<tr>
+<td style="text-align: center"><code>Z</code></td>
+<td style="text-align: center">Zero</td>
+<td>indique un résultat égal à zéro</td>
+</tr>
+<tr>
+<td style="text-align: center"><code>O</code></td>
+<td style="text-align: center">Overflow</td>
+<td>indique un <strong>dépassement de capacité</strong> pour les nombres <strong>signés en complément à 2</strong> lorsque le résultat d&#39;une opération sort de l&#39;intervalle <code>[-128, 127]</code></td>
+</tr>
+<tr>
+<td style="text-align: center"><code>C</code></td>
+<td style="text-align: center">Carry</td>
+<td>indique un <strong>dépassement de capacité</strong> pour les nombres <strong>non signés</strong> suite à une addition (retenue) ou d&#39;une soustraction (emprunt)</td>
+</tr>
+<tr>
+<td style="text-align: center"><code>F</code></td>
+<td style="text-align: center">Fault</td>
+<td>indique une erreur irrécupérable causée par :<br>- Division par zéro<br>- Débordement de pile (Stack Overflow) lorsque <code>SP &lt; 0x80</code><br>- Sous-dépassement de pile (Stack Underflow) lorsque <code>SP &gt; 0xBF</code><br>- Pointeur d&#39;instruction <code>IP</code> hors des limites de la mémoire<br>- Code d&#39;opération (Opcode) invalide ou inconnu</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_16">La mémoire adressable :</h3>
+
+<p>La mémoire peut être vue comme une <strong>grande armoire avec des tiroirs numérotés</strong>. Chaque emplacement contient un octet (8 bits) et possède une adresse unique. Vous pouvez y stocker des données à plus long terme que dans les registres. On y accède via les syntaxes <code>[adresse]</code> et <code>[registre]</code> (notation crochet).</p>
+
+<h3 id="toc_17">La pile (stack) :</h3>
+
+<p>La pile est une <strong>zone de mémoire spéciale organisée comme une pile d&#39;assiettes</strong> (c&#39;est une structure de données LIFO : Last In / First Out). Elle est essentielle pour appeler des procédures (subroutines) et sauvegarder l&#39;état du processeur.</p>
+
+<p>Dans une architecture x86, la pile grandit vers les adresses basses et <code>SP</code> pointe toujours vers la <strong>case mémoire vide</strong> juste en dessous du dernier élément ajouté. Dans MicroSim, le pointeur <code>SP</code> est initialisé à l&#39;adresse <code>0xBF</code>, juste avant la mémoire du terminal ASCII.</p>
+
+<p><strong>Schéma de la pile après <code>PUSH AL</code> puis <code>PUSH BL</code> :</strong></p>
+
+<div><pre><code class="language-none">           Mémoire
+        +-----------+
+0xBD    |    ...    | &lt;--- SP (Pointeur de la pile)
+        +-----------+
+0xBE    | Valeur BL | &lt;--- [SP+1]
+        +-----------+
+0xBF    | Valeur AL | &lt;--- [SP+2] (Base de la pile)
+        +-----------+
+        |    ...    |</code></pre></div>
+
+<h3 id="toc_18">Légende des opérandes :</h3>
+
+<p>Une instruction est composée d&#39;un <strong>code</strong> (opcode) et éventuellement de plusieurs <strong>opérandes</strong>. Certaines instructions (comme <code>HLT</code>) n&#39;ont pas d&#39;opérande, d&#39;autres (comme <code>OUT</code>) en ont une seule, d&#39;autre encore (comme <code>MOV</code>) en ont deux. Les notations des opérandes sont données dans le tableau suivant :</p>
+
+<table>
+<thead>
+<tr>
+<th>Opérande</th>
+<th>Description</th>
+<th>Exemples</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>reg</code></td>
+<td>Un des registres généraux 8 bits : <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code></td>
+<td><code>AL</code></td>
+</tr>
+<tr>
+<td><code>[reg]</code></td>
+<td>Une adresse mémoire contenue dans un registre</td>
+<td><code>[BL]</code></td>
+</tr>
+<tr>
+<td><code>[addr]</code></td>
+<td>Une adresse mémoire directe</td>
+<td><code>[0x50]</code></td>
+</tr>
+<tr>
+<td><code>[SP+offset]</code></td>
+<td>Adresse mémoire relative au pointeur de pile avec un offset (décalage)</td>
+<td><code>[SP+4]</code></td>
+</tr>
+<tr>
+<td><code>byte</code></td>
+<td>Un octet noté en hexadécimal ou en décimal</td>
+<td><code>0xFF</code>, <code>255</code></td>
+</tr>
+<tr>
+<td><code>addr</code></td>
+<td>Une adresse notée en hexadécimal ou en décimal (utilisé par les sauts)</td>
+<td><code>0x50</code>, <code>80</code></td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>Une étiquette (utilisé par les sauts)</td>
+<td><code>my_label</code></td>
+</tr>
+<tr>
+<td><code>char</code></td>
+<td>Un caractère littéral</td>
+<td><code>&#39;A&#39;</code></td>
+</tr>
+<tr>
+<td><code>string</code></td>
+<td>Une chaîne de caractères littérale</td>
+<td><code>&quot;Hello&quot;</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_19">Tableau de référence des flags par instructions :</h3>
+
+<p>Ce second tableau résume quelles instructions affectent quels drapeaux :</p>
+
+<ul>
+<li><strong><code>-</code></strong> indique que le flag n&#39;est pas affecté par l&#39;instruction</li>
+<li><strong><code>✓</code></strong> indique que le flag est modifié en fonction du résultat</li>
+<li><strong><code>0</code></strong> indique que le flag est toujours mis à 0</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Instruction</th>
+<th style="text-align: center">SF</th>
+<th style="text-align: center">ZF</th>
+<th style="text-align: center">OF</th>
+<th style="text-align: center">CF</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>MOV</code>, <code>PUSH</code>, <code>POP</code></td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>ADD</code>, <code>SUB</code>, <code>CMP</code>, <code>NEG</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>INC</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>DEC</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">-</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>AND</code>, <code>OR</code>, <code>XOR</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">0</td>
+<td style="text-align: center">0</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>NOT</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">0</td>
+<td style="text-align: center">0</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>SHL</code>, <code>SHR</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">0</td>
+<td style="text-align: center">✓</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>MUL</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>DIV</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">0</td>
+<td style="text-align: center">0</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>Jumps</code>, <code>CALL</code>, <code>RET</code></td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+<td style="text-align: center">-</td>
+</tr>
+<tr>
+<td style="text-align: left"><code>PUSHF</code>, <code>POPF</code></td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+<td style="text-align: center">✓</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="toc_20">2. Programme de démonstration</h2>
+
+<p>L&#39;incontournable &ldquo;Hello World&rdquo; implémenté dans MicroSim :</p>
+
+<div><pre><code class="language-none">; ----- Section programme ------------
+
+    mov CL, 0xC0  ; Adresse d&#39;affichage
+    mov BL, 0x50  ; Adresse de la chaîne
+Rep:
+    mov AL, [BL]  ; Adresse du caractère
+    cmp AL, 0x00  ; Fin de la chaîne ?
+    jz  Fin
+    mov [CL], AL  ; Afficher le caractère
+    inc CL        ; Caractère suivant
+    inc BL        ; Emplacement suivant
+    jmp Rep
+Fin:
+    hlt
+
+; ----- Section données ------------
+
+    org 0x50
+    
+    db  &quot;Hello World&quot;
+    db  0x00</code></pre></div>
+
+<h2 id="toc_21">3. Directives (commandes) d&#39;assemblage</h2>
+
+<h4 id="toc_22"><code>ORG</code> (origin)</h4>
+
+<ul>
+<li><strong>Description :</strong> Détermine l&#39;adresse de la prochaine instruction (ou donnée) à charger.</li>
+<li><strong>Syntaxe :</strong>
+
+<ul>
+<li><code>ORG addr</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_23"><code>DB</code> (define byte)</h4>
+
+<ul>
+<li><strong>Description :</strong> Alloue et initialise un ou plusieurs octets de données.</li>
+<li><strong>Syntaxe :</strong>
+
+<ul>
+<li><code>DB byte</code></li>
+<li><code>DB &#39;char&#39;</code></li>
+<li><code>DB &quot;string&quot;</code></li>
+</ul></li>
+</ul>
+
+<h2 id="toc_24">4. Jeu d&#39;instructions du micro-processeur</h2>
+
+<h4 id="toc_25"><code>HLT</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Arrête l&#39;exécution du programme.</li>
+<li><strong>Syntaxe :</strong> <code>HLT</code></li>
+</ul>
+
+<h3 id="toc_26">Instructions de mouvement de données :</h3>
+
+<h4 id="toc_27"><code>MOV</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Copie une valeur d&#39;une source vers une destination.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>MOV reg, reg</code></li>
+<li><code>MOV reg, [addr]</code></li>
+<li><code>MOV reg, [reg]</code></li>
+<li><code>MOV reg, [SP+offset]</code></li>
+<li><code>MOV reg, byte</code></li>
+<li><code>MOV [addr], reg</code></li>
+<li><code>MOV [reg], reg</code></li>
+<li><code>MOV [SP+offset], reg</code></li>
+<li><code>MOV [addr], byte</code></li>
+<li><code>MOV [reg], byte</code></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_28">Instructions arithmétiques :</h3>
+
+<h4 id="toc_29"><code>INC</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Incrémente la valeur d&#39;un registre de 1.</li>
+<li><strong>Syntaxe :</strong> <code>INC reg</code></li>
+</ul>
+
+<h4 id="toc_30"><code>DEC</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Décrémente la valeur d&#39;un registre de 1.</li>
+<li><strong>Syntaxe :</strong> <code>DEC reg</code></li>
+</ul>
+
+<h4 id="toc_31"><code>NEG</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Effectue un complément à 2 sur la valeur d&#39;un registre.</li>
+<li><strong>Syntaxe :</strong> <code>NEG reg</code></li>
+</ul>
+
+<h4 id="toc_32"><code>ADD</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Additionne la valeur de la source au registre de destination.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>ADD reg, reg</code></li>
+<li><code>ADD reg, [reg]</code></li>
+<li><code>ADD reg, [addr]</code></li>
+<li><code>ADD reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_33"><code>SUB</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Soustrait la valeur de la source du registre de destination.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>SUB reg, reg</code></li>
+<li><code>SUB reg, [reg]</code></li>
+<li><code>SUB reg, [addr]</code></li>
+<li><code>SUB reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_34"><code>MUL</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Multiplie la valeur de la source au registre de destination.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>MUL reg, reg</code></li>
+<li><code>MUL reg, [reg]</code></li>
+<li><code>MUL reg, [addr]</code></li>
+<li><code>MUL reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_35"><code>DIV</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Divise la valeur de la source au registre de destination.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>DIV reg, reg</code></li>
+<li><code>DIV reg, [reg]</code></li>
+<li><code>DIV reg, [addr]</code></li>
+<li><code>DIV reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_36">Instructions logiques :</h3>
+
+<h4 id="toc_37"><code>AND</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Effectue un ET logique (bitwise AND) entre le registre de destination et la source.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>AND reg, reg</code></li>
+<li><code>AND reg, [reg]</code></li>
+<li><code>AND reg, [addr]</code></li>
+<li><code>AND reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_38"><code>OR</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Effectue un OU logique (bitwise OR) entre le registre de destination et la source.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>OR reg, reg</code></li>
+<li><code>OR reg, [reg]</code></li>
+<li><code>OR reg, [addr]</code></li>
+<li><code>OR reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_39"><code>XOR</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>XOR reg, reg</code></li>
+<li><code>XOR reg, [reg]</code></li>
+<li><code>XOR reg, [addr]</code></li>
+<li><code>XOR reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_40"><code>NOT</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Inverse tous les bits d&#39;un registre (bitwise NOT).</li>
+<li><strong>Syntaxe :</strong> <code>NOT reg</code></li>
+</ul>
+
+<h4 id="toc_41"><code>SHL</code> (Shift Left)</h4>
+
+<ul>
+<li><strong>Description :</strong> Décale les bits du registre de destination vers la gauche.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>SHL reg, reg</code></li>
+<li><code>SHL reg, [reg]</code></li>
+<li><code>SHL reg, [addr]</code></li>
+<li><code>SHL reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_42"><code>SHR</code> (Shift Right)</h4>
+
+<ul>
+<li><strong>Description :</strong> Décale les bits du registre de destination vers la droite.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>SHR reg, reg</code></li>
+<li><code>SHR reg, [reg]</code></li>
+<li><code>SHR reg, [addr]</code></li>
+<li><code>SHR reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_43">Instructions de comparaison et de saut :</h3>
+
+<h4 id="toc_44"><code>CMP</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>CMP reg, reg</code></li>
+<li><code>CMP reg, [reg]</code></li>
+<li><code>CMP reg, [addr]</code></li>
+<li><code>CMP reg, byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_45"><code>JMP</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Saut inconditionnel vers une adresse (ou un label)</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JMP addr</code></li>
+<li><code>JMP label</code></li>
+<li><code>JMP [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_46"><code>JZ</code> et <code>JE</code> (Jump if Zero / Jump if Equal)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro (Zero Flag) est à 1.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JZ addr</code></li>
+<li><code>JZ label</code></li>
+<li><code>JZ [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_47"><code>JNZ</code> et <code>JNE</code> (Jump if Not Zero / Jump if Not Equal)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro (Zero Flag) est à 0.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JNZ addr</code></li>
+<li><code>JNZ label</code></li>
+<li><code>JNZ [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_48"><code>JC</code> et <code>JB</code> (Jump if Carry / Jump if Below)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de retenue (Carry Flag) est à 1.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JC addr</code></li>
+<li><code>JC label</code></li>
+<li><code>JC [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_49"><code>JNC</code> et <code>JAE</code> (Jump if No Carry / Jump if Above or Equal)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de retenue (Carry Flag) est à 0.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JNC addr</code></li>
+<li><code>JNC label</code></li>
+<li><code>JNC [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_50"><code>JA</code> et <code>JNBE</code> (Jump if Above / Jump if Not Below or Equal)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JA addr</code></li>
+<li><code>JA label</code></li>
+<li><code>JA [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_51"><code>JNA</code> et <code>JBE</code> (Jump if Not Above / Jump if Below or Equal)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro ou le drapeau Retenue est à 1.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JNA addr</code></li>
+<li><code>JNA label</code></li>
+<li><code>JNA [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_52"><code>JS</code> (Jump if Sign)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JS addr</code></li>
+<li><code>JS label</code></li>
+<li><code>JS [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_53"><code>JNS</code> (Jump if Not Sign)</h4>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>JNS addr</code></li>
+<li><code>JNS label</code></li>
+<li><code>JNS [reg]</code></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_54">Instructions de pile (stack) :</h3>
+
+<h4 id="toc_55"><code>PUSH</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Empile une valeur sur la pile.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>PUSH reg</code></li>
+<li><code>PUSH [reg]</code></li>
+<li><code>PUSH [addr]</code></li>
+<li><code>PUSH byte</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_56"><code>PUSHF</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Empile le contenu du registre SR (sauvegarde des flags).</li>
+<li><strong>Syntaxe :</strong> <code>PUSHF</code></li>
+</ul>
+
+<h4 id="toc_57"><code>POP</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Dépile une valeur de la pile vers un registre.</li>
+<li><strong>Syntaxe :</strong> <code>POP reg</code></li>
+</ul>
+
+<h4 id="toc_58"><code>POPF</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Dépile vers le registre SR (restauration des flags).</li>
+<li><strong>Syntaxe :</strong> <code>POPF</code></li>
+</ul>
+
+<h3 id="toc_59">Instructions de sous-programmes (subroutines) :</h3>
+
+<h4 id="toc_60"><code>CALL</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Appelle un sous-programme en empilant l&#39;adresse de retour et en sautant à l&#39;adresse du sous-programme.</li>
+<li><strong>Syntaxes :</strong>
+
+<ul>
+<li><code>CALL addr</code></li>
+<li><code>CALL label</code></li>
+<li><code>CALL [reg]</code></li>
+</ul></li>
+</ul>
+
+<h4 id="toc_61"><code>RET</code></h4>
+
+<ul>
+<li><strong>Description :</strong> Revient d&#39;un sous-programme en dépilant l&#39;adresse de retour de la pile.</li>
+<li><strong>Syntaxe :</strong> <code>RET</code></li>
+</ul>
+
+
+
+<script type="text/javascript">
+var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?self:{},Prism=function(){var e=/\blang(?:uage)?-(\w+)\b/i,t=0,n=_self.Prism={util:{encode:function(e){return e instanceof a?new a(e.type,n.util.encode(e.content),e.alias):"Array"===n.util.type(e)?e.map(n.util.encode):e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\u00a0/g," ")},type:function(e){return Object.prototype.toString.call(e).match(/\[object (\w+)\]/)[1]},objId:function(e){return e.__id||Object.defineProperty(e,"__id",{value:++t}),e.__id},clone:function(e){var t=n.util.type(e);switch(t){case"Object":var a={};for(var r in e)e.hasOwnProperty(r)&&(a[r]=n.util.clone(e[r]));return a;case"Array":return e.map&&e.map(function(e){return n.util.clone(e)})}return e}},languages:{extend:function(e,t){var a=n.util.clone(n.languages[e]);for(var r in t)a[r]=t[r];return a},insertBefore:function(e,t,a,r){r=r||n.languages;var l=r[e];if(2==arguments.length){a=arguments[1];for(var i in a)a.hasOwnProperty(i)&&(l[i]=a[i]);return l}var o={};for(var s in l)if(l.hasOwnProperty(s)){if(s==t)for(var i in a)a.hasOwnProperty(i)&&(o[i]=a[i]);o[s]=l[s]}return n.languages.DFS(n.languages,function(t,n){n===r[e]&&t!=e&&(this[t]=o)}),r[e]=o},DFS:function(e,t,a,r){r=r||{};for(var l in e)e.hasOwnProperty(l)&&(t.call(e,l,e[l],a||l),"Object"!==n.util.type(e[l])||r[n.util.objId(e[l])]?"Array"!==n.util.type(e[l])||r[n.util.objId(e[l])]||(r[n.util.objId(e[l])]=!0,n.languages.DFS(e[l],t,l,r)):(r[n.util.objId(e[l])]=!0,n.languages.DFS(e[l],t,null,r)))}},plugins:{},highlightAll:function(e,t){var a={callback:t,selector:'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'};n.hooks.run("before-highlightall",a);for(var r,l=a.elements||document.querySelectorAll(a.selector),i=0;r=l[i++];)n.highlightElement(r,e===!0,a.callback)},highlightElement:function(t,a,r){for(var l,i,o=t;o&&!e.test(o.className);)o=o.parentNode;o&&(l=(o.className.match(e)||[,""])[1],i=n.languages[l]),t.className=t.className.replace(e,"").replace(/\s+/g," ")+" language-"+l,o=t.parentNode,/pre/i.test(o.nodeName)&&(o.className=o.className.replace(e,"").replace(/\s+/g," ")+" language-"+l);var s=t.textContent,u={element:t,language:l,grammar:i,code:s};if(!s||!i)return n.hooks.run("complete",u),void 0;if(n.hooks.run("before-highlight",u),a&&_self.Worker){var c=new Worker(n.filename);c.onmessage=function(e){u.highlightedCode=e.data,n.hooks.run("before-insert",u),u.element.innerHTML=u.highlightedCode,r&&r.call(u.element),n.hooks.run("after-highlight",u),n.hooks.run("complete",u)},c.postMessage(JSON.stringify({language:u.language,code:u.code,immediateClose:!0}))}else u.highlightedCode=n.highlight(u.code,u.grammar,u.language),n.hooks.run("before-insert",u),u.element.innerHTML=u.highlightedCode,r&&r.call(t),n.hooks.run("after-highlight",u),n.hooks.run("complete",u)},highlight:function(e,t,r){var l=n.tokenize(e,t);return a.stringify(n.util.encode(l),r)},tokenize:function(e,t){var a=n.Token,r=[e],l=t.rest;if(l){for(var i in l)t[i]=l[i];delete t.rest}e:for(var i in t)if(t.hasOwnProperty(i)&&t[i]){var o=t[i];o="Array"===n.util.type(o)?o:[o];for(var s=0;s<o.length;++s){var u=o[s],c=u.inside,g=!!u.lookbehind,h=!!u.greedy,f=0,d=u.alias;u=u.pattern||u;for(var p=0;p<r.length;p++){var m=r[p];if(r.length>e.length)break e;if(!(m instanceof a)){u.lastIndex=0;var y=u.exec(m),v=1;if(!y&&h&&p!=r.length-1){var b=r[p+1].matchedStr||r[p+1],k=m+b;if(p<r.length-2&&(k+=r[p+2].matchedStr||r[p+2]),u.lastIndex=0,y=u.exec(k),!y)continue;var w=y.index+(g?y[1].length:0);if(w>=m.length)continue;var _=y.index+y[0].length,P=m.length+b.length;if(v=3,P>=_){if(r[p+1].greedy)continue;v=2,k=k.slice(0,P)}m=k}if(y){g&&(f=y[1].length);var w=y.index+f,y=y[0].slice(f),_=w+y.length,S=m.slice(0,w),O=m.slice(_),j=[p,v];S&&j.push(S);var A=new a(i,c?n.tokenize(y,c):y,d,y,h);j.push(A),O&&j.push(O),Array.prototype.splice.apply(r,j)}}}}}return r},hooks:{all:{},add:function(e,t){var a=n.hooks.all;a[e]=a[e]||[],a[e].push(t)},run:function(e,t){var a=n.hooks.all[e];if(a&&a.length)for(var r,l=0;r=a[l++];)r(t)}}},a=n.Token=function(e,t,n,a,r){this.type=e,this.content=t,this.alias=n,this.matchedStr=a||null,this.greedy=!!r};if(a.stringify=function(e,t,r){if("string"==typeof e)return e;if("Array"===n.util.type(e))return e.map(function(n){return a.stringify(n,t,e)}).join("");var l={type:e.type,content:a.stringify(e.content,t,r),tag:"span",classes:["token",e.type],attributes:{},language:t,parent:r};if("comment"==l.type&&(l.attributes.spellcheck="true"),e.alias){var i="Array"===n.util.type(e.alias)?e.alias:[e.alias];Array.prototype.push.apply(l.classes,i)}n.hooks.run("wrap",l);var o="";for(var s in l.attributes)o+=(o?" ":"")+s+'="'+(l.attributes[s]||"")+'"';return"<"+l.tag+' class="'+l.classes.join(" ")+'" '+o+">"+l.content+"</"+l.tag+">"},!_self.document)return _self.addEventListener?(_self.addEventListener("message",function(e){var t=JSON.parse(e.data),a=t.language,r=t.code,l=t.immediateClose;_self.postMessage(n.highlight(r,n.languages[a],a)),l&&_self.close()},!1),_self.Prism):_self.Prism;var r=document.currentScript||[].slice.call(document.getElementsByTagName("script")).pop();return r&&(n.filename=r.src,document.addEventListener&&!r.hasAttribute("data-manual")&&document.addEventListener("DOMContentLoaded",n.highlightAll)),_self.Prism}();"undefined"!=typeof module&&module.exports&&(module.exports=Prism),"undefined"!=typeof global&&(global.Prism=Prism);
+</script>
+
+<script type="text/x-mathjax-config">
+(function () {
+
+MathJax.Hub.Config({
+	'showProcessingMessages': false,
+	'messageStyle': 'none'
+});
+
+if (typeof MathJaxListener !== 'undefined') {
+	MathJax.Hub.Register.StartupHook('End', function () {
+		MathJaxListener.invokeCallbackForKey_('End');
+	});
+}
+
+})();
+</script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+</body>
+
+</html>

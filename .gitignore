@@ -1,0 +1,20 @@
+
+# Artefacts de build
+class/
+build/
+distrib/
+*.tar.gz
+
+# Fichiers et dossiers d'IDE
+.vscode/
+.idea/
+*.iml
+
+# Fichiers système macOS
+.DS_Store
+
+# Autres scripts
+run-build.sh
+run-dev.sh
+javadoc.sh
+gemini.sh
