@@ -3,7 +3,11 @@ Rep:
 	in	0x03        ; AL <— port 03
 	and	AL, 0x02    ; Masquer les 7 bits de poids fort
 	jz	Fire        ; Si le résultat est égal à 0 allumer le bruleur
+<<<<<<< HEAD
 	mo	AL, 0x00    ; Sinon éteindre le bruleur
+=======
+	mov	AL, 0x00    ; Sinon éteindre le bruleur
+>>>>>>> 760aa85 (First commit)
 	out	0x03        ; AL —> port 03
 	jmp	Rep         ; On boucle
 

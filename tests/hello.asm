@@ -17,6 +17,10 @@ Fin:
 ; ----- DONNEES ------------
 
 	org	0x50
+<<<<<<< HEAD
 	db	"HELLO WORLD"
+=======
+	db	"Hello World"
+>>>>>>> 760aa85 (First commit)
 	db	0x00
 
