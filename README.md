@@ -108,7 +108,7 @@ If you want to build the project from the source files, you can use the provided
 
 A comprehensive reference manual for the assembler, including the full instruction set, is available.
 
-- **[Read the HTML Manual](man/man.html)**
+- **[Read the HTML Manual](man/man.md)**
 
 ## License
 
