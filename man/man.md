@@ -179,7 +179,7 @@ Ce second tableau résume quelles instructions affectent quels drapeaux :
 - **`0`** indique que le flag est toujours mis à 0
 
 | Instruction | SF | ZF | OF | CF |
-|:---|:---:|:---:|:---:|:---:|
+|:---:|:---:|:---:|:---:|:---:|
 | `MOV`, `PUSH`, `POP` | - | - | - | - |
 | `ADD`, `SUB`, `CMP`, `NEG` | ✓ | ✓ | ✓ | ✓ |
 | `INC` | ✓ | ✓ | ✓ | ✓ |
@@ -229,7 +229,7 @@ Fin:
 
 #### `DB` (define byte)
 - **Description :** Alloue et initialise un ou plusieurs octets de données.
-- **Syntaxe :**
+- **Syntaxe :
     - `DB byte`
     - `DB 'char'`
     - `DB "string"`
@@ -287,7 +287,7 @@ Fin:
     - `SUB reg, byte`
 
 #### `MUL`
-- **Description :** Multiplie la valeur de la source au registre de destination.
+- **Description : :** Multiplie la valeur de la source au registre de destination.
 - **Syntaxes :**
     - `MUL reg, reg`
     - `MUL reg, [reg]`
@@ -313,7 +313,7 @@ Fin:
     - `AND reg, byte`
 
 #### `OR`
-- **Description :** Effectue un OU logique (bitwise OR) entre le registre de destination et la source.
+- **Description : :** Effectue un OU logique (bitwise OR) entre le registre de destination et la source.
 - **Syntaxes :**
     - `OR reg, reg`
     - `OR reg, [reg]`
@@ -321,7 +321,7 @@ Fin:
     - `OR reg, byte`
 
 #### `XOR`
-- **Description :** Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.
+- **Description : :** Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.
 - **Syntaxes :**
     - `XOR reg, reg`
     - `XOR reg, [reg]`
@@ -329,11 +329,11 @@ Fin:
     - `XOR reg, byte`
 
 #### `NOT`
-- **Description :** Inverse tous les bits d'un registre (bitwise NOT).
+- **Description : :** Inverse tous les bits d'un registre (bitwise NOT).
 - **Syntaxe :** `NOT reg`
 
 #### `SHL` (Shift Left)
-- **Description :** Décale les bits du registre de destination vers la gauche.
+- **Description : :** Décale les bits du registre de destination vers la gauche.
 - **Syntaxes :**
     - `SHL reg, reg`
     - `SHL reg, [reg]`
@@ -341,7 +341,7 @@ Fin:
     - `SHL reg, byte`
 
 #### `SHR` (Shift Right)
-- **Description :** Décale les bits du registre de destination vers la droite.
+- **Description : :** Décale les bits du registre de destination vers la droite.
 - **Syntaxes :**
     - `SHR reg, reg`
     - `SHR reg, [reg]`
@@ -351,7 +351,7 @@ Fin:
 ### Instructions de comparaison et de saut :
 
 #### `CMP`
-- **Description :** Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).
+- **Description : :** Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).
 - **Syntaxes :**
     - `CMP reg, reg`
     - `CMP reg, [reg]`
@@ -359,63 +359,63 @@ Fin:
     - `CMP reg, byte`
 
 #### `JMP`
-- **Description :** Saut inconditionnel vers une adresse (ou un label)
+- **Description : :** Saut inconditionnel vers une adresse (ou un label)
 - **Syntaxes :**
     - `JMP addr`
     - `JMP label`
     - `JMP [reg]`
 
 #### `JZ` et `JE` (Jump if Zero / Jump if Equal)
-- **Description :** Saute si le drapeau Zéro (Zero Flag) est à 1.
+- **Description : :** Saute si le drapeau Zéro (Zero Flag) est à 1.
 - **Syntaxes :**
     - `JZ addr`
     - `JZ label`
     - `JZ [reg]`
 
 #### `JNZ` et `JNE` (Jump if Not Zero / Jump if Not Equal)
-- **Description :** Saute si le drapeau Zéro (Zero Flag) est à 0.
+- **Description : :** Saute si le drapeau Zéro (Zero Flag) est à 0.
 - **Syntaxes :**
     - `JNZ addr`
     - `JNZ label`
     - `JNZ [reg]`
 
 #### `JC` et `JB` (Jump if Carry / Jump if Below)
-- **Description :** Saute si le drapeau de retenue (Carry Flag) est à 1.
+- **Description : :** Saute si le drapeau de retenue (Carry Flag) est à 1.
 - **Syntaxes :**
     - `JC addr`
     - `JC label`
     - `JC [reg]`
 
 #### `JNC` et `JAE` (Jump if No Carry / Jump if Above or Equal)
-- **Description :** Saute si le drapeau de retenue (Carry Flag) est à 0.
+- **Description : :** Saute si le drapeau de retenue (Carry Flag) est à 0.
 - **Syntaxes :**
     - `JNC addr`
     - `JNC label`
     - `JNC [reg]`
 
 #### `JA` et `JNBE` (Jump if Above / Jump if Not Below or Equal)
-- **Description :** Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.
+- **Description : :** Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.
 - **Syntaxes :**
     - `JA addr`
     - `JA label`
     - `JA [reg]`
 
 #### `JNA` et `JBE` (Jump if Not Above / Jump if Below or Equal)
-- **Description :** Saute si le drapeau Zéro ou le drapeau Retenue est à 1.
+- **Description : :** Saute si le drapeau Zéro ou le drapeau Retenue est à 1.
 - **Syntaxes :**
     - `JNA addr`
     - `JNA label`
     - `JNA [reg]`
 
 #### `JS` (Jump if Sign)
-- **Description :** Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).
+- **Description : :** Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).
 - **Syntaxes :**
     - `JS addr`
     - `JS label`
     - `JS [reg]`
 
 #### `JNS` (Jump if Not Sign)
-- **Description :** Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).
+- **Description : :** Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).
 - **Syntaxes :**
     - `JNS addr`
     - `JNS label`
@@ -424,7 +424,7 @@ Fin:
 ### Instructions de pile (stack) :
 
 #### `PUSH`
-- **Description :** Empile une valeur sur la pile.
+- **Description : :** Empile une valeur sur la pile.
 - **Syntaxes :**
     - `PUSH reg`
     - `PUSH [reg]`
@@ -432,29 +432,165 @@ Fin:
     - `PUSH byte`
 
 #### `PUSHF`
-- **Description :** Empile le contenu du registre SR (sauvegarde des flags).
+- **Description : :** Empile le contenu du registre SR (sauvegarde des flags).
 - **Syntaxe :** `PUSHF`
 
 #### `POP`
-- **Description :** Dépile une valeur de la pile vers un registre.
+- **Description : :** Dépile une valeur de la pile vers un registre.
 - **Syntaxe :** `POP reg`
 
 #### `POPF`
-- **Description :** Dépile vers le registre SR (restauration des flags).
+- **Description : :** Dépile vers le registre SR (restauration des flags).
 - **Syntaxe :** `POPF`
 
 ### Instructions de sous-programmes (subroutines) :
 
 #### `CALL`
-- **Description :** Appelle un sous-programme en empilant l'adresse de retour et en sautant à l'adresse du sous-programme.
+- **Description : :** Appelle un sous-programme en empilant l'adresse de retour et en sautant à l'adresse du sous-programme.
 - **Syntaxes :**
     - `CALL addr`
     - `CALL label`
     - `CALL [reg]`
 
 #### `RET`
-- **Description :** Revient d'un sous-programme en dépilant l'adresse de retour de la pile.
+- **Description : :** Revient d'un sous-programme en dépilant l'adresse de retour de la pile.
 - **Syntaxe :** `RET`
 
+## 5. Codage hexadécimal
 
+Le processeur ne comprend pas directement les instructions textuelles comme `MOV AL, 10`. L'assembleur se charge de traduire chaque ligne de code en une séquence d'octets que le CPU peut exécuter : c'est le **code machine**.
 
+Chaque instruction est convertie en un premier octet appelé **code opératoire** (ou *opcode*), qui identifie de manière unique l'opération et ses types d'opérandes. Cet opcode est ensuite suivi en mémoire par les octets représentant les arguments (les *opérandes*), comme un numéro de registre, une valeur numérique ou une adresse.
+
+Les tableaux suivants détaillent ces codes numériques et le format complet en mémoire pour chaque composant d'une instruction.
+
+### Codes des Registres
+
+Toute opérande de type `reg` est codée sur un octet :
+
+| Registre | Code Hexa |
+|---|---|
+| `AL` | `0x00` |
+| `BL` | `0x01` |
+| `CL` | `0x02` |
+| `DL` | `0x03` |
+| `SP` | `0x04` |
+
+### Codes des Instructions (Opcodes)
+
+#### Contrôle
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `HLT` | `HLT` | `0x00` | Implicite | `00` |
+
+#### Mouvement de données
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `MOV` | `MOV reg, byte` | `0x01` | Immédiat | `01 reg byte` |
+| | `MOV reg, reg` | `0x02` | Registre | `02 reg reg` |
+| | `MOV reg, [addr]` | `0x03` | Direct | `03 reg addr` |
+| | `MOV reg, [reg]` | `0x04` | Indirect | `04 reg reg` |
+| | `MOV reg, [SP+offset]` | `0x05` | Offset | `05 reg offset`|
+| | `MOV [addr], byte` | `0x06` | Immédiat | `06 addr byte` |
+| | `MOV [addr], reg` | `0x07` | Registre | `07 addr reg` |
+| | `MOV [reg], byte` | `0x08` | Immédiat | `08 reg byte` |
+| | `MOV [reg], reg` | `0x09` | Registre | `09 reg reg` |
+| | `MOV [SP+offset], reg`| `0x0A` | Registre | `0A offset reg`|
+
+#### Arithmétique
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `ADD` | `ADD reg, byte` | `0x0B` | Immédiat | `0B reg byte` |
+| | `ADD reg, reg` | `0x0C` | Registre | `0C reg reg` |
+| | `ADD reg, [addr]` | `0x0D` | Direct | `0D reg addr` |
+| | `ADD reg, [reg]` | `0x0E` | Indirect | `0E reg reg` |
+| `SUB` | `SUB reg, byte` | `0x0F` | Immédiat | `0F reg byte` |
+| | `SUB reg, reg` | `0x10` | Registre | `10 reg reg` |
+| | `SUB reg, [addr]` | `0x11` | Direct | `11 reg addr` |
+| | `SUB reg, [reg]` | `0x12` | Indirect | `12 reg reg` |
+| `INC` | `INC reg` | `0x13` | Registre | `13 reg` |
+| `DEC` | `DEC reg` | `0x14` | Registre | `14 reg` |
+| `NEG` | `NEG reg` | `0x15` | Registre | `15 reg` |
+| `MUL` | `MUL reg, byte` | `0x36` | Immédiat | `36 reg byte` |
+| | `MUL reg, reg` | `0x37` | Registre | `37 reg reg` |
+| | `MUL reg, [addr]` | `0x38` | Direct | `38 reg addr` |
+| | `MUL reg, [reg]` | `0x39` | Indirect | `39 reg reg` |
+| `DIV` | `DIV reg, byte` | `0x3A` | Immédiat | `3A reg byte` |
+| | `DIV reg, reg` | `0x3B` | Registre | `3B reg reg` |
+| | `DIV reg, [addr]` | `0x3C` | Direct | `3C reg addr` |
+| | `DIV reg, [reg]` | `0x3D` | Indirect | `3D reg reg` |
+
+#### Comparaison
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `CMP` | `CMP reg, byte` | `0x16` | Immédiat | `16 reg byte` |
+| | `CMP reg, reg` | `0x17` | Registre | `17 reg reg` |
+| | `CMP reg, [addr]` | `0x18` | Direct | `18 reg addr` |
+| | `CMP reg, [reg]` | `0x19` | Indirect | `19 reg reg` |
+
+#### Logique
+| Instruction | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `AND` | `AND reg, byte` | `0x3E` | Immédiat | `3E reg byte` |
+| | `AND reg, reg` | `0x3F` | Registre | `3F reg reg` |
+| | `AND reg, [addr]` | `0x40` | Direct | `40 reg addr` |
+| | `AND reg, [reg]` | `0x41` | Indirect | `41 reg reg` |
+| `OR` | `OR reg, byte` | `0x42` | Immédiat | `42 reg byte` |
+| | `OR reg, reg` | `0x43` | Registre | `43 reg reg` |
+| | `OR reg, [addr]` | `0x44` | Direct | `44 reg addr` |
+| | `OR reg, [reg]` | `0x45` | Indirect | `45 reg reg` |
+| `XOR` | `XOR reg, byte` | `0x46` | Immédiat | `46 reg byte` |
+| | `XOR reg, reg` | `0x47` | Registre | `47 reg reg` |
+| | `XOR reg, [addr]` | `0x48` | Direct | `48 reg addr` |
+| | `XOR reg, [reg]` | `0x49` | Indirect | `49 reg reg` |
+| `NOT` | `NOT reg` | `0x4A` | Registre | `4A reg` |
+| `SHL` | `SHL reg, byte` | `0x4B` | Immédiat | `4B reg byte` |
+| | `SHL reg, reg` | `0x4C` | Registre | `4C reg reg` |
+| | `SHL reg, [addr]` | `0x4D` | Direct | `4D reg addr` |
+| | `SHL reg, [reg]` | `0x4E` | Indirect | `4E reg reg` |
+| `SHR` | `SHR reg, byte` | `0x4F` | Immédiat | `4F reg byte` |
+| | `SHR reg, reg` | `0x50` | Registre | `50 reg reg` |
+| | `SHR reg, [addr]` | `0x51` | Direct | `51 reg addr` |
+| | `SHR reg, [reg]` | `0x52` | Indirect | `52 reg reg` |
+
+#### Sauts et Sous-programmes
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `JMP` | `JMP addr` | `0x1A` | Direct | `1A addr` |
+| | `JMP [reg]` | `0x1B` | Indirect | `1B reg` |
+| `JC` / `JB` | `JC addr` | `0x1C` | Direct | `1C addr` |
+| | `JC [reg]` | `0x1D` | Indirect | `1D reg` |
+| `JNC`/`JAE` | `JNC addr` | `0x1E` | Direct | `1E addr` |
+| | `JNC [reg]` | `0x1F` | Indirect | `1F reg` |
+| `JZ` / `JE` | `JZ addr` | `0x20` | Direct | `20 addr` |
+| | `JZ [reg]` | `0x21` | Indirect | `21 reg` |
+| `JNZ`/`JNE` | `JNZ addr` | `0x22` | Direct | `22 addr` |
+| | `JNZ [reg]` | `0x23` | Indirect | `23 reg` |
+| `JA` /`JNBE` | `JA addr` | `0x24` | Direct | `24 addr` |
+| | `JA [reg]` | `0x25` | Indirect | `25 reg` |
+| `JNA`/`JBE` | `JNA addr` | `0x26` | Direct | `26 addr` |
+| | `JNA [reg]` | `0x27` | Indirect | `27 reg` |
+| `JS` | `JS addr` | `0x28` | Direct | `28 addr` |
+| | `JS [reg]` | `0x29` | Indirect | `29 reg` |
+| `JNS` | `JNS addr` | `0x2A` | Direct | `2A addr` |
+| | `JNS [reg]` | `0x2B` | Indirect | `2B reg` |
+| `CALL` | `CALL addr` | `0x33` | Direct | `33 addr` |
+| | `CALL [reg]` | `0x34` | Indirect | `34 reg` |
+| `RET` | `RET` | `0x35` | Implicite | `35` |
+
+#### Pile
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `PUSH` | `PUSH byte` | `0x2C` | Immédiat | `2C byte` |
+| | `PUSH reg` | `0x2D` | Registre | `2D reg` |
+| | `PUSH [addr]` | `0x2E` | Direct | `2E addr` |
+| | `PUSH [reg]` | `0x2F` | Indirect | `2F reg` |
+| `POP` | `POP reg` | `0x30` | Registre | `30 reg` |
+| `PUSHF`| `PUSHF` | `0x31` | Implicite | `31` |
+| `POPF` | `POPF` | `0x32` | Implicite | `32` |
+
+#### Entrée/Sortie
+| Mnémonique | Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
+|:---|:---|:---:|:---|:---|
+| `OUT` | `OUT byte` | `0x53` | Immédiat | `53 byte` |
+| `IN` | `IN byte` | `0x54` | Immédiat | `54 byte` |
