@@ -37,6 +37,16 @@ public class CCompiler {
     private static final Pattern DEREF_VAR_PATTERN     = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);");
 
     private static final Pattern SUB_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);");
+    private static final Pattern ADD_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);");
+    private static final Pattern MUL_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);");
+    private static final Pattern DIV_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);");
+    private static final Pattern ADD_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);");
+    private static final Pattern SUB_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);");
+    private static final Pattern MUL_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);");
+    private static final Pattern DIV_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);");
+    private static final Pattern VAR_OP_VAR_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*([+\\-*/])\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern INCREMENT_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;");
+    private static final Pattern DECREMENT_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;");
 
     private static final Pattern MAIN_DECL_PATTERN     = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{");
     private static final Pattern FUNC_DECL_PATTERN     = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{");
@@ -44,7 +54,7 @@ public class CCompiler {
     private static final Pattern FUNC_CALL_PATTERN_2   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);");
     private static final Pattern RETURN_PATTERN        = Pattern.compile("^\\s*return\\s+(\\d+|[a-zA-Z_][a-zA-Z0-9_]*);");
 
-    private static final Pattern CONDITION_PATTERN     = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*");
+    private static final Pattern CONDITION_PATTERN     = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*");
     private static final Pattern WHILE_PATTERN         = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{");
     private static final Pattern IF_PATTERN            = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{");
 
@@ -187,8 +197,37 @@ public class CCompiler {
         Matcher assignMatcher = ASSIGNMENT_PATTERN.matcher(line);
         if (assignMatcher.matches()) return compileAssignment(assignMatcher);
 
+        Matcher addSelfAssignMatcher = ADD_SELF_ASSIGN_PATTERN.matcher(line);
+        if (addSelfAssignMatcher.matches()) return compileAddSelfAssignment(addSelfAssignMatcher);
+
+        Matcher subSelfAssignMatcher = SUB_SELF_ASSIGN_PATTERN.matcher(line);
+        if (subSelfAssignMatcher.matches()) return compileSubSelfAssignment(subSelfAssignMatcher);
+
+        Matcher mulSelfAssignMatcher = MUL_SELF_ASSIGN_PATTERN.matcher(line);
+        if (mulSelfAssignMatcher.matches()) return compileMulSelfAssignment(mulSelfAssignMatcher);
+
+        Matcher divSelfAssignMatcher = DIV_SELF_ASSIGN_PATTERN.matcher(line);
+        if (divSelfAssignMatcher.matches()) return compileDivSelfAssignment(divSelfAssignMatcher);
+
+        Matcher incrementMatcher = INCREMENT_PATTERN.matcher(line);
+        if (incrementMatcher.matches()) return compileIncrement(incrementMatcher);
+
+        Matcher decrementMatcher = DECREMENT_PATTERN.matcher(line);
+        if (decrementMatcher.matches()) return compileDecrement(decrementMatcher);
+
+        Matcher varOpVarMatcher = VAR_OP_VAR_ASSIGN_PATTERN.matcher(line);
+        if (varOpVarMatcher.matches()) return compileVarOpVarAssignment(varOpVarMatcher);
+
         Matcher subAssignMatcher = SUB_ASSIGN_PATTERN.matcher(line);
-        if (subAssignMatcher.matches()) return compileSubAssignment(subAssignMatcher);
+
+        Matcher addAssignMatcher = ADD_ASSIGN_PATTERN.matcher(line);
+        if (addAssignMatcher.matches()) return compileAddAssignment(addAssignMatcher);
+
+        Matcher mulAssignMatcher = MUL_ASSIGN_PATTERN.matcher(line);
+        if (mulAssignMatcher.matches()) return compileMulAssignment(mulAssignMatcher);
+
+        Matcher divAssignMatcher = DIV_ASSIGN_PATTERN.matcher(line);
+        if (divAssignMatcher.matches()) return compileDivAssignment(divAssignMatcher);
 
         Matcher addressOfAssignMatcher = POINTER_VAR_PATTERN.matcher(line);
         if (addressOfAssignMatcher.matches()) return compileAddressOfAssignment(addressOfAssignMatcher);
@@ -227,37 +266,61 @@ public class CCompiler {
 
         // Compile condition
         String condition = whileMatcher.group(1);
-        Matcher conditionMatcher = CONDITION_PATTERN.matcher(condition);
-        if (!conditionMatcher.matches()) {
-            throw new CompilationException("Unsupported 'while' condition: " + condition);
+        String[] andConditions = condition.split("&&");
+
+        for (String cond : andConditions) {
+            Matcher conditionMatcher = CONDITION_PATTERN.matcher(cond.trim());
+            if (!conditionMatcher.matches()) {
+                throw new CompilationException("Unsupported 'while' condition: " + cond);
+            }
+
+            String varName = conditionMatcher.group(1);
+            String operator = conditionMatcher.group(2);
+            String operandRight = conditionMatcher.group(3);
+            String jumpInstruction;
+
+            switch (operator) {
+                case ">":
+                    jumpInstruction = "JNA"; // Jump if Not Above (<=)
+                    break;
+                case "<":
+                    jumpInstruction = "JAE"; // Jump if Above or Equal (>=)
+                    break;
+                case "==":
+                    jumpInstruction = "JNE"; // Jump if Not Equal
+                    break;
+                case "!=":
+                    jumpInstruction = "JE"; // Jump if Equal
+                    break;
+                case ">=":
+                    jumpInstruction = "JB"; // Jump if Below (<)
+                    break;
+                case "<=":
+                    jumpInstruction = "JA"; // Jump if Above (>)
+                    break;
+                default:
+                    throw new CompilationException("Unsupported operator in 'while' condition: " + operator);
+            }
+
+            String addressModeLeft = getAddressMode(varName);
+
+            // Generate assembly for condition check
+            loopCode.append(String.format("    MOV AL, %s\n", addressModeLeft)); // Load left var into AL
+
+            // Check if right operand is a number or a variable
+            try {
+                int valueRight = Integer.parseInt(operandRight);
+                // It's a number literal
+                loopCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
+            } catch (NumberFormatException e) {
+                // It's a variable name
+                String addressModeRight = getAddressMode(operandRight);
+                loopCode.append(String.format("    MOV BL, %s\n", addressModeRight));
+                loopCode.append("    CMP AL, BL\n");
+            }
+
+            loopCode.append(String.format("    %s  %s\n", jumpInstruction, loopEndLabel)); // Jump if condition is false
         }
-
-        String varName = conditionMatcher.group(1);
-        String operator = conditionMatcher.group(2);
-        String operandRight = conditionMatcher.group(3);
-
-        if (!operator.equals(">")) {
-            throw new CompilationException("Unsupported operator in 'while' condition: " + operator);
-        }
-
-        String addressModeLeft = getAddressMode(varName);
-
-        // Generate assembly for condition check (for `var > value`)
-        loopCode.append(String.format("    MOV AL, %s\n", addressModeLeft)); // Load left var into AL
-
-        // Check if right operand is a number or a variable
-        try {
-            int valueRight = Integer.parseInt(operandRight);
-            // It's a number literal
-            loopCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
-        } catch (NumberFormatException e) {
-            // It's a variable name
-            String addressModeRight = getAddressMode(operandRight);
-            loopCode.append(String.format("    MOV BL, %s\n", addressModeRight));
-            loopCode.append("    CMP AL, BL\n");
-        }
-
-        loopCode.append(String.format("    JNA  %s\n", loopEndLabel)); // Jump if Not Above (if AL <= value)
 
         // Compile loop body
         int braceCount = 1; // Count for opening '{'
@@ -331,53 +394,62 @@ public class CCompiler {
 
     private String compileIfElse(Matcher ifMatcher, List<String> lines) {
         int currentLabelId = labelCounter++;
+        String elseLabel = "else_" + currentLabelId;
         String endIfLabel = "end_if_" + currentLabelId;
 
         StringBuilder ifCode = new StringBuilder();
         ifCode.append(String.format("\n; if (%s) {\n", ifMatcher.group(1)));
 
-        // Condition Compilation (similar to while)
+        // --- Condition Compilation ---
         String condition = ifMatcher.group(1);
-        Matcher conditionMatcher = CONDITION_PATTERN.matcher(condition);
-        if (!conditionMatcher.matches()) {
-            throw new CompilationException("Unsupported 'if' condition: " + condition);
+        String[] andConditions = condition.split("&&");
+
+        for (String cond : andConditions) {
+            Matcher conditionMatcher = CONDITION_PATTERN.matcher(cond.trim());
+            if (!conditionMatcher.matches()) {
+                throw new CompilationException("Unsupported 'if' condition: " + cond);
+            }
+
+            String varNameLeft = conditionMatcher.group(1);
+            String operator = conditionMatcher.group(2);
+            String operandRight = conditionMatcher.group(3);
+            String jumpInstruction;
+
+            switch (operator) {
+                case ">": jumpInstruction = "JNA"; break;
+                case "<": jumpInstruction = "JAE"; break;
+                case "==": jumpInstruction = "JNE"; break;
+                case "!=": jumpInstruction = "JE"; break;
+                case ">=": jumpInstruction = "JB"; break;
+                case "<=": jumpInstruction = "JA"; break;
+                default: throw new CompilationException("Unsupported operator in 'if' condition: " + operator);
+            }
+
+            String addressModeLeft = getAddressMode(varNameLeft);
+            ifCode.append(String.format("    MOV AL, %s\n", addressModeLeft));
+
+            try {
+                int valueRight = Integer.parseInt(operandRight);
+                ifCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
+            } catch (NumberFormatException e) {
+                String addressModeRight = getAddressMode(operandRight);
+                ifCode.append(String.format("    MOV BL, %s\n", addressModeRight));
+                ifCode.append("    CMP AL, BL\n");
+            }
+
+            // Jump to 'else' or 'end_if' if condition is false
+            ifCode.append(String.format("    %s  %s\n", jumpInstruction, elseLabel));
         }
 
-        String varNameLeft = conditionMatcher.group(1);
-        String operator = conditionMatcher.group(2);
-        String operandRight = conditionMatcher.group(3);
-
-        if (!operator.equals(">")) {
-            throw new CompilationException("Unsupported operator in 'if' condition: " + operator);
-        }
-
-        String addressModeLeft = getAddressMode(varNameLeft);
-        ifCode.append(String.format("    MOV AL, %s\n", addressModeLeft));
-
-        try {
-            int valueRight = Integer.parseInt(operandRight);
-            ifCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
-        } catch (NumberFormatException e) {
-            String addressModeRight = getAddressMode(operandRight);
-            ifCode.append(String.format("    MOV BL, %s\n", addressModeRight));
-            ifCode.append("    CMP AL, BL\n");
-        }
-
-        // Jump past the 'if' body if condition is false
-        ifCode.append(String.format("    JNA  %s\n", endIfLabel));
-
-        // Body Compilation
+        // --- IF Body Compilation ---
         int braceCount = 1;
         while (!lines.isEmpty() && braceCount > 0) {
             String line = lines.remove(0).trim();
-            if (line.equals("{")) {
-                braceCount++;
-            } else if (line.equals("}")) {
+            if (line.equals("{")) { braceCount++; }
+            else if (line.equals("}")) {
                 braceCount--;
-                if (braceCount == 0)
-                    break;
+                if (braceCount == 0) break;
             }
-
             if (braceCount > 0 && !line.equals("{")) {
                 ifCode.append(compileLine(line, lines));
             }
@@ -386,8 +458,39 @@ public class CCompiler {
             throw new CompilationException("Missing closing '}' for if block.");
         }
 
-        // End Label
-        ifCode.append(String.format("%s:\t\t\t; } end if\n", endIfLabel));
+        // --- ELSE Block Check and Compilation ---
+        if (!lines.isEmpty() && lines.get(0).trim().equals("else")) {
+            lines.remove(0); // consume 'else'
+            if (lines.isEmpty() || !lines.get(0).trim().equals("{")) {
+                throw new CompilationException("Missing '{' after 'else'.");
+            }
+            lines.remove(0); // consume '{'
+
+            ifCode.append(String.format("    JMP %s\n", endIfLabel)); // Jump over else block from if-true path
+            ifCode.append(String.format("%s:\t\t\t; } else {\n", elseLabel));
+
+            // Else-Body Compilation
+            braceCount = 1;
+            while (!lines.isEmpty() && braceCount > 0) {
+                String line = lines.remove(0).trim();
+                if (line.equals("{")) { braceCount++; }
+                else if (line.equals("}")) {
+                    braceCount--;
+                    if (braceCount == 0) break;
+                }
+                if (braceCount > 0 && !line.equals("{")) {
+                    ifCode.append(compileLine(line, lines));
+                }
+            }
+            if (braceCount > 0) {
+                throw new CompilationException("Missing closing '}' for else block.");
+            }
+            ifCode.append(String.format("%s:\t\t\t; } end if-else\n", endIfLabel));
+
+        } else {
+            // No else block, so elseLabel is the end
+            ifCode.append(String.format("%s:\t\t\t; } end if\n", elseLabel));
+        }
 
         return ifCode.toString();
     }
@@ -537,6 +640,143 @@ public class CCompiler {
         String comment = "; " + varName + " = " + varName + " - " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
         String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    private String compileAddAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " + " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    private String compileMulAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " * " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    MUL BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    private String compileDivAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " / " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    DIV BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    private String compileAddSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " += " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    private String compileSubSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " -= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    private String compileMulSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " *= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    MUL BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    private String compileDivSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " /= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    DIV BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    private String compileVarOpVarAssignment(Matcher matcher) {
+        String destVar = matcher.group(1);
+        String var1 = matcher.group(2);
+        String op = matcher.group(3);
+        String var2 = matcher.group(4);
+
+        String destAddr = getAddressMode(destVar);
+        String var1Addr = getAddressMode(var1);
+        String var2Addr = getAddressMode(var2);
+
+        String comment = String.format("; %s = %s %s %s;", destVar, var1, op, var2);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("    MOV AL, %s\t\t%s\n", var1Addr, comment));
+        sb.append(String.format("    MOV BL, %s\n", var2Addr));
+
+        switch (op) {
+            case "+":
+                sb.append("    ADD AL, BL\n");
+                break;
+            case "-":
+                sb.append("    SUB AL, BL\n");
+                break;
+            case "*":
+                sb.append("    MUL BL\n");
+                break;
+            case "/":
+                sb.append("    DIV BL\n");
+                break;
+        }
+
+        sb.append(String.format("    MOV %s, AL\n", destAddr));
+
+        return sb.toString();
+    }
+
+    private String compileIncrement(Matcher matcher) {
+        String varName = matcher.group(1);
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + "++;";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = "    INC AL\n"; // INC increments AL by 1
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    private String compileDecrement(Matcher matcher) {
+        String varName = matcher.group(1);
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + "--;";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = "    DEC AL\n"; // DEC decrements AL by 1
         String line3 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3;
     }

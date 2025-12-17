@@ -46,7 +46,7 @@ public class EditorPanel extends JPanel {
     private File currentFile;
     private static File lastDirectory = null;
     
-    private static final Color HIGHLIGHT_COLOR = new Color(255, 255, 0, 100); // Yellow with transparency
+    private static final Color HIGHLIGHT_COLOR = new Color(0, 255, 0, 100); // Green with transparency
     private static final Color ERROR_HIGHLIGHT_COLOR = new Color(255, 0, 0, 100); // Red with transparency
     private Object errorHighlightTag = null;
 

@@ -18,3 +18,6 @@ run-build.sh
 run-dev.sh
 javadoc.sh
 gemini.sh
+
+# Configuration de Gemini
+GEMINI.md

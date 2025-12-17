@@ -126,7 +126,11 @@ Ce périphérique représente un système de chauffage simple.
 
 1.  **Écrivez votre code :**
 	- Tapez votre programme dans l'éditeur de code.
-2.  **Assemblez-le :**
+	- Ou déposez un fichier .c ou .asm dans l'éditeur.
+2. **Compilez-le :**
+	- Si c'est un programme C vous devez le compiler pour produire un code ASM.
+	- Le compilateur C est extrêmement limité (voir la <a href=#compiler>syntaxe</a> supportée).
+3.  **Assemblez-le :**
 	- Cliquez sur le bouton "Assembler". Les erreurs de syntaxe seront affichées dans une fenêtre de dialogue.
 3.  **Exécutez votre programme :**
 	- Cliquez sur "Exécuter" pour lancer le programme et réglez la vitesse d'exécution.
@@ -233,6 +237,8 @@ Ce tableau résume quelles instructions affectent quels drapeaux :
 | `Jumps`, `CALL`, `RET` | - | - | - | - |
 | `PUSHF`, `POPF` | ✓ | ✓ | ✓ | ✓ |
 
+![sep](img/sep.png)
+
 ## 2. Directives d'assemblage
 
 Une directive d'assemblage n'est pas une instruction du microprocesseur, c'est une commande envoyée à l'assembleur au moment de la production du code exécutable.
@@ -249,6 +255,8 @@ Une directive d'assemblage n'est pas une instruction du microprocesseur, c'est u
     - `DB 'char'`
     - `DB "string"`
 
+![sep](img/sep.png)
+
 ## 3. Jeu d'instructions du micro-processeur
 
 Le processeur ne comprend pas directement les instructions textuelles comme `MOV AL, 0x10`. L'assembleur se charge de traduire chaque ligne de code en une séquence d'octets que le CPU peut exécuter : c'est le **code machine**. Par exemple, `MOV AL, 0x10` est traduit par la séquence `01 00 10` (trois octets notés en hexa).
@@ -264,7 +272,7 @@ Toute opérande de type `reg` est codée sur un octet :
 | `CL` | `0x02` |
 | `DL` | `0x03` |
 
-###Contrôle du programme :
+### Contrôle du programme :
 
 ### `HLT` (halt)
 - **Description :** Arrête l'exécution du programme.
@@ -344,7 +352,7 @@ Toute opérande de type `reg` est codée sur un octet :
 | `MUL reg, [addr]` | `0x38` | Direct | `38 reg addr` |
 | `MUL reg, [reg]` | `0x39` | Indirect | `39 reg reg` |
 
-#### `DIV` (division)
+### `DIV` (division)
 - **Description :** Divise la valeur de la source au registre de destination.
 
 | Syntaxe | Opcode | Adressage | Format en Mémoire |
@@ -563,6 +571,8 @@ Toute opérande de type `reg` est codée sur un octet :
 |:---|:---:|:---|:---|
 | `IN byte` | `0x54` | Immédiat | `54 byte` |
 
+![sep](img/sep.png)
+
 ## 4. Exemple de code assembleur
 
 L'incontournable "Hello World" dans sa version MicroSim x86 :
@@ -590,3 +600,136 @@ Fin:
 	db	"Hello World"
 	db	0x00
 ```
+
+![sep](img/sep.png)
+
+<div id="compiler"></div>
+## 5. Syntaxe C supportée par le mini-compilateur
+
+Cette partie résume la syntaxe du langage C reconnue par le mini-compilateur intégré au simulateur MicroSim. Le compilateur est très basique et ne supporte qu'un sous-ensemble strict du C.
+
+- **Point d'entrée** : Le programme doit obligatoirement contenir une fonction `void main()`
+- **Modèle mémoire** : Les variables sont allouées statiquement. Il n'y a pas de pile dynamique pour les variables locales au-delà des paramètres de fonction.
+
+### Déclaration et affectation des variables :
+
+- **Déclaration simple** : `int ma_variable;`
+- **Déclaration avec initialisation** : `int compteur = 10;`
+- **Types de données** : Le seul type de données géré est `int`
+- **Assigner une valeur numérique** : `compteur = 25;`
+- **Assigner la valeur d'une autre variable** : `var2 = var1;`
+
+### Opérateurs arithmétiques :
+
+Le compilateur supporte les opérations arithmétiques entre deux variables ou entre une variable et une valeur numérique :
+
+```c
+resultat = variable1 + variable2;
+resultat = variable1 - variable2;
+resultat = variable1 * variable2;
+resultat = variable1 / variable2;
+resultat = variable1 + 10;
+resultat = variable1 - 10;
+resultat = variable1 * 2;
+resultat = variable1 / 2;
+```
+
+Les opérateurs d'auto-assignation sont également supportés avec une valeur numérique. Les opérations entre deux variables ne peuvent pas être combinées avec les opérateurs d'auto-assignation. Les opérateurs `++` (incrémentation) et `--` (décrémentation) sont également supportés :
+
+```c
+variable += 10;
+variable -= 10;
+variable *= 2;
+variable /= 2;
+variable++;
+variable--;
+```
+
+### Opérateurs de pointeur :
+
+Les opérateurs d'adresse `&` et de déréférencement `*` sont supportés pour les assignations simples :
+
+- **Prendre l'adresse d'une variable** :
+
+  ```c
+  int valeur = 123;
+  int ptr;
+  ptr = &valeur; // ptr contient maintenant l'adresse de 'valeur'
+  ```
+
+- **Obtenir la valeur pointée (déréférencement)** :
+
+  ```c
+  int resultat;
+  // Suite de l'exemple précédent
+  resultat = *ptr; // resultat vaut maintenant 123
+  ```
+
+### Opérateurs de comparaison :
+
+Les opérateurs `>`, `<`, `==`, `!=`, `>=` et `<=` sont supportés dans les conditions `if` et `while` :
+
+```c
+if (compteur <= 10) {
+  // ...
+}
+
+while (compteur != 0) {
+  // ...
+}
+```
+
+### Opérateurs logiques :
+
+L'opérateur logique `&&` est supporté pour combiner plusieurs conditions mais l'opérateur `||` n'est pas supporté :
+
+```c
+if (a > 5 && b < 10) {
+  // ...
+}
+```
+
+### Structures de contrôle :
+
+Les structures `if` et `if else` sont supportées mais le `else if` n'est pas reconnu :
+
+```c
+if (variable > 5) {
+  // Code à exécuter si la condition est vraie
+}
+
+if (variable > 5) {
+  // Code à exécuter si la condition est vraie
+} else {
+  // Code à exécuter si la condition est fausse
+}
+```
+
+La boucle `while` est supportée. La condition peut utiliser tous les opérateurs de comparaison supportés :
+
+```c
+while (compteur != 0) {
+  compteur = compteur - 1;
+}
+```
+
+### Fonctions :
+
+Chaque programme doit avoir une fonction `main` qui sert de point d'entrée :
+
+```c
+void main() {
+  // Le programme commence ici
+}
+```
+
+Les autres fonctions doivent obligatoirement retourner un `int` et prendre un seul paramètre de type `int` :
+
+```c
+int ma_fonction(int parametre) {
+  // ...
+  return parametre;
+}
+```
+
+![sep](img/sep.png)
