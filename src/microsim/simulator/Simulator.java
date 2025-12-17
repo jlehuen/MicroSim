@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.0
- * @since 2025-12-09
+ * @version 1.1
+ * @since 2025-12-17
  *
  * License: GNU General Public License v3.0
  */
@@ -101,7 +101,7 @@ public class Simulator {
         running = true;
         stepRequested = false;
 
-        mainFrame.getToolBar().simulationStarted(); // Notify toolbar to update buttons state
+        mainFrame.getToolBar().update(); // Notify toolbar to update buttons state
         mainFrame.getEditor().getTextArea().setHighlightCurrentLine(false); // Disable current line highlight
         mainFrame.getEditor().getTextArea().setEnabled(false);
 
@@ -180,7 +180,7 @@ public class Simulator {
                 }
                 mainFrame.getEditor().getTextArea().setHighlightCurrentLine(true);
                 mainFrame.getEditor().getTextArea().setEnabled(true);
-                mainFrame.getToolBar().simulationStopped();
+                mainFrame.getToolBar().update();
             });
         });
         cpuThread.start();
@@ -216,6 +216,20 @@ public class Simulator {
         }
     }
 
+    private int getLineFromException(Exception e) {
+        String message = e.getMessage();
+        if (message != null && message.contains(" on line ")) {
+            try {
+                String sLine = message.substring(message.lastIndexOf(" on line ") + 9);
+                sLine = sLine.replaceAll("[^0-9]", "");
+                return Integer.parseInt(sLine) - 1;
+            } catch (NumberFormatException ex) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Assembles the given assembly program text.
      * On success, the machine code is loaded into RAM.
@@ -225,6 +239,7 @@ public class Simulator {
      */
     public boolean assemble(String program) {
         try {
+            mainFrame.getEditor().removeErrorHighlight();
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
             addressToLineMap = result.addressToLineMap;
@@ -235,6 +250,10 @@ public class Simulator {
             });
             return true;
         } catch (IllegalArgumentException e) {
+            int line = getLineFromException(e);
+            if (line != -1) {
+                mainFrame.getEditor().highlightErrorLine(line);
+            }
             JOptionPane.showMessageDialog(MicroSim.self, "Assembly Error: " + e.getMessage(), "Assembly Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -267,6 +286,7 @@ public class Simulator {
      */
     public boolean loadFile(String path) {
         try {
+            mainFrame.getEditor().removeErrorHighlight();
             String program = new String(Files.readAllBytes(Paths.get(path)));
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
@@ -284,6 +304,10 @@ public class Simulator {
             JOptionPane.showMessageDialog(MicroSim.self, "Error reading file '" + path + "': " + e.getMessage(), "I/O Error", JOptionPane.ERROR_MESSAGE);
             return false;
         } catch (IllegalArgumentException e) {
+            int line = getLineFromException(e);
+            if (line != -1) {
+                mainFrame.getEditor().highlightErrorLine(line);
+            }
             JOptionPane.showMessageDialog(MicroSim.self, "Assembly Error: " + e.getMessage(), "Assembly Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }

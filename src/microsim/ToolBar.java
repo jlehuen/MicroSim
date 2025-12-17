@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.0
- * @since 2025-12-09
+ * @version 1.1
+ * @since 2025-12-17
  *
  * License: GNU General Public License v3.0
  */
@@ -24,8 +24,10 @@ import microsim.devices.LightsFrame;
 import microsim.devices.MemoryFrame;
 import microsim.editor.EditorPanel;
 import microsim.editor.SpeedSlider;
+import microsim.editor.Formatter;
 import microsim.simulator.Simulator;
 import microsim.simulator.Utils;
+import microsim.compiler.CCompiler;
 
 /**
  * The ToolBar class creates and manages the main toolbar of the application.
@@ -41,6 +43,7 @@ public class ToolBar extends JToolBar {
     // Icons for simulation control
     private ImageIcon iconRunning = Utils.loadImageIcon("/icons/icon_running.gif");
     private ImageIcon iconRun = Utils.loadImageIcon("/icons/icon_start.png");
+    private ImageIcon iconComp = Utils.loadImageIcon("/icons/icon_comp.png");
     private ImageIcon iconAsm = Utils.loadImageIcon("/icons/icon_asm.png");
     private ImageIcon iconRam = Utils.loadImageIcon("/icons/icon_ram.png");
     private ImageIcon iconReset = Utils.loadImageIcon("/icons/icon_reset.png");
@@ -54,6 +57,7 @@ public class ToolBar extends JToolBar {
     // Icons for file and editor operations
     private ImageIcon iconNew = Utils.loadImageIcon("/icons/icon_new.png");
     private ImageIcon iconOpen = Utils.loadImageIcon("/icons/icon_open.png");
+    private ImageIcon iconSave = Utils.loadImageIcon("/icons/icon_save.png");
     private ImageIcon iconUndo = Utils.loadImageIcon("/icons/icon_undo.png");
     private ImageIcon iconRedo = Utils.loadImageIcon("/icons/icon_redo.png");
     private ImageIcon iconMagic = Utils.loadImageIcon("/icons/icon_magic.png");
@@ -66,9 +70,9 @@ public class ToolBar extends JToolBar {
     private ImageIcon iconManual = Utils.loadImageIcon("/icons/icon_man.png");
 
     // Toolbar buttons
-    private ToolButton runButton, asmButton;
+    private ToolButton runButton, compButton, asmButton;
     private ToolButton asciiButton, keybButton, lightsButton, heaterButton;
-    private ToolButton newButton, openButton, undoButton, redoButton, magicButton;
+    private ToolButton newButton, openButton, saveButton,undoButton, redoButton, magicButton;
     private ToolButton modeButton, stepButton;
 
     /**
@@ -84,7 +88,9 @@ public class ToolBar extends JToolBar {
         add(runButton = new ToolButton("RUN", "--", "Start / stop the execution", iconRun, this));
         add(modeButton = new ToolButton("STEPMODE", "--", "Step by step mode", iconStepOff, this));
         add(stepButton = new ToolButton("STEP", "--", "Execute one instruction", iconStep, this));
+        add(compButton = new ToolButton("COMP", "--", "Compile C code to assembly", iconComp, this));
         add(asmButton = new ToolButton("ASM", "--", "Assemble the machine code", iconAsm, this));
+
         add(new ToolButton("RAM", "--", "Show / hide the memory content", iconRam, this));
         add(new ToolButton("RESET", "--", "Reset the system", iconReset, this));
 
@@ -96,11 +102,11 @@ public class ToolBar extends JToolBar {
 
         addSeparator();
         add(newButton = new ToolButton("NEW", "--", "New program file", iconNew, this));
-        add(openButton = new ToolButton("OPEN", "--", "Open program file", iconOpen, this));   
+        add(openButton = new ToolButton("OPEN", "--", "Open program file", iconOpen, this));
+        add(saveButton = new ToolButton("SAVE", "--", "Save program file as", iconSave, this));
         add(undoButton = new ToolButton("UNDO", "--", "Undo edition", iconUndo, this));   
         add(redoButton = new ToolButton("REDO", "--", "Redo edition", iconRedo, this));
         add(magicButton = new ToolButton("MAGIC", "--", "Reformat code", iconMagic, this));
-
         add(Box.createHorizontalGlue());
         add(new SpeedSlider(simulator));
         add(Box.createHorizontalGlue());
@@ -108,6 +114,34 @@ public class ToolBar extends JToolBar {
         add(new ToolButton("HELP", "--", "User manual", iconManual, this));
 
         stepButton.setEnabled(false); // Step button only works in stepmode
+        update(); // Initial update to set button states
+    }
+
+    /**
+     * Updates the state of the toolbar buttons based on the current editor content.
+     * Enables or disables buttons as appropriate.
+     */
+    public void update() {
+        boolean isCFile = editor.isCFile();
+        boolean isRunning = simulator.isRunning();
+        //boolean canUndo = editor.getTextArea().canUndo();
+        //boolean canRedo = editor.getTextArea().canRedo();
+
+        runButton.setIcon(isRunning ? iconRunning : iconRun);
+        compButton.setEnabled(!isRunning && isCFile);
+        asmButton.setEnabled(!isRunning);
+
+        keybButton.setEnabled(!isRunning);
+        asciiButton.setEnabled(!isRunning);
+        lightsButton.setEnabled(!isRunning);
+        heaterButton.setEnabled(!isRunning);
+
+        newButton.setEnabled(!isRunning);
+        openButton.setEnabled(!isRunning);
+        saveButton.setEnabled(!isRunning);
+        undoButton.setEnabled(!isRunning);
+        redoButton.setEnabled(!isRunning);
+        magicButton.setEnabled(!isRunning); 
     }
 
     /**
@@ -118,6 +152,7 @@ public class ToolBar extends JToolBar {
 		switch (ident) {
 			case "RUN": action_run(); break;
             case "ASM": action_asm(); break;
+            case "COMP": action_comp(); break;
             case "RAM": MemoryFrame.INSTANCE.toggleVisible(); break;
             case "RESET": action_reset(); break;
 
@@ -128,6 +163,7 @@ public class ToolBar extends JToolBar {
 
             case "NEW": editor.newFile(); break;
             case "OPEN": editor.openFile(); break;
+            case "SAVE": editor.saveFileAs(); break;
             case "UNDO": editor.undo(); break;
             case "REDO": editor.redo(); break;
             case "MAGIC": editor.reformat(); break;
@@ -143,6 +179,35 @@ public class ToolBar extends JToolBar {
         simulator.reset();
         simulator.stepmode = false;
         modeButton.setIcon(iconStepOff);
+    }
+    
+    /**
+     * Compiles the C code from the editor.
+     */
+    private void action_comp() {
+        String sourceCode = editor.getTextArea().getText();
+        if (sourceCode.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(MicroSim.self, "The editor is empty, there is nothing to compile.", "C Compilation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        try {
+            if (editor.getCurrentFile() != null) {
+                editor.saveFile();
+            }
+
+            CCompiler compiler = new CCompiler();
+            String assemblyCode = compiler.compile(sourceCode);
+
+            int tabSize = editor.getTextArea().getTabSize();
+            assemblyCode = Formatter.reformat(assemblyCode, tabSize);
+
+            editor.setNewContent(assemblyCode);
+            editor.saveFileAs();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(MicroSim.self, "Error during C compilation:\n" + e.getMessage(), "C Compilation Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -175,46 +240,6 @@ public class ToolBar extends JToolBar {
         }
         simulator.assemble(code);
         MemoryFrame.INSTANCE.setVisible(true); 
-    } 
-
-    /**
-     * Updates the state of the toolbar buttons when the simulation starts.
-     * Disables buttons that should not be used during execution.
-     */
-    public void simulationStarted() {
-        runButton.setIcon(iconRunning);
-        asmButton.setEnabled(false);
-
-        keybButton.setEnabled(false);
-        asciiButton.setEnabled(false);
-        lightsButton.setEnabled(false);
-        heaterButton.setEnabled(false);
-
-        newButton.setEnabled(false);
-        openButton.setEnabled(false);
-        undoButton.setEnabled(false);
-        redoButton.setEnabled(false);
-        magicButton.setEnabled(false); 
-    }
-
-    /**
-     * Updates the state of the toolbar buttons when the simulation stops.
-     * Re-enables buttons that were disabled during execution.
-     */
-    public void simulationStopped() {
-        runButton.setIcon(iconRun);
-        asmButton.setEnabled(true);
-
-        keybButton.setEnabled(true);
-        asciiButton.setEnabled(true);
-        lightsButton.setEnabled(true);
-        heaterButton.setEnabled(true);
-
-        newButton.setEnabled(true);
-        openButton.setEnabled(true);
-        undoButton.setEnabled(true);
-        redoButton.setEnabled(true);
-        magicButton.setEnabled(true);
     }
 
     /**

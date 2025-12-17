@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.0
- * @since 2025-12-09
+ * @version 1.1
+ * @since 2025-12-17
  *
  * License: GNU General Public License v3.0
  */
@@ -98,6 +98,9 @@ public class MicroSim extends JFrame {
      * @param args Command line arguments (not used).
      */
     public static void main(String[] args) {
+        // Set the application name for the macOS menu bar
+        System.setProperty("apple.awt.application.name", "MicroSim 8 bits");
+
         // Force the application to use the English locale
         Locale.setDefault(Locale.US);
 

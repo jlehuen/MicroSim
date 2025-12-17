@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.0
- * @since 2025-12-09
+ * @version 1.1
+ * @since 2025-12-17
  *
  * License: GNU General Public License v3.0
  */
@@ -38,15 +38,6 @@ public class Formatter {
      */
     private static boolean isJumpOrCall(String mnemonic) {
         return JUMP_MNEMONICS.contains(mnemonic.toUpperCase());
-    }
-
-    /**
-     * Capitalizes the first letter of a string and converts the rest to lowercase.
-     * @param s The string to capitalize.
-     * @return The capitalized string.
-     */
-    private static String capitalise(String s) {
-        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 
     /**
@@ -97,7 +88,7 @@ public class Formatter {
             if (labelIndex != -1) {
                 String originalLabel = codePart.substring(0, labelIndex).trim();
                 if (!originalLabel.isEmpty()) {
-                    labelMap.put(originalLabel.toLowerCase(), capitalise(originalLabel));
+                    labelMap.put(originalLabel.toLowerCase(), originalLabel);
                 }
             }
         }
@@ -228,8 +219,11 @@ public class Formatter {
                     newText.append(" ".repeat(spacesNeeded));
                     newText.append(comment);
                 } else { // Comment on empty line or label line
-                    if (!code.endsWith("\n") && !code.isEmpty()) newText.append("\n");
-                    newText.append("\t\t\t").append(comment);
+                    int currentLength = calculateVisualLength(code, tabSize);
+                    int spacesNeeded = commentColumn - currentLength;
+                    if (spacesNeeded < 1) spacesNeeded = 4; // Min 4 spaces
+                    newText.append(" ".repeat(spacesNeeded));
+                    newText.append(comment);
                 }
             }
             if (i < lines.length - 1) {

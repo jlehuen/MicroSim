@@ -491,24 +491,24 @@ code {
 }
 </style>
 
-<h1 id="toc_0">MicroSim 8 bits</h1>
+<h1 id="toc_0">MicroSim x86</h1>
 
 <h2 id="toc_1">1. Introduction</h2>
 
-<p>MicroSim est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l&#39;apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (adresses 8 bits) ainsi que plusieurs périphériques virtuels interactifs.</p>
+<p>MicroSim x86 est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l&#39;apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (données et adresses sur 8 bits) ainsi que plusieurs périphériques virtuels interactifs.</p>
 
 <p>L&#39;objectif est d&#39;illustrer les concepts fondamentaux de l&#39;architecture des ordinateurs, tels que les registres, la mémoire, la pile, et le fonctionnement interne d&#39;un CPU à travers un jeu d&#39;instructions simple, mais complet et réaliste.</p>
 
-<p>MicroSim est multiplateforme (car développé en Java) et comme il embarque sa propre machine virtuelle, il est autonome : pas besoin d&#39;installer Java sur la machine hôte. Pour l&#39;instant, seuls les binaires Macos et Linux sont packagés.</p>
+<p>MicroSim est multiplateforme (car développé en Java) et comme il embarque sa propre machine virtuelle, il est autonome : pas besoin d&#39;installer Java sur la machine hôte. Des scripts bash de packaging sont proposés pour chaque plateforme.</p>
 
-<p>Ce projet est inspiré de deux autres projets open-source similaires :</p>
+<p>Ce projet d&#39;inspire de deux autres projets open-source similaires :</p>
 
 <ul>
 <li>Le simulateur <a href="https://github.com/dwhinham/Microprocessor-Simulator">x86 Microprocessor Simulator</a> de C. N. Bauers, hébergé par Dale Whinham.</li>
 <li>Le simulateur en ligne <a href="https://github.com/Schweigi/assembler-simulator">Simple 8-bit Assembler Simulator</a> de Marco Schweighauser.</li>
 </ul>
 
-<h2 id="toc_2">2. Interface principale</h2>
+<h2 id="toc_2">2. Interface graphique</h2>
 
 <p>L&#39;interface du simulateur comprends plusieurs zones qui vous permettent d&#39;écrire, d&#39;exécuter et de déboguer du code x86. Le contenu de la mémoire et des registres sont actualisés en continu pendant l&#39;exécution, à vitesse ajustable ou en mode pas-à-pas :</p>
 
@@ -516,7 +516,7 @@ code {
 
 <h3 id="toc_3">L&#39;éditeur de code :</h3>
 
-<p>C&#39;est la zone où vous écrivez votre programme en assembleur. L&#39;éditeur offre une coloration syntaxique pour une meilleure lisibilité, ainsi qu&#39;une fonction de reformatage (beautifier) afin de normaliser la mise en forme du code.</p>
+<p>C&#39;est la zone où vous écrivez votre programme en assembleur. L&#39;éditeur offre une coloration syntaxique pour une meilleure lisibilité, ainsi qu&#39;une fonction de reformatage / <em>beautifier</em> afin de normaliser la mise en forme du code.</p>
 
 <h3 id="toc_4">Le panneau des registres :</h3>
 
@@ -525,29 +525,84 @@ code {
 <ul>
 <li><strong>Registres généraux :</strong> <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code></li>
 <li><strong>Registres spécialisés :</strong> <code>IP</code> (Instruction Pointer) et <code>SP</code> (Stack Pointer)</li>
-<li><strong>Registre d&#39;état (flags) :</strong> <code>SR</code> affiche les drapeaux <code>...SZOCF</code> qui indiquent le résultat de la dernière opération.</li>
+<li><strong>Registre d&#39;état (flags) :</strong> <code>SR</code> affiche les drapeaux <code>...SZOCF</code> qui caractérisent la dernière opération.</li>
 </ul>
 
 <h3 id="toc_5">La barre d&#39;outils :</h3>
 
 <p>Située au dessus de l&#39;éditeur, elle donne accès aux fonctionnalités principales :</p>
 
+<p><img src="img/barre.png" alt="center"></p>
+
 <ul>
-<li>Créer un nouveau fichier assembleur ou ouvrir un fichier existant ;</li>
-<li>Assembler le code source en code exécutable et le charger en mémoire ;</li>
-<li>Contrôler l&#39;exécution du programme en continu ou en mode pas-à-pas ;</li>
-<li>Accéder à la mémoire RAM et aux périphériques virtuels.</li>
+<li><strong>Start / stop :</strong> Démarre / arrête l&#39;exécution du programme (un curseur permet de régler la vitesse).</li>
+<li><strong>Step-by-step :</strong> Active / désactive le mode pas-à-pas, pour une analyse détaillée.</li>
+<li><strong>Execute one :</strong> Exécute une instruction lorsque le mode pas-à-pas est activé.</li>
+<li><strong>Compile :</strong> Compile un petit programme en langage C vers un code assembleur MicroSim.</li>
+<li><strong>Assemble :</strong> Traduit le code source en code machine exécutable et le charge en mémoire.</li>
+<li><strong>Show / hide RAM :</strong> Ouvre la fenêtre de visualisation du contenu de la mémoire 256 octets.</li>
+<li><strong>Reset the system :</strong> Réinitialise le processeur et la mémoire du simulateur.</li>
+<li><strong>Show / hide the display :</strong> Ouvre / Ferme le terminal ASCII 4 lignes de 16 caractères.</li>
+<li><strong>Show / hide the keyboard :</strong> Ouvre / Ferme le clavier (représente le clavier physique).</li>
+<li><strong>Show / hide the traffic lights :</strong> Ouvre / Ferme les feux tricolores de circulation.</li>
+<li><strong>Show / hide the heater device :</strong> Ouvre / Ferme le combiné chaudière-thermostat.</li>
+<li><strong>New program file :</strong> Crée un nouveau fichier assembleur dans l&#39;éditeur de code.</li>
+<li><strong>Open program file :</strong> Ouvre un fichier existant dans l&#39;éditeur de code.</li>
+<li><strong>Save program as :</strong> Sauvegarde le programme de l&#39;éditeur vers un fichier.</li>
+<li><strong>Undo edition :</strong> Annule une modification dans l&#39;éditeur.</li>
+<li><strong>Redo edition :</strong> Refait une modification annulée.</li>
+<li><strong>Reformat code :</strong> Normalise la mise en forme du code assembleur.</li>
+<li><strong>Execution speed :</strong> Ajuste la vitesse d&#39;exécution du programme.</li>
+<li><strong>User manual :</strong> Ouvre cette documentation dans un navigateur.</li>
 </ul>
 
 <h3 id="toc_6">La mémoire RAM :</h3>
 
-<p>Il est possible de visualiser le contenu de la mémoire vive (RAM) sou forme d&#39;une table de 16x16 octets notés sous forme hexadécimale ou ASCII. C&#39;est un outil essentiel pour déboguer et comprendre comment vos données et votre code sont stockés. La visualisation indique également les emplacements pointés par les regitres <code>IP</code> (en rouge) et <code>SP</code> (en bleu) :</p>
+<p>Il est possible de visualiser le contenu de la mémoire vive (RAM) sous la forme d&#39;une table de 16x16 octets notés sous forme hexadécimale ou ASCII. C&#39;est un outil essentiel pour déboguer et comprendre comment vos données et votre code sont stockés. La visualisation indique également les emplacements pointés par les regitres <code>IP</code> (en rouge) et <code>SP</code> (en bleu) :</p>
 
 <p><img src="img/ram.png" alt="center"></p>
 
-<h2 id="toc_7">3. Les périphériques virtuels</h2>
+<h2 id="toc_7">3. Périphériques virtuels</h2>
 
-<p>MicroSim inclus plusieurs périphériques d&#39;entrée/sortie qui peuvent être contrôlés par programme :</p>
+<p>MicroSim x86 inclus plusieurs périphériques d&#39;entrée/sortie qui peuvent être contrôlés par programme via des adresses mémoire ou des ports d&#39;E/S.</p>
+
+<table>
+<thead>
+<tr>
+<th>Périphérique</th>
+<th>Type</th>
+<th>Adresse / Port</th>
+<th>Opération</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Terminal ASCII</td>
+<td>Mémoire</td>
+<td><code>0xC0</code> à <code>0xFF</code></td>
+<td><code>MOV [addr], AL</code></td>
+</tr>
+<tr>
+<td>Clavier</td>
+<td>Port</td>
+<td><code>0x01</code></td>
+<td><code>IN 0x01</code></td>
+</tr>
+<tr>
+<td>Feux tricolores</td>
+<td>Port</td>
+<td><code>0x02</code></td>
+<td><code>OUT 0x02</code></td>
+</tr>
+<tr>
+<td>Chauffage</td>
+<td>Port</td>
+<td><code>0x03</code></td>
+<td><code>IN 0x03</code> / <code>OUT 0x03</code></td>
+</tr>
+</tbody>
+</table>
 
 <h3 id="toc_8">Le terminal ASCII (mapé en mémoire) :</h3>
 
@@ -563,35 +618,52 @@ code {
 
 <h3 id="toc_10">Les feux tricolores (via le port 02) :</h3>
 
-<p>Ce périphérique simule deux feux de circulation qu&#39;il est possible de contrôler via l&#39;intruction <code>OUT 0x02</code>. L&#39;octet présent dans le regitre <code>AL</code> sera envoyé au périphérique :</p>
+<p>Ce périphérique simule deux feux de circulation. L&#39;instruction <code>OUT 0x02</code> envoie la valeur du registre <code>AL</code> au périphérique pour contrôler les lumières. Chaque bit de l&#39;octet dans <code>AL</code> correspond à une couleur d&#39;un des deux feux :</p>
 
 <p><img src="img/lights.png" alt="center"></p>
 
 <h3 id="toc_11">Le système de chauffage (via le port 03) :</h3>
 
-<p>Ce périphérique représente un système de chauffage composé d&#39;une chaudière pilotée via l&#39;instruction <code>OUT 0x03</code> et d&#39;un thermostat accessible via l&#39;intruction <code>IN 0x03</code>. L&#39;objectif est de piloter la chaudière pour maintenir une température constante :</p>
+<p>Ce périphérique représente un système de chauffage simple.</p>
+
+<ul>
+<li>L&#39;instruction <code>OUT 0x03</code> contrôle la chaudière selon la valeur du bit 7 (MSB) du registre <code>AL</code>.</li>
+<li>L&#39;instruction <code>IN 0x03</code> modifie le registre <code>AL</code> selon l&#39;état du système (bits 0, 1 et 7).</li>
+</ul>
 
 <p><img src="img/heater.png" alt="center"></p>
 
 <h2 id="toc_12">4. Guide de démarrage rapide</h2>
 
 <ol>
-<li> <strong>Écrivez votre code :</strong> Tapez votre programme dans l&#39;éditeur de code.</li>
-<li> <strong>Assemblez-le :</strong> Cliquez sur le bouton &ldquo;Assembler&rdquo;. Les erreurs de syntaxe seront affichées dans une fenêtre de dialogue.</li>
+<li> <strong>Écrivez votre code :</strong>
+
+<ul>
+<li>Tapez votre programme dans l&#39;éditeur de code.</li>
+</ul></li>
+<li> <strong>Assemblez-le :</strong>
+
+<ul>
+<li>Cliquez sur le bouton &ldquo;Assembler&rdquo;. Les erreurs de syntaxe seront affichées dans une fenêtre de dialogue.</li>
+</ul></li>
 <li> <strong>Exécutez votre programme :</strong>
 
 <ul>
 <li>Cliquez sur &ldquo;Exécuter&rdquo; pour lancer le programme et réglez la vitesse d&#39;exécution.</li>
-<li>Cliquez sur &ldquo;Pas à pas&rdquo; pour exécuter une instruction à la fois et observer les effets de chaque instruction sur les registres et la mémoire.</li>
+<li>Cliquez sur &ldquo;Pas-à-pas&rdquo; pour exécuter une instruction à la fois et observer les effets de chaque instruction sur les registres et la mémoire.</li>
 </ul></li>
-<li> <strong>Déboguez :</strong> Utilisez le mode &ldquo;Pas à pas&rdquo; et les fenêtres des périphériques pour trouver et corriger les erreurs dans votre logique.</li>
+<li> <strong>Déboguez :</strong>
+
+<ul>
+<li>Utilisez le mode pas-à-pas et les fenêtres des périphériques pour trouver et corriger les erreurs dans votre logique.</li>
+</ul></li>
 </ol>
 
 <p><img src="img/sep.png" alt="sep"></p>
 
 <p><center></p>
 
-<h1 id="toc_13">Manuel de référence de l&#39;assembleur</h1>
+<h1 id="toc_13">Référence de l&#39;assembleur MicroSim x86</h1>
 
 <p></center></p>
 
@@ -599,10 +671,10 @@ code {
 
 <h3 id="toc_15">Les registres <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code>, <code>SP</code>, <code>IP</code>, <code>SR</code> :</h3>
 
-<p>Les registres sont des zones de stockage ultra-rapides intégrées au CPU. Leur taille correspond à la taille des bus internes du microprocesseur (soit 8 bits), Pour manipuler une donnée, le processeur doit d&#39;abord la charger depuis la mémoire dans un de ses registres. On distingue les registres à usage général et les registres spécialisés :</p>
+<p>Les registres sont des zones de stockage ultra-rapides intégrées au cœur du CPU. Leur taille correspond à la taille des bus internes du microprocesseur (soit 8 bits), Pour manipuler une donnée, le processeur doit d&#39;abord la charger depuis la mémoire dans un de ses registres. On distingue les registres à usage général et les registres spécialisés :</p>
 
 <ul>
-<li><strong>Registres généraux <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code> :</strong> Utilisés pour les calculs (<code>ADD</code>, <code>SUB</code>, etc.), les comparaisons (<code>CMP</code>) et le stockage temporaire de données (<code>MOV</code>).</li>
+<li><strong>Registres généraux <code>AL</code>, <code>BL</code>, <code>CL</code>, <code>DL</code> :</strong> Utilisés pour les calculs (<code>ADD</code>, <code>SUB</code>, etc.), les comparaisons (<code>CMP</code>) et les mouvements de données (<code>MOV</code>).</li>
 <li><strong>Pointeur de pile <code>SP</code> :</strong> Un registre spécial qui contient l&#39;adresse du sommet de la pile. Il est modifié par les instructions dédiées <code>PUSH</code> et <code>POP</code>.</li>
 <li><strong>Pointeur d&#39;instruction <code>IP</code> :</strong> Pointe toujours vers la prochaine instruction à exécuter. Vous ne le modifiez jamais directement, mais via les instructions de saut (<code>JMP</code>, <code>CALL</code>, etc.).</li>
 <li><strong>Le registre d&#39;état <code>SR</code> :</strong> Contient des drapeaux (flags) qui donnent des informations sur le résultat de la dernière opération effectuée. C&#39;est un octet de la forme <code>...SZOCF</code> où chaque lettre correspond à un bit significatif :</li>
@@ -621,27 +693,27 @@ code {
 <tr>
 <td style="text-align: center"><code>S</code></td>
 <td style="text-align: center">Sign</td>
-<td>indique un résultat <strong>négatif</strong> pour les nombres <strong>signés en complément à 2</strong> (correspond à la valeur du MSB)</td>
+<td>Indique un résultat <strong>négatif</strong> pour les nombres <strong>signés en complément à 2</strong> (correspond à la valeur du MSB)</td>
 </tr>
 <tr>
 <td style="text-align: center"><code>Z</code></td>
 <td style="text-align: center">Zero</td>
-<td>indique un résultat égal à zéro</td>
+<td>Indique un résultat égal à zéro</td>
 </tr>
 <tr>
 <td style="text-align: center"><code>O</code></td>
 <td style="text-align: center">Overflow</td>
-<td>indique un <strong>dépassement de capacité</strong> pour les nombres <strong>signés en complément à 2</strong> lorsque le résultat d&#39;une opération sort de l&#39;intervalle <code>[-128, 127]</code></td>
+<td>Indique un <strong>dépassement de capacité</strong> pour les nombres <strong>signés en complément à 2</strong> lorsque le résultat d&#39;une opération sort de l&#39;intervalle <code>[-128, 127]</code></td>
 </tr>
 <tr>
 <td style="text-align: center"><code>C</code></td>
 <td style="text-align: center">Carry</td>
-<td>indique un <strong>dépassement de capacité</strong> pour les nombres <strong>non signés</strong> suite à une addition (retenue) ou d&#39;une soustraction (emprunt)</td>
+<td>Indique un <strong>dépassement de capacité</strong> pour les nombres <strong>non signés</strong> suite à une addition (retenue) ou d&#39;une soustraction (emprunt)</td>
 </tr>
 <tr>
 <td style="text-align: center"><code>F</code></td>
 <td style="text-align: center">Fault</td>
-<td>indique une erreur irrécupérable causée par :<br>- Division par zéro<br>- Débordement de pile (Stack Overflow) lorsque <code>SP &lt; 0x80</code><br>- Sous-dépassement de pile (Stack Underflow) lorsque <code>SP &gt; 0xBF</code><br>- Pointeur d&#39;instruction <code>IP</code> hors des limites de la mémoire<br>- Code d&#39;opération (Opcode) invalide ou inconnu</td>
+<td>Indique une erreur irrécupérable causée par :<br>- Division par zéro<br>- Débordement de pile (Stack Overflow) lorsque <code>SP &lt; 0x80</code><br>- Sous-dépassement de pile (Stack Underflow) lorsque <code>SP &gt; 0xBF</code><br>- Pointeur d&#39;instruction <code>IP</code> hors des limites de la mémoire<br>- Code d&#39;opération (Opcode) invalide ou inconnu</td>
 </tr>
 </tbody>
 </table>
@@ -668,9 +740,18 @@ code {
         +-----------+
         |    ...    |</code></pre></div>
 
-<h3 id="toc_18">Légende des opérandes :</h3>
+<h3 id="toc_18">Les étiquettes (labels) :</h3>
 
-<p>Une instruction est composée d&#39;un <strong>code</strong> (opcode) et éventuellement de plusieurs <strong>opérandes</strong>. Certaines instructions (comme <code>HLT</code>) n&#39;ont pas d&#39;opérande, d&#39;autres (comme <code>OUT</code>) en ont une seule, d&#39;autre encore (comme <code>MOV</code>) en ont deux. Les notations des opérandes sont données dans le tableau suivant :</p>
+<p>Une étiquette est un nom que vous pouvez donner à une ligne de votre code pour marquer une adresse mémoire. Elle est définie en écrivant un nom suivi de deux-points (<code>:</code>) :</p>
+
+<div><pre><code class="language-asm">etiquette:
+    mov AL, 0x01</code></pre></div>
+
+<p>Les étiquettes sont essentielles car elles permettent de faire référence à des adresses de manière symbolique, sans avoir à calculer leur valeur manuellement. L&#39;assembleur les remplace automatiquement par les adresses correspondantes lors de la compilation. Elles sont principalement utilisées avec les instructions de saut (<code>JMP</code>, <code>JZ</code>, etc.) et pour accéder à des données.</p>
+
+<h3 id="toc_19">Les opérandes et les modes d&#39;adressage :</h3>
+
+<p>Une instruction est composée d&#39;un <strong>code d&#39;opération</strong> (opcode) et éventuellement de plusieurs <strong>opérandes</strong>. Certaines instructions (comme <code>HLT</code>) n&#39;ont pas d&#39;opérande, d&#39;autres (comme <code>OUT</code>) en ont une seule, d&#39;autre encore (comme <code>MOV</code>) en ont deux. Les notations des opérandes sont données dans le tableau suivant :</p>
 
 <table>
 <thead>
@@ -730,9 +811,9 @@ code {
 </tbody>
 </table>
 
-<h3 id="toc_19">Tableau de référence des flags par instructions :</h3>
+<h3 id="toc_20">Modification des flags :</h3>
 
-<p>Ce second tableau résume quelles instructions affectent quels drapeaux :</p>
+<p>Ce tableau résume quelles instructions affectent quels drapeaux :</p>
 
 <ul>
 <li><strong><code>-</code></strong> indique que le flag n&#39;est pas affecté par l&#39;instruction</li>
@@ -832,35 +913,11 @@ code {
 </tbody>
 </table>
 
-<h2 id="toc_20">2. Programme de démonstration</h2>
+<h2 id="toc_21">2. Directives d&#39;assemblage</h2>
 
-<p>L&#39;incontournable &ldquo;Hello World&rdquo; implémenté dans MicroSim :</p>
+<p>Une directive d&#39;assemblage n&#39;est pas une instruction du microprocesseur, c&#39;est une commande envoyée à l&#39;assembleur au moment de la production du code exécutable.</p>
 
-<div><pre><code class="language-none">; ----- Section programme ------------
-
-    mov CL, 0xC0  ; Adresse d&#39;affichage
-    mov BL, 0x50  ; Adresse de la chaîne
-Rep:
-    mov AL, [BL]  ; Adresse du caractère
-    cmp AL, 0x00  ; Fin de la chaîne ?
-    jz  Fin
-    mov [CL], AL  ; Afficher le caractère
-    inc CL        ; Caractère suivant
-    inc BL        ; Emplacement suivant
-    jmp Rep
-Fin:
-    hlt
-
-; ----- Section données ------------
-
-    org 0x50
-    
-    db  &quot;Hello World&quot;
-    db  0x00</code></pre></div>
-
-<h2 id="toc_21">3. Directives (commandes) d&#39;assemblage</h2>
-
-<h4 id="toc_22"><code>ORG</code> (origin)</h4>
+<h3 id="toc_22"><code>ORG</code> (origin)</h3>
 
 <ul>
 <li><strong>Description :</strong> Détermine l&#39;adresse de la prochaine instruction (ou donnée) à charger.</li>
@@ -871,11 +928,11 @@ Fin:
 </ul></li>
 </ul>
 
-<h4 id="toc_23"><code>DB</code> (define byte)</h4>
+<h3 id="toc_23"><code>DB</code> (define byte)</h3>
 
 <ul>
 <li><strong>Description :</strong> Alloue et initialise un ou plusieurs octets de données.</li>
-<li>**Syntaxe :
+<li><strong>Syntaxes :</strong>
 
 <ul>
 <li><code>DB byte</code></li>
@@ -884,396 +941,11 @@ Fin:
 </ul></li>
 </ul>
 
-<h2 id="toc_24">4. Jeu d&#39;instructions du micro-processeur</h2>
+<h2 id="toc_24">3. Jeu d&#39;instructions du micro-processeur</h2>
 
-<h4 id="toc_25"><code>HLT</code></h4>
+<p>Le processeur ne comprend pas directement les instructions textuelles comme <code>MOV AL, 0x10</code>. L&#39;assembleur se charge de traduire chaque ligne de code en une séquence d&#39;octets que le CPU peut exécuter : c&#39;est le <strong>code machine</strong>. Par exemple, <code>MOV AL, 0x10</code> est traduit par la séquence <code>01 00 10</code> (trois octets notés en hexa).</p>
 
-<ul>
-<li><strong>Description :</strong> Arrête l&#39;exécution du programme.</li>
-<li><strong>Syntaxe :</strong> <code>HLT</code></li>
-</ul>
-
-<h3 id="toc_26">Instructions de mouvement de données :</h3>
-
-<h4 id="toc_27"><code>MOV</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Copie une valeur d&#39;une source vers une destination.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>MOV reg, reg</code></li>
-<li><code>MOV reg, [addr]</code></li>
-<li><code>MOV reg, [reg]</code></li>
-<li><code>MOV reg, [SP+offset]</code></li>
-<li><code>MOV reg, byte</code></li>
-<li><code>MOV [addr], reg</code></li>
-<li><code>MOV [reg], reg</code></li>
-<li><code>MOV [SP+offset], reg</code></li>
-<li><code>MOV [addr], byte</code></li>
-<li><code>MOV [reg], byte</code></li>
-</ul></li>
-</ul>
-
-<h3 id="toc_28">Instructions arithmétiques :</h3>
-
-<h4 id="toc_29"><code>INC</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Incrémente la valeur d&#39;un registre de 1.</li>
-<li><strong>Syntaxe :</strong> <code>INC reg</code></li>
-</ul>
-
-<h4 id="toc_30"><code>DEC</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Décrémente la valeur d&#39;un registre de 1.</li>
-<li><strong>Syntaxe :</strong> <code>DEC reg</code></li>
-</ul>
-
-<h4 id="toc_31"><code>NEG</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Effectue un complément à 2 sur la valeur d&#39;un registre.</li>
-<li><strong>Syntaxe :</strong> <code>NEG reg</code></li>
-</ul>
-
-<h4 id="toc_32"><code>ADD</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Additionne la valeur de la source au registre de destination.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>ADD reg, reg</code></li>
-<li><code>ADD reg, [reg]</code></li>
-<li><code>ADD reg, [addr]</code></li>
-<li><code>ADD reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_33"><code>SUB</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Soustrait la valeur de la source du registre de destination.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>SUB reg, reg</code></li>
-<li><code>SUB reg, [reg]</code></li>
-<li><code>SUB reg, [addr]</code></li>
-<li><code>SUB reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_34"><code>MUL</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Multiplie la valeur de la source au registre de destination.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>MUL reg, reg</code></li>
-<li><code>MUL reg, [reg]</code></li>
-<li><code>MUL reg, [addr]</code></li>
-<li><code>MUL reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_35"><code>DIV</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Divise la valeur de la source au registre de destination.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>DIV reg, reg</code></li>
-<li><code>DIV reg, [reg]</code></li>
-<li><code>DIV reg, [addr]</code></li>
-<li><code>DIV reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h3 id="toc_36">Instructions logiques :</h3>
-
-<h4 id="toc_37"><code>AND</code></h4>
-
-<ul>
-<li><strong>Description :</strong> Effectue un ET logique (bitwise AND) entre le registre de destination et la source.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>AND reg, reg</code></li>
-<li><code>AND reg, [reg]</code></li>
-<li><code>AND reg, [addr]</code></li>
-<li><code>AND reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_38"><code>OR</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Effectue un OU logique (bitwise OR) entre le registre de destination et la source.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>OR reg, reg</code></li>
-<li><code>OR reg, [reg]</code></li>
-<li><code>OR reg, [addr]</code></li>
-<li><code>OR reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_39"><code>XOR</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>XOR reg, reg</code></li>
-<li><code>XOR reg, [reg]</code></li>
-<li><code>XOR reg, [addr]</code></li>
-<li><code>XOR reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_40"><code>NOT</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Inverse tous les bits d&#39;un registre (bitwise NOT).</li>
-<li><strong>Syntaxe :</strong> <code>NOT reg</code></li>
-</ul>
-
-<h4 id="toc_41"><code>SHL</code> (Shift Left)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Décale les bits du registre de destination vers la gauche.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>SHL reg, reg</code></li>
-<li><code>SHL reg, [reg]</code></li>
-<li><code>SHL reg, [addr]</code></li>
-<li><code>SHL reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_42"><code>SHR</code> (Shift Right)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Décale les bits du registre de destination vers la droite.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>SHR reg, reg</code></li>
-<li><code>SHR reg, [reg]</code></li>
-<li><code>SHR reg, [addr]</code></li>
-<li><code>SHR reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h3 id="toc_43">Instructions de comparaison et de saut :</h3>
-
-<h4 id="toc_44"><code>CMP</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>CMP reg, reg</code></li>
-<li><code>CMP reg, [reg]</code></li>
-<li><code>CMP reg, [addr]</code></li>
-<li><code>CMP reg, byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_45"><code>JMP</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Saut inconditionnel vers une adresse (ou un label)</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JMP addr</code></li>
-<li><code>JMP label</code></li>
-<li><code>JMP [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_46"><code>JZ</code> et <code>JE</code> (Jump if Zero / Jump if Equal)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau Zéro (Zero Flag) est à 1.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JZ addr</code></li>
-<li><code>JZ label</code></li>
-<li><code>JZ [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_47"><code>JNZ</code> et <code>JNE</code> (Jump if Not Zero / Jump if Not Equal)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau Zéro (Zero Flag) est à 0.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JNZ addr</code></li>
-<li><code>JNZ label</code></li>
-<li><code>JNZ [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_48"><code>JC</code> et <code>JB</code> (Jump if Carry / Jump if Below)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau de retenue (Carry Flag) est à 1.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JC addr</code></li>
-<li><code>JC label</code></li>
-<li><code>JC [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_49"><code>JNC</code> et <code>JAE</code> (Jump if No Carry / Jump if Above or Equal)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau de retenue (Carry Flag) est à 0.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JNC addr</code></li>
-<li><code>JNC label</code></li>
-<li><code>JNC [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_50"><code>JA</code> et <code>JNBE</code> (Jump if Above / Jump if Not Below or Equal)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JA addr</code></li>
-<li><code>JA label</code></li>
-<li><code>JA [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_51"><code>JNA</code> et <code>JBE</code> (Jump if Not Above / Jump if Below or Equal)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau Zéro ou le drapeau Retenue est à 1.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JNA addr</code></li>
-<li><code>JNA label</code></li>
-<li><code>JNA [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_52"><code>JS</code> (Jump if Sign)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JS addr</code></li>
-<li><code>JS label</code></li>
-<li><code>JS [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_53"><code>JNS</code> (Jump if Not Sign)</h4>
-
-<ul>
-<li><strong>Description : :</strong> Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>JNS addr</code></li>
-<li><code>JNS label</code></li>
-<li><code>JNS [reg]</code></li>
-</ul></li>
-</ul>
-
-<h3 id="toc_54">Instructions de pile (stack) :</h3>
-
-<h4 id="toc_55"><code>PUSH</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Empile une valeur sur la pile.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>PUSH reg</code></li>
-<li><code>PUSH [reg]</code></li>
-<li><code>PUSH [addr]</code></li>
-<li><code>PUSH byte</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_56"><code>PUSHF</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Empile le contenu du registre SR (sauvegarde des flags).</li>
-<li><strong>Syntaxe :</strong> <code>PUSHF</code></li>
-</ul>
-
-<h4 id="toc_57"><code>POP</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Dépile une valeur de la pile vers un registre.</li>
-<li><strong>Syntaxe :</strong> <code>POP reg</code></li>
-</ul>
-
-<h4 id="toc_58"><code>POPF</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Dépile vers le registre SR (restauration des flags).</li>
-<li><strong>Syntaxe :</strong> <code>POPF</code></li>
-</ul>
-
-<h3 id="toc_59">Instructions de sous-programmes (subroutines) :</h3>
-
-<h4 id="toc_60"><code>CALL</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Appelle un sous-programme en empilant l&#39;adresse de retour et en sautant à l&#39;adresse du sous-programme.</li>
-<li><strong>Syntaxes :</strong>
-
-<ul>
-<li><code>CALL addr</code></li>
-<li><code>CALL label</code></li>
-<li><code>CALL [reg]</code></li>
-</ul></li>
-</ul>
-
-<h4 id="toc_61"><code>RET</code></h4>
-
-<ul>
-<li><strong>Description : :</strong> Revient d&#39;un sous-programme en dépilant l&#39;adresse de retour de la pile.</li>
-<li><strong>Syntaxe :</strong> <code>RET</code></li>
-</ul>
-
-<h2 id="toc_62">5. Codage hexadécimal</h2>
-
-<p>Le processeur ne comprend pas directement les instructions textuelles comme <code>MOV AL, 10</code>. L&#39;assembleur se charge de traduire chaque ligne de code en une séquence d&#39;octets que le CPU peut exécuter : c&#39;est le <strong>code machine</strong>.</p>
-
-<p>Chaque instruction est convertie en un premier octet appelé <strong>code opératoire</strong> (ou <em>opcode</em>), qui identifie de manière unique l&#39;opération et ses types d&#39;opérandes. Cet opcode est ensuite suivi en mémoire par les octets représentant les arguments (les <em>opérandes</em>), comme un numéro de registre, une valeur numérique ou une adresse.</p>
-
-<p>Les tableaux suivants détaillent ces codes numériques et le format complet en mémoire pour chaque composant d&#39;une instruction.</p>
-
-<h3 id="toc_63">Codes des Registres</h3>
+<p>Chaque instruction est convertie en un premier octet appelé <strong>code opératoire</strong> (ou <em>opcode</em>), qui identifie de manière unique l&#39;opération et les types de ses opérandes. Cet opcode est ensuite suivi en mémoire par les octets représentant les arguments (les <em>opérandes</em>), comme un numéro de registre, une valeur numérique ou une adresse.</p>
 
 <p>Toute opérande de type <code>reg</code> est codée sur un octet :</p>
 
@@ -1302,22 +974,21 @@ Fin:
 <td><code>DL</code></td>
 <td><code>0x03</code></td>
 </tr>
-<tr>
-<td><code>SP</code></td>
-<td><code>0x04</code></td>
-</tr>
 </tbody>
 </table>
 
-<h3 id="toc_64">Codes des Instructions (Opcodes)</h3>
+<h3 id="toc_25">Contrôle du programme :</h3>
 
-<h4 id="toc_65">Contrôle</h4>
+<h3 id="toc_26"><code>HLT</code> (halt)</h3>
+
+<ul>
+<li><strong>Description :</strong> Arrête l&#39;exécution du programme.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
-<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: left">Syntaxe</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
 <th style="text-align: left">Format en Mémoire</th>
@@ -1326,7 +997,6 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>HLT</code></td>
 <td style="text-align: left"><code>HLT</code></td>
 <td style="text-align: center"><code>0x00</code></td>
 <td style="text-align: left">Implicite</td>
@@ -1335,13 +1005,18 @@ Fin:
 </tbody>
 </table>
 
-<h4 id="toc_66">Mouvement de données</h4>
+<h3 id="toc_27">Instructions de mouvement de données :</h3>
+
+<h3 id="toc_28"><code>MOV</code> (move)</h3>
+
+<ul>
+<li><strong>Description :</strong> Copie une valeur d&#39;une source vers une destination.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
-<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: left">Syntaxe</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
 <th style="text-align: left">Format en Mémoire</th>
@@ -1350,70 +1025,60 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>MOV</code></td>
 <td style="text-align: left"><code>MOV reg, byte</code></td>
 <td style="text-align: center"><code>0x01</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>01 reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV reg, reg</code></td>
 <td style="text-align: center"><code>0x02</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>02 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV reg, [addr]</code></td>
 <td style="text-align: center"><code>0x03</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>03 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV reg, [reg]</code></td>
 <td style="text-align: center"><code>0x04</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>04 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV reg, [SP+offset]</code></td>
 <td style="text-align: center"><code>0x05</code></td>
 <td style="text-align: left">Offset</td>
 <td style="text-align: left"><code>05 reg offset</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV [addr], byte</code></td>
 <td style="text-align: center"><code>0x06</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>06 addr byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV [addr], reg</code></td>
 <td style="text-align: center"><code>0x07</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>07 addr reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV [reg], byte</code></td>
 <td style="text-align: center"><code>0x08</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>08 reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV [reg], reg</code></td>
 <td style="text-align: center"><code>0x09</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>09 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MOV [SP+offset], reg</code></td>
 <td style="text-align: center"><code>0x0A</code></td>
 <td style="text-align: left">Registre</td>
@@ -1422,13 +1087,18 @@ Fin:
 </tbody>
 </table>
 
-<h4 id="toc_67">Arithmétique</h4>
+<h3 id="toc_29">Instructions arithmétiques :</h3>
+
+<h3 id="toc_30"><code>INC</code> (increment)</h3>
+
+<ul>
+<li><strong>Description :</strong> Incrémente la valeur d&#39;un registre de 1.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
-<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: left">Syntaxe</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
 <th style="text-align: left">Format en Mémoire</th>
@@ -1437,133 +1107,234 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>ADD</code></td>
+<td style="text-align: left"><code>INC reg</code></td>
+<td style="text-align: center"><code>0x13</code></td>
+<td style="text-align: left">Registre</td>
+<td style="text-align: left"><code>13 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_31"><code>DEC</code> (decrement)</h3>
+
+<ul>
+<li><strong>Description :</strong> Décrémente la valeur d&#39;un registre de 1.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>DEC reg</code></td>
+<td style="text-align: center"><code>0x14</code></td>
+<td style="text-align: left">Registre</td>
+<td style="text-align: left"><code>14 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_32"><code>NEG</code> (negation)</h3>
+
+<ul>
+<li><strong>Description :</strong> Effectue un complément à 2 sur la valeur d&#39;un registre.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>NEG reg</code></td>
+<td style="text-align: center"><code>0x15</code></td>
+<td style="text-align: left">Registre</td>
+<td style="text-align: left"><code>15 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_33"><code>ADD</code> (addition)</h3>
+
+<ul>
+<li><strong>Description :</strong> Additionne la valeur de la source au registre de destination.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>ADD reg, byte</code></td>
 <td style="text-align: center"><code>0x0B</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>0B reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>ADD reg, reg</code></td>
 <td style="text-align: center"><code>0x0C</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>0C reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>ADD reg, [addr]</code></td>
 <td style="text-align: center"><code>0x0D</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>0D reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>ADD reg, [reg]</code></td>
 <td style="text-align: center"><code>0x0E</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>0E reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_34"><code>SUB</code> (subtraction)</h3>
+
+<ul>
+<li><strong>Description :</strong> Soustrait la valeur de la source du registre de destination.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>SUB</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>SUB reg, byte</code></td>
 <td style="text-align: center"><code>0x0F</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>0F reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SUB reg, reg</code></td>
 <td style="text-align: center"><code>0x10</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>10 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SUB reg, [addr]</code></td>
 <td style="text-align: center"><code>0x11</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>11 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SUB reg, [reg]</code></td>
 <td style="text-align: center"><code>0x12</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>12 reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_35"><code>MUL</code> (multiplication)</h3>
+
+<ul>
+<li><strong>Description : :</strong> Multiplie la valeur de la source au registre de destination.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>INC</code></td>
-<td style="text-align: left"><code>INC reg</code></td>
-<td style="text-align: center"><code>0x13</code></td>
-<td style="text-align: left">Registre</td>
-<td style="text-align: left"><code>13 reg</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
 </tr>
+</thead>
+
+<tbody>
 <tr>
-<td style="text-align: left"><code>DEC</code></td>
-<td style="text-align: left"><code>DEC reg</code></td>
-<td style="text-align: center"><code>0x14</code></td>
-<td style="text-align: left">Registre</td>
-<td style="text-align: left"><code>14 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>NEG</code></td>
-<td style="text-align: left"><code>NEG reg</code></td>
-<td style="text-align: center"><code>0x15</code></td>
-<td style="text-align: left">Registre</td>
-<td style="text-align: left"><code>15 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>MUL</code></td>
 <td style="text-align: left"><code>MUL reg, byte</code></td>
 <td style="text-align: center"><code>0x36</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>36 reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MUL reg, reg</code></td>
 <td style="text-align: center"><code>0x37</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>37 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MUL reg, [addr]</code></td>
 <td style="text-align: center"><code>0x38</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>38 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>MUL reg, [reg]</code></td>
 <td style="text-align: center"><code>0x39</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>39 reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h4 id="toc_36"><code>DIV</code> (division)</h4>
+
+<ul>
+<li><strong>Description :</strong> Divise la valeur de la source au registre de destination.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>DIV</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>DIV reg, byte</code></td>
 <td style="text-align: center"><code>0x3A</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>3A reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>DIV reg, reg</code></td>
 <td style="text-align: center"><code>0x3B</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>3B reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>DIV reg, [addr]</code></td>
 <td style="text-align: center"><code>0x3C</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>3C reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>DIV reg, [reg]</code></td>
 <td style="text-align: center"><code>0x3D</code></td>
 <td style="text-align: left">Indirect</td>
@@ -1572,13 +1343,18 @@ Fin:
 </tbody>
 </table>
 
-<h4 id="toc_68">Comparaison</h4>
+<h3 id="toc_37">Instructions logiques :</h3>
+
+<h3 id="toc_38"><code>AND</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Effectue un ET logique (bitwise AND) entre le registre de destination et la source.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
-<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: left">Syntaxe</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
 <th style="text-align: left">Format en Mémoire</th>
@@ -1587,207 +1363,290 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>CMP</code></td>
-<td style="text-align: left"><code>CMP reg, byte</code></td>
-<td style="text-align: center"><code>0x16</code></td>
-<td style="text-align: left">Immédiat</td>
-<td style="text-align: left"><code>16 reg byte</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>CMP reg, reg</code></td>
-<td style="text-align: center"><code>0x17</code></td>
-<td style="text-align: left">Registre</td>
-<td style="text-align: left"><code>17 reg reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>CMP reg, [addr]</code></td>
-<td style="text-align: center"><code>0x18</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>18 reg addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>CMP reg, [reg]</code></td>
-<td style="text-align: center"><code>0x19</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>19 reg reg</code></td>
-</tr>
-</tbody>
-</table>
-
-<h4 id="toc_69">Logique</h4>
-
-<table>
-<thead>
-<tr>
-<th style="text-align: left">Instruction</th>
-<th style="text-align: left">Syntaxe Complète</th>
-<th style="text-align: center">Opcode</th>
-<th style="text-align: left">Adressage</th>
-<th style="text-align: left">Format en Mémoire</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td style="text-align: left"><code>AND</code></td>
 <td style="text-align: left"><code>AND reg, byte</code></td>
 <td style="text-align: center"><code>0x3E</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>3E reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>AND reg, reg</code></td>
 <td style="text-align: center"><code>0x3F</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>3F reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>AND reg, [addr]</code></td>
 <td style="text-align: center"><code>0x40</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>40 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>AND reg, [reg]</code></td>
 <td style="text-align: center"><code>0x41</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>41 reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_39"><code>OR</code></h3>
+
+<ul>
+<li><strong>Description : :</strong> Effectue un OU logique (bitwise OR) entre le registre de destination et la source.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>OR</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>OR reg, byte</code></td>
 <td style="text-align: center"><code>0x42</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>42 reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>OR reg, reg</code></td>
 <td style="text-align: center"><code>0x43</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>43 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>OR reg, [addr]</code></td>
 <td style="text-align: center"><code>0x44</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>44 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>OR reg, [reg]</code></td>
 <td style="text-align: center"><code>0x45</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>45 reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_40"><code>XOR</code></h3>
+
+<ul>
+<li><strong>Description : :</strong> Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>XOR</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>XOR reg, byte</code></td>
 <td style="text-align: center"><code>0x46</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>46 reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>XOR reg, reg</code></td>
 <td style="text-align: center"><code>0x47</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>47 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>XOR reg, [addr]</code></td>
 <td style="text-align: center"><code>0x48</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>48 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>XOR reg, [reg]</code></td>
 <td style="text-align: center"><code>0x49</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>49 reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_41"><code>NOT</code></h3>
+
+<ul>
+<li><strong>Description : :</strong> Inverse tous les bits d&#39;un registre (bitwise NOT).</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>NOT</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>NOT reg</code></td>
 <td style="text-align: center"><code>0x4A</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>4A reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_42"><code>SHL</code> (shift left)</h3>
+
+<ul>
+<li><strong>Description :</strong> Décale les bits du registre de destination vers la gauche.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>SHL</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>SHL reg, byte</code></td>
 <td style="text-align: center"><code>0x4B</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>4B reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHL reg, reg</code></td>
 <td style="text-align: center"><code>0x4C</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>4C reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHL reg, [addr]</code></td>
 <td style="text-align: center"><code>0x4D</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>4D reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHL reg, [reg]</code></td>
 <td style="text-align: center"><code>0x4E</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>4E reg reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_43"><code>SHR</code> (shift right)</h3>
+
+<ul>
+<li><strong>Description :</strong> Décale les bits du registre de destination vers la droite.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>SHR</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: left">Opcode</th>
+<th style="text-align: center">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>SHR reg, byte</code></td>
-<td style="text-align: center"><code>0x4F</code></td>
-<td style="text-align: left">Immédiat</td>
+<td style="text-align: left"><code>0x4F</code></td>
+<td style="text-align: center">Immédiat</td>
 <td style="text-align: left"><code>4F reg byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHR reg, reg</code></td>
-<td style="text-align: center"><code>0x50</code></td>
-<td style="text-align: left">Registre</td>
+<td style="text-align: left"><code>0x50</code></td>
+<td style="text-align: center">Registre</td>
 <td style="text-align: left"><code>50 reg reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHR reg, [addr]</code></td>
-<td style="text-align: center"><code>0x51</code></td>
-<td style="text-align: left">Direct</td>
+<td style="text-align: left"><code>0x51</code></td>
+<td style="text-align: center">Direct</td>
 <td style="text-align: left"><code>51 reg addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>SHR reg, [reg]</code></td>
-<td style="text-align: center"><code>0x52</code></td>
-<td style="text-align: left">Indirect</td>
+<td style="text-align: left"><code>0x52</code></td>
+<td style="text-align: center">Indirect</td>
 <td style="text-align: left"><code>52 reg reg</code></td>
 </tr>
 </tbody>
 </table>
 
-<h4 id="toc_70">Sauts et Sous-programmes</h4>
+<h3 id="toc_44">Instructions de comparaison et de saut :</h3>
+
+<h3 id="toc_45"><code>CMP</code> (compare)</h3>
+
+<ul>
+<li><strong>Description :</strong> Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
-<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: left">Opcode</th>
+<th style="text-align: center">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>CMP reg, byte</code></td>
+<td style="text-align: left"><code>0x16</code></td>
+<td style="text-align: center">Immédiat</td>
+<td style="text-align: left"><code>16 reg byte</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>CMP reg, reg</code></td>
+<td style="text-align: left"><code>0x17</code></td>
+<td style="text-align: center">Registre</td>
+<td style="text-align: left"><code>17 reg reg</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>CMP reg, [addr]</code></td>
+<td style="text-align: left"><code>0x18</code></td>
+<td style="text-align: center">Direct</td>
+<td style="text-align: left"><code>18 reg addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>CMP reg, [reg]</code></td>
+<td style="text-align: left"><code>0x19</code></td>
+<td style="text-align: center">Indirect</td>
+<td style="text-align: left"><code>19 reg reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_46"><code>JUMP</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Saut inconditionnel vers une adresse ou un label.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
 <th style="text-align: left">Format en Mémoire</th>
@@ -1796,161 +1655,157 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>JMP</code></td>
 <td style="text-align: left"><code>JMP addr</code></td>
 <td style="text-align: center"><code>0x1A</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>1A addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>JMP [reg]</code></td>
 <td style="text-align: center"><code>0x1B</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>1B reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_47"><code>JC</code> / <code>JB</code> (jump if carry / jump if below)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de retenue (Carry Flag) est à 1.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>JC</code> / <code>JB</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>JC addr</code></td>
 <td style="text-align: center"><code>0x1C</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>1C addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>JC [reg]</code></td>
 <td style="text-align: center"><code>0x1D</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>1D reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_48"><code>JNC</code> / <code>JAE</code> (jump if no carry / jump if above or equal)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de retenue (Carry Flag) est à 0.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>JNC</code>/<code>JAE</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>JNC addr</code></td>
 <td style="text-align: center"><code>0x1E</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>1E addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>JNC [reg]</code></td>
 <td style="text-align: center"><code>0x1F</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>1F reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_49"><code>JZ</code> / <code>JE</code> (jump if zero / jump if equal)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro (Zero Flag) est à 1.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>JZ</code> / <code>JE</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>JZ addr</code></td>
 <td style="text-align: center"><code>0x20</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>20 addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>JZ [reg]</code></td>
 <td style="text-align: center"><code>0x21</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>21 reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_50"><code>JNZ</code> / <code>JNE</code> (jump if not zero / jump if not equal</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro (Zero Flag) est à 0.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>JNZ</code>/<code>JNE</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>JNZ addr</code></td>
 <td style="text-align: center"><code>0x22</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>22 addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>JNZ [reg]</code></td>
 <td style="text-align: center"><code>0x23</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>23 reg</code></td>
 </tr>
-<tr>
-<td style="text-align: left"><code>JA</code> /<code>JNBE</code></td>
-<td style="text-align: left"><code>JA addr</code></td>
-<td style="text-align: center"><code>0x24</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>24 addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>JA [reg]</code></td>
-<td style="text-align: center"><code>0x25</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>25 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>JNA</code>/<code>JBE</code></td>
-<td style="text-align: left"><code>JNA addr</code></td>
-<td style="text-align: center"><code>0x26</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>26 addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>JNA [reg]</code></td>
-<td style="text-align: center"><code>0x27</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>27 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>JS</code></td>
-<td style="text-align: left"><code>JS addr</code></td>
-<td style="text-align: center"><code>0x28</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>28 addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>JS [reg]</code></td>
-<td style="text-align: center"><code>0x29</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>29 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>JNS</code></td>
-<td style="text-align: left"><code>JNS addr</code></td>
-<td style="text-align: center"><code>0x2A</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>2A addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>JNS [reg]</code></td>
-<td style="text-align: center"><code>0x2B</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>2B reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>CALL</code></td>
-<td style="text-align: left"><code>CALL addr</code></td>
-<td style="text-align: center"><code>0x33</code></td>
-<td style="text-align: left">Direct</td>
-<td style="text-align: left"><code>33 addr</code></td>
-</tr>
-<tr>
-<td style="text-align: left"></td>
-<td style="text-align: left"><code>CALL [reg]</code></td>
-<td style="text-align: center"><code>0x34</code></td>
-<td style="text-align: left">Indirect</td>
-<td style="text-align: left"><code>34 reg</code></td>
-</tr>
-<tr>
-<td style="text-align: left"><code>RET</code></td>
-<td style="text-align: left"><code>RET</code></td>
-<td style="text-align: center"><code>0x35</code></td>
-<td style="text-align: left">Implicite</td>
-<td style="text-align: left"><code>35</code></td>
-</tr>
 </tbody>
 </table>
 
-<h4 id="toc_71">Pile</h4>
+<h3 id="toc_51"><code>JA</code> / <code>JNBE</code> (jump if above / jump if not below or equal)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
 <th style="text-align: left">Syntaxe Complète</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
@@ -1960,49 +1815,232 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>PUSH</code></td>
+<td style="text-align: left"><code>JA addr</code></td>
+<td style="text-align: center"><code>0x24</code></td>
+<td style="text-align: left">Direct</td>
+<td style="text-align: left"><code>24 addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>JA [reg]</code></td>
+<td style="text-align: center"><code>0x25</code></td>
+<td style="text-align: left">Indirect</td>
+<td style="text-align: left"><code>25 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_52"><code>JNA</code> / <code>JBE</code> (jump if not above / jump if below or equal)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau Zéro ou le drapeau Retenue est à 1.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: left">Opcode</th>
+<th style="text-align: center">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>JNA addr</code></td>
+<td style="text-align: left"><code>0x26</code></td>
+<td style="text-align: center">Direct</td>
+<td style="text-align: left"><code>26 addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>JNA [reg]</code></td>
+<td style="text-align: left"><code>0x27</code></td>
+<td style="text-align: center">Indirect</td>
+<td style="text-align: left"><code>27 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_53"><code>JS</code> (jump if sign)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>JS addr</code></td>
+<td style="text-align: center"><code>0x28</code></td>
+<td style="text-align: left">Direct</td>
+<td style="text-align: left"><code>28 addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>JS [reg]</code></td>
+<td style="text-align: center"><code>0x29</code></td>
+<td style="text-align: left">Indirect</td>
+<td style="text-align: left"><code>29 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_54"><code>JNS</code> (jump if not sign)</h3>
+
+<ul>
+<li><strong>Description :</strong> Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>JNS addr</code></td>
+<td style="text-align: center"><code>0x2A</code></td>
+<td style="text-align: left">Direct</td>
+<td style="text-align: left"><code>2A addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>JNS [reg]</code></td>
+<td style="text-align: center"><code>0x2B</code></td>
+<td style="text-align: left">Indirect</td>
+<td style="text-align: left"><code>2B reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_55">Gestion de la pile :</h3>
+
+<h3 id="toc_56"><code>PUSH</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Empile une valeur sur la pile.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>PUSH byte</code></td>
 <td style="text-align: center"><code>0x2C</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>2C byte</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>PUSH reg</code></td>
 <td style="text-align: center"><code>0x2D</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>2D reg</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>PUSH [addr]</code></td>
 <td style="text-align: center"><code>0x2E</code></td>
 <td style="text-align: left">Direct</td>
 <td style="text-align: left"><code>2E addr</code></td>
 </tr>
 <tr>
-<td style="text-align: left"></td>
 <td style="text-align: left"><code>PUSH [reg]</code></td>
 <td style="text-align: center"><code>0x2F</code></td>
 <td style="text-align: left">Indirect</td>
 <td style="text-align: left"><code>2F reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_57"><code>POP</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Dépile une valeur de la pile vers un registre.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>POP</code></td>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>POP reg</code></td>
 <td style="text-align: center"><code>0x30</code></td>
 <td style="text-align: left">Registre</td>
 <td style="text-align: left"><code>30 reg</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_58"><code>PUSHF</code> (push flags)</h3>
+
+<ul>
+<li><strong>Description : :</strong> Empile le contenu du registre SR (sauvegarde des flags).</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>PUSHF</code></td>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>PUSHF</code></td>
 <td style="text-align: center"><code>0x31</code></td>
 <td style="text-align: left">Implicite</td>
 <td style="text-align: left"><code>31</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_59"><code>POPF</code> (pop flags)</h3>
+
+<ul>
+<li><strong>Description : :</strong> Dépile vers le registre SR (restauration des flags).</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>POPF</code></td>
+<th style="text-align: left">Syntaxe Complète</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>POPF</code></td>
 <td style="text-align: center"><code>0x32</code></td>
 <td style="text-align: left">Implicite</td>
@@ -2011,12 +2049,49 @@ Fin:
 </tbody>
 </table>
 
-<h4 id="toc_72">Entrée/Sortie</h4>
+<h3 id="toc_60">Instructions de sous-programmes (subroutines) :</h3>
+
+<h3 id="toc_61"><code>CALL</code></h3>
+
+<ul>
+<li><strong>Description : :</strong> Appelle un sous-programme en empilant l&#39;adresse de retour et en sautant à l&#39;adresse du sous-programme.</li>
+</ul>
 
 <table>
 <thead>
 <tr>
-<th style="text-align: left">Mnémonique</th>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left"><code>CALL addr</code></td>
+<td style="text-align: center"><code>0x33</code></td>
+<td style="text-align: left">Direct</td>
+<td style="text-align: left"><code>33 addr</code></td>
+</tr>
+<tr>
+<td style="text-align: left"><code>CALL [reg]</code></td>
+<td style="text-align: center"><code>0x34</code></td>
+<td style="text-align: left">Indirect</td>
+<td style="text-align: left"><code>34 reg</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_62"><code>RET</code> (return)</h3>
+
+<ul>
+<li><strong>Description : :</strong> Revient d&#39;un sous-programme en dépilant l&#39;adresse de retour de la pile.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
 <th style="text-align: left">Syntaxe Complète</th>
 <th style="text-align: center">Opcode</th>
 <th style="text-align: left">Adressage</th>
@@ -2026,14 +2101,60 @@ Fin:
 
 <tbody>
 <tr>
-<td style="text-align: left"><code>OUT</code></td>
+<td style="text-align: left"><code>RET</code></td>
+<td style="text-align: center"><code>0x35</code></td>
+<td style="text-align: left">Implicite</td>
+<td style="text-align: left"><code>35</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="toc_63">Instructions d&#39;entrées / sorties :</h3>
+
+<h3 id="toc_64"><code>OUT</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Écrit la valeur du registre <code>AL</code> sur un port d&#39;entrée/sortie.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Syntax</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>OUT byte</code></td>
 <td style="text-align: center"><code>0x53</code></td>
 <td style="text-align: left">Immédiat</td>
 <td style="text-align: left"><code>53 byte</code></td>
 </tr>
+</tbody>
+</table>
+
+<h3 id="toc_65"><code>IN</code></h3>
+
+<ul>
+<li><strong>Description :</strong> Lit une valeur depuis un port d&#39;entrée/sortie et la stocke dans le registre <code>AL</code>.</li>
+</ul>
+
+<table>
+<thead>
 <tr>
-<td style="text-align: left"><code>IN</code></td>
+<th style="text-align: left">Syntaxe</th>
+<th style="text-align: center">Opcode</th>
+<th style="text-align: left">Adressage</th>
+<th style="text-align: left">Format en Mémoire</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
 <td style="text-align: left"><code>IN byte</code></td>
 <td style="text-align: center"><code>0x54</code></td>
 <td style="text-align: left">Immédiat</td>
@@ -2041,6 +2162,32 @@ Fin:
 </tr>
 </tbody>
 </table>
+
+<h2 id="toc_66">4. Exemple de code assembleur</h2>
+
+<p>L&#39;incontournable &ldquo;Hello World&rdquo; dans sa version MicroSim x86 :</p>
+
+<div><pre><code class="language-none">; ----- Section programme ------------
+
+    mov CL, 0xC0  ; Adresse d&#39;affichage
+    mov BL, 0x50  ; Adresse de la chaîne
+Rep:
+    mov AL, [BL]  ; Adresse du caractère
+    cmp AL, 0x00  ; Fin de la chaîne ?
+    jz  Fin
+    mov [CL], AL  ; Afficher le caractère
+    inc CL        ; Caractère suivant
+    inc BL        ; Emplacement suivant
+    jmp Rep
+Fin:
+    hlt
+
+; ----- Section données ------------
+
+    org 0x50
+    
+    db  &quot;Hello World&quot;
+    db  0x00</code></pre></div>
 
 
 

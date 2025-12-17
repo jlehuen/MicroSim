@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.0
- * @since 2025-12-09
+ * @version 1.1
+ * @since 2025-12-17
  *
  * License: GNU General Public License v3.0
  */
@@ -13,6 +13,7 @@ package microsim.simulator;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,6 +29,20 @@ import microsim.ToolBar;
  * (binary, hexadecimal, signed decimal).
  */
 public class Utils {
+
+    /**
+     * Retrieves the file extension from a given File object.
+     * @param file The file from which to extract the extension.
+     * @return The file extension as a lowercase string, or an empty string if none exists.
+     */
+    public static String getFileExtension(File file) {
+        String name = file.getName();
+        int lastIndex = name.lastIndexOf('.');
+        if (lastIndex > 0 && lastIndex < name.length() - 1) {
+            return name.substring(lastIndex + 1).toLowerCase();
+        }
+        return "";
+    }
 
     /**
      * Loads an ImageIcon from the specified path within the JAR.
