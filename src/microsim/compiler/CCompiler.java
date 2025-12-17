@@ -1,3 +1,13 @@
+/**
+ * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
+ *
+ * @author Jérôme Lehuen
+ * @version 1.1
+ * @since 2025-12-17
+ *
+ * License: GNU General Public License v3.0
+ */
+
 package microsim.compiler;
 
 import java.util.ArrayList;
@@ -13,6 +23,9 @@ import java.util.regex.Pattern;
  */
 public class CCompiler {
 
+    // Starting address for static variable allocation
+    private static final int STATIC_VAR_START_ADDRESS = 0x80;
+
     /**
      * Custom exception for compilation errors.
      */
@@ -22,31 +35,29 @@ public class CCompiler {
         }
     }
 
-    private static final int STATIC_VAR_START_ADDRESS = 0x70;
-
     private Map<String, Integer> symbolTable = new HashMap<>();
     private Map<String, String> localSymbolTable = new HashMap<>();
     private int nextStaticAddress = STATIC_VAR_START_ADDRESS;
     private int labelCounter = 0;
 
-    private static final Pattern VAR_DECL_PATTERN_1    = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern VAR_DECL_PATTERN_2    = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
-    private static final Pattern ASSIGNMENT_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
-    private static final Pattern ASSIGN_VAR_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern POINTER_VAR_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern DEREF_VAR_PATTERN     = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern VAR_DECL_PATTERN_1  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern VAR_DECL_PATTERN_2  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
+    private static final Pattern ASSIGNMENT_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
+    private static final Pattern ASSIGN_VAR_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern POINTER_VAR_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern DEREF_VAR_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);");
 
-    private static final Pattern SUB_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);");
-    private static final Pattern ADD_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);");
-    private static final Pattern MUL_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);");
-    private static final Pattern DIV_ASSIGN_PATTERN    = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);");
+    private static final Pattern SUB_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);");
+    private static final Pattern ADD_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);");
+    private static final Pattern MUL_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);");
+    private static final Pattern DIV_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);");
     private static final Pattern ADD_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);");
     private static final Pattern SUB_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);");
     private static final Pattern MUL_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);");
     private static final Pattern DIV_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);");
     private static final Pattern VAR_OP_VAR_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*([+\\-*/])\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern INCREMENT_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;");
-    private static final Pattern DECREMENT_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;");
+    private static final Pattern INCREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;");
+    private static final Pattern DECREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;");
 
     private static final Pattern MAIN_DECL_PATTERN     = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{");
     private static final Pattern FUNC_DECL_PATTERN     = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{");
@@ -132,12 +143,12 @@ public class CCompiler {
             if (mainDeclMatcher.matches()) {
                 mainFound = true;
                 lineList.remove(0); // Consume function declaration line
-                finalCode.append(compileFunctionBody("main_func", lineList, null));
+                finalCode.append(compileFunctionBody("main_func", lineList, null, true));
             } else if (funcDeclMatcher.matches()) {
                 lineList.remove(0); // Consume function declaration line
                 String functionName = funcDeclMatcher.group(1);
                 String paramName = funcDeclMatcher.group(2);
-                finalCode.append(compileFunctionBody("func_" + functionName, lineList, paramName));
+                finalCode.append(compileFunctionBody("func_" + functionName, lineList, paramName, false));
             } else {
                 throw new CompilationException("Top-level code outside of a function is not supported: " + line);
             }
@@ -219,6 +230,7 @@ public class CCompiler {
         if (varOpVarMatcher.matches()) return compileVarOpVarAssignment(varOpVarMatcher);
 
         Matcher subAssignMatcher = SUB_ASSIGN_PATTERN.matcher(line);
+        if (subAssignMatcher.matches()) return compileSubAssignment(subAssignMatcher);
 
         Matcher addAssignMatcher = ADD_ASSIGN_PATTERN.matcher(line);
         if (addAssignMatcher.matches()) return compileAddAssignment(addAssignMatcher);
@@ -255,6 +267,217 @@ public class CCompiler {
         // Variable not found
         throw new CompilationException("Undeclared variable: " + varName);
     }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for simple assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileAssignment(Matcher assignMatcher) {
+        String varName = assignMatcher.group(1);
+        int value = Integer.parseInt(assignMatcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + value + ";";
+        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", value, comment);
+        String line2 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for variable assignment
+    // ---------------------------------------------------------------------------
+
+    private String compileVarAssignment(Matcher assignVarMatcher) {
+        String varNameLeft = assignVarMatcher.group(1);
+        String varNameRight = assignVarMatcher.group(2);
+        String addressModeLeft = getAddressMode(varNameLeft);
+        String addressModeRight = getAddressMode(varNameRight);
+        String comment = String.format("; %s = %s;", varNameLeft, varNameRight);
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressModeRight, comment);
+        String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
+        return line1 + line2;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for subtraction assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileSubAssignment(Matcher subAssignMatcher) {
+        String varName = subAssignMatcher.group(1);
+        int value = Integer.parseInt(subAssignMatcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " - " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for addition assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileAddAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " + " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for multiplication assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileMulAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " * " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    MUL BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for division assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileDivAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " = " + varName + " / " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    DIV BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for addition self-assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileAddSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " += " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for subtraction self-assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileSubSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " -= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for multiplication self-assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileMulSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " *= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    MUL BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for division self-assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileDivSelfAssignment(Matcher matcher) {
+        String varName = matcher.group(1);
+        int value = Integer.parseInt(matcher.group(2));
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + " /= " + value + ";";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line3 = "    DIV BL\n";
+        String line4 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3 + line4;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for variable-op-variable assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileVarOpVarAssignment(Matcher matcher) {
+        String destVar = matcher.group(1);
+        String var1 = matcher.group(2);
+        String op = matcher.group(3);
+        String var2 = matcher.group(4);
+        String destAddr = getAddressMode(destVar);
+        String var1Addr = getAddressMode(var1);
+        String var2Addr = getAddressMode(var2);
+        String comment = String.format("; %s = %s %s %s;", destVar, var1, op, var2);
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("    MOV AL, %s\t\t%s\n", var1Addr, comment));
+        sb.append(String.format("    MOV BL, %s\n", var2Addr));
+        switch (op) {
+            case "+": sb.append("    ADD AL, BL\n"); break;
+            case "-": sb.append("    SUB AL, BL\n"); break;
+            case "*": sb.append("    MUL BL\n"); break;
+            case "/": sb.append("    DIV BL\n"); break;
+        }
+        sb.append(String.format("    MOV %s, AL\n", destAddr));
+        return sb.toString();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for increment operations
+    // ---------------------------------------------------------------------------
+
+    private String compileIncrement(Matcher matcher) {
+        String varName = matcher.group(1);
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + "++;";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = "    INC AL\n"; // INC increments AL by 1
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for decrement operations
+    // ---------------------------------------------------------------------------
+
+    private String compileDecrement(Matcher matcher) {
+        String varName = matcher.group(1);
+        String addressMode = getAddressMode(varName);
+        String comment = "; " + varName + "--;";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = "    DEC AL\n"; // DEC decrements AL by 1
+        String line3 = String.format("    MOV %s, AL\n", addressMode);
+        return line1 + line2 + line3;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for while loops
+    // ---------------------------------------------------------------------------
 
     private String compileWhileLoop(Matcher whileMatcher, List<String> lines) {
         int currentLabelId = labelCounter++;
@@ -349,11 +572,21 @@ public class CCompiler {
         return loopCode.toString();
     }
 
-    private String compileFunctionBody(String functionName, List<String> lines, String paramName) {
+    // ---------------------------------------------------------------------------
+    // Compilation method for function bodies
+    // ---------------------------------------------------------------------------
+
+    private String compileFunctionBody(String functionName, List<String> lines, String paramName, boolean isMainFunction) {
         localSymbolTable.clear(); // Enter function scope
 
         StringBuilder functionCode = new StringBuilder();
         functionCode.append(String.format("\n%s:\n", functionName));
+        if (!isMainFunction) {
+            functionCode.append("    PUSH BL\t\t\t; Function prologue: save registers\n");
+            functionCode.append("    PUSH CL\n");
+            functionCode.append("    PUSH DL\n");
+            functionCode.append("    PUSHF\n");
+        }
 
         // Function Prologue: Pop argument from stack into its "shadow" variable location
         if (paramName != null && !paramName.isEmpty()) {
@@ -364,7 +597,8 @@ public class CCompiler {
                 throw new CompilationException("Compiler error: Mangled parameter not found in global table: " + mangledParamName);
             }
             int address = symbolTable.get(mangledParamName);
-            functionCode.append(String.format("    MOV AL, [SP+2]\t\t; Load param '%s' from stack\n", paramName));
+            // Adjusted offset for 3 GPRs + 1 Flag reg + return addr
+            functionCode.append(String.format("    MOV AL, [SP+6]\t\t; Load param '%s' from stack (after PUSHes)\n", paramName));
             functionCode.append(String.format("    MOV [0x%02x], AL\t; Store in shadow variable '%s'\n", address, mangledParamName));
         }
 
@@ -386,11 +620,21 @@ public class CCompiler {
             throw new CompilationException("Missing closing '}' for function " + functionName + ".");
         }
 
+        if (!isMainFunction) {
+            functionCode.append("    POPF\t\t\t; Function epilogue: restore registers\n");
+            functionCode.append("    POP DL\n");
+            functionCode.append("    POP CL\n");
+            functionCode.append("    POP BL\n");
+        }
         functionCode.append("    RET\n"); // Return from function
 
         localSymbolTable.clear(); // Leave function scope
         return functionCode.toString();
     }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for if-else statements
+    // ---------------------------------------------------------------------------
 
     private String compileIfElse(Matcher ifMatcher, List<String> lines) {
         int currentLabelId = labelCounter++;
@@ -495,16 +739,9 @@ public class CCompiler {
         return ifCode.toString();
     }
 
-    private String compileVarAssignment(Matcher assignVarMatcher) {
-        String varNameLeft = assignVarMatcher.group(1);
-        String varNameRight = assignVarMatcher.group(2);
-        String addressModeLeft = getAddressMode(varNameLeft);
-        String addressModeRight = getAddressMode(varNameRight);
-        String comment = String.format("; %s = %s;", varNameLeft, varNameRight);
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressModeRight, comment);
-        String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
-        return line1 + line2;
-    }
+    // ---------------------------------------------------------------------------
+    // Compilation method for function calls
+    // ---------------------------------------------------------------------------
 
     private String compileFunctionCall(Matcher funcCallMatcher) {
         String functionName = funcCallMatcher.group(1);
@@ -533,6 +770,10 @@ public class CCompiler {
         return sb.toString();
     }
 
+    // ---------------------------------------------------------------------------
+    // Compilation method for return statements
+    // ---------------------------------------------------------------------------
+
     private String compileReturn(Matcher returnMatcher) {
         String returnValue = returnMatcher.group(1);
         String comment = String.format("; return %s;", returnValue);
@@ -548,6 +789,10 @@ public class CCompiler {
             return String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
         }
     }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for assignment from function call
+    // ---------------------------------------------------------------------------
 
     private String compileAssignFunctionCall(Matcher matcher) {
         String destVar = matcher.group(1);
@@ -577,6 +822,10 @@ public class CCompiler {
         return sb.toString();
     }
 
+    // ---------------------------------------------------------------------------
+    // Compilation method for pointer assignments
+    // ---------------------------------------------------------------------------
+
     private String compileDerefAssignment(Matcher derefAssignMatcher) {
         String varNameLeft = derefAssignMatcher.group(1);
         String varNameRight = derefAssignMatcher.group(2); // This is the pointer variable
@@ -604,6 +853,10 @@ public class CCompiler {
         return sb.toString();
     }
 
+    // ---------------------------------------------------------------------------
+    // Compilation method for address-of assignments
+    // ---------------------------------------------------------------------------
+
     private String compileAddressOfAssignment(Matcher addressOfAssignMatcher) {
         String varNameLeft = addressOfAssignMatcher.group(1);
         String varNameRight = addressOfAssignMatcher.group(2);
@@ -621,163 +874,5 @@ public class CCompiler {
         String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", addressOfRightVar, comment);
         String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
         return line1 + line2;
-    }
-
-    private String compileAssignment(Matcher assignMatcher) {
-        String varName = assignMatcher.group(1);
-        int value = Integer.parseInt(assignMatcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " = " + value + ";";
-        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", value, comment);
-        String line2 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2;
-    }
-
-    private String compileSubAssignment(Matcher subAssignMatcher) {
-        String varName = subAssignMatcher.group(1);
-        int value = Integer.parseInt(subAssignMatcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " = " + varName + " - " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    SUB AL, 0x%02x\n", value);
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
-    }
-
-    private String compileAddAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " = " + varName + " + " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    ADD AL, 0x%02x\n", value);
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
-    }
-
-    private String compileMulAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " = " + varName + " * " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
-        String line3 = "    MUL BL\n";
-        String line4 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3 + line4;
-    }
-
-    private String compileDivAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " = " + varName + " / " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
-        String line3 = "    DIV BL\n";
-        String line4 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3 + line4;
-    }
-
-    private String compileAddSelfAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " += " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    ADD AL, 0x%02x\n", value);
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
-    }
-
-    private String compileSubSelfAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " -= " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    SUB AL, 0x%02x\n", value);
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
-    }
-
-    private String compileMulSelfAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " *= " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
-        String line3 = "    MUL BL\n";
-        String line4 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3 + line4;
-    }
-
-    private String compileDivSelfAssignment(Matcher matcher) {
-        String varName = matcher.group(1);
-        int value = Integer.parseInt(matcher.group(2));
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + " /= " + value + ";";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
-        String line3 = "    DIV BL\n";
-        String line4 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3 + line4;
-    }
-
-    private String compileVarOpVarAssignment(Matcher matcher) {
-        String destVar = matcher.group(1);
-        String var1 = matcher.group(2);
-        String op = matcher.group(3);
-        String var2 = matcher.group(4);
-
-        String destAddr = getAddressMode(destVar);
-        String var1Addr = getAddressMode(var1);
-        String var2Addr = getAddressMode(var2);
-
-        String comment = String.format("; %s = %s %s %s;", destVar, var1, op, var2);
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(String.format("    MOV AL, %s\t\t%s\n", var1Addr, comment));
-        sb.append(String.format("    MOV BL, %s\n", var2Addr));
-
-        switch (op) {
-            case "+":
-                sb.append("    ADD AL, BL\n");
-                break;
-            case "-":
-                sb.append("    SUB AL, BL\n");
-                break;
-            case "*":
-                sb.append("    MUL BL\n");
-                break;
-            case "/":
-                sb.append("    DIV BL\n");
-                break;
-        }
-
-        sb.append(String.format("    MOV %s, AL\n", destAddr));
-
-        return sb.toString();
-    }
-
-    private String compileIncrement(Matcher matcher) {
-        String varName = matcher.group(1);
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + "++;";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = "    INC AL\n"; // INC increments AL by 1
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
-    }
-
-    private String compileDecrement(Matcher matcher) {
-        String varName = matcher.group(1);
-        String addressMode = getAddressMode(varName);
-        String comment = "; " + varName + "--;";
-        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = "    DEC AL\n"; // DEC decrements AL by 1
-        String line3 = String.format("    MOV %s, AL\n", addressMode);
-        return line1 + line2 + line3;
     }
 }
