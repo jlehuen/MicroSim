@@ -40,34 +40,36 @@ public class CCompiler {
     private int nextStaticAddress = STATIC_VAR_START_ADDRESS;
     private int labelCounter = 0;
 
-    private static final Pattern VAR_DECL_PATTERN_1  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern VAR_DECL_PATTERN_2  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
-    private static final Pattern ASSIGNMENT_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);");
-    private static final Pattern ASSIGN_VAR_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern POINTER_VAR_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern DEREF_VAR_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern VAR_DECL_PATTERN_1  = Pattern.compile("^\\s*int[\\*]?\\s+([a-zA-Z_][a-zA-Z0-9_]*);"); // int and int* declarations
+    private static final Pattern VAR_DECL_PATTERN_2  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);"); // int declaration with assignment
+    private static final Pattern VAR_DECL_PATTERN_3  = Pattern.compile("^\\s*int\\*\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);"); // int* declaration with address-of assignment
 
-    private static final Pattern SUB_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);");
-    private static final Pattern ADD_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);");
-    private static final Pattern MUL_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);");
-    private static final Pattern DIV_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);");
-    private static final Pattern ADD_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);");
-    private static final Pattern SUB_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);");
-    private static final Pattern MUL_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);");
-    private static final Pattern DIV_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);");
-    private static final Pattern VAR_OP_VAR_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*([+\\-*/])\\s*([a-zA-Z_][a-zA-Z0-9_]*);");
-    private static final Pattern INCREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;");
-    private static final Pattern DECREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;");
+    private static final Pattern ASSIGNMENT_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);"); // Simple assignment pattern
+    private static final Pattern ASSIGN_VAR_PATTERN  = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*);"); // Variable assignment pattern
+    private static final Pattern POINTER_VAR_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);"); // Address-of assignment pattern
+    private static final Pattern DEREF_VAR_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);"); // Dereference assignment pattern
 
-    private static final Pattern MAIN_DECL_PATTERN     = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{");
-    private static final Pattern FUNC_DECL_PATTERN     = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{");
-    private static final Pattern FUNC_CALL_PATTERN_1   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);");
-    private static final Pattern FUNC_CALL_PATTERN_2   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);");
-    private static final Pattern RETURN_PATTERN        = Pattern.compile("^\\s*return\\s+(\\d+|[a-zA-Z_][a-zA-Z0-9_]*);");
+    private static final Pattern SUB_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);"); // Subtraction assignment pattern
+    private static final Pattern ADD_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);"); // Addition assignment pattern
+    private static final Pattern MUL_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);"); // Multiplication assignment pattern
+    private static final Pattern DIV_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);"); // Division assignment pattern
+    private static final Pattern ADD_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);"); // Addition self-assignment pattern
+    private static final Pattern SUB_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);"); // Subtraction self-assignment pattern
+    private static final Pattern MUL_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);"); // Multiplication self-assignment pattern
+    private static final Pattern DIV_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);"); // Division self-assignment pattern
+    private static final Pattern VAR_OP_VAR_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*([+\\-*/])\\s*([a-zA-Z_][a-zA-Z0-9_]*);"); // Variable-Op-Variable assignment pattern
+    private static final Pattern INCREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;"); // Increment pattern
+    private static final Pattern DECREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;"); // Decrement pattern
 
-    private static final Pattern CONDITION_PATTERN     = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*");
-    private static final Pattern WHILE_PATTERN         = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{");
-    private static final Pattern IF_PATTERN            = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{");
+    private static final Pattern MAIN_DECL_PATTERN     = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{"); // Main function declaration pattern
+    private static final Pattern FUNC_DECL_PATTERN     = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{"); // Function declaration pattern
+    private static final Pattern FUNC_CALL_PATTERN_1   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call pattern
+    private static final Pattern FUNC_CALL_PATTERN_2   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call with assignment pattern
+    private static final Pattern RETURN_PATTERN        = Pattern.compile("^\\s*return\\s+(\\d+|[a-zA-Z_][a-zA-Z0-9_]*);"); // Return statement pattern
+
+    private static final Pattern CONDITION_PATTERN     = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*"); // Condition pattern
+    private static final Pattern WHILE_PATTERN         = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{"); // While loop pattern
+    private static final Pattern IF_PATTERN            = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{"); // If statement pattern
 
     public String compile(String sourceCode) {
         symbolTable.clear();
@@ -84,8 +86,9 @@ public class CCompiler {
             String trimmedLine = line.trim();
             if (trimmedLine.isEmpty()) continue;
 
-            Matcher declAssignMatcher = VAR_DECL_PATTERN_2.matcher(trimmedLine);
             Matcher declMatcher = VAR_DECL_PATTERN_1.matcher(trimmedLine);
+            Matcher declAssignMatcher = VAR_DECL_PATTERN_2.matcher(trimmedLine);
+            Matcher declPointerAssignMatcher = VAR_DECL_PATTERN_3.matcher(trimmedLine);
             Matcher funcDeclMatcher = FUNC_DECL_PATTERN.matcher(trimmedLine);
 
             if (declAssignMatcher.matches()) {
@@ -95,6 +98,11 @@ public class CCompiler {
                 }
             } else if (declMatcher.matches()) {
                 String varName = declMatcher.group(1);
+                if (!symbolTable.containsKey(varName)) {
+                    symbolTable.put(varName, nextStaticAddress++);
+                }
+            } else if (declPointerAssignMatcher.matches()) {
+                String varName = declPointerAssignMatcher.group(1); // The pointer variable name
                 if (!symbolTable.containsKey(varName)) {
                     symbolTable.put(varName, nextStaticAddress++);
                 }
@@ -186,6 +194,9 @@ public class CCompiler {
 
         // Simple declaration, generate no code in the second pass.
         if (VAR_DECL_PATTERN_1.matcher(line).matches()) return "";
+
+        Matcher declPointerAssignMatcher = VAR_DECL_PATTERN_3.matcher(line);
+        if (declPointerAssignMatcher.matches()) return compileDeclAndAddressOfAssignment(declPointerAssignMatcher);
 
         Matcher whileMatcher = WHILE_PATTERN.matcher(line);
         if (whileMatcher.matches()) return compileWhileLoop(whileMatcher, remainingLines);
@@ -851,6 +862,29 @@ public class CCompiler {
         sb.append(String.format("    MOV %s, BL\n", addressModeLeft));
 
         return sb.toString();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for pointer declaration with address-of assignments
+    // ---------------------------------------------------------------------------
+
+    private String compileDeclAndAddressOfAssignment(Matcher declPointerAssignMatcher) {
+        String varNameLeft = declPointerAssignMatcher.group(1);  // The pointer variable name
+        String varNameRight = declPointerAssignMatcher.group(2); // The variable whose address is taken
+
+        // Get the address of the right-hand side variable
+        Integer addressOfRightVar = symbolTable.get(varNameRight);
+        if (addressOfRightVar == null) {
+            throw new CompilationException("Undeclared variable: " + varNameRight);
+        }
+
+        // Get the address mode for the left-hand side variable (the pointer)
+        String addressModeLeft = getAddressMode(varNameLeft); // This gives [0xXX]
+
+        String comment = String.format("; int* %s = &%s; (0x%02x)", varNameLeft, varNameRight, addressOfRightVar);
+        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", addressOfRightVar, comment);
+        String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
+        return line1 + line2;
     }
 
     // ---------------------------------------------------------------------------
