@@ -49,27 +49,46 @@ public class CCompiler {
     private static final Pattern POINTER_VAR_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*&([a-zA-Z_][a-zA-Z0-9_]*);"); // Address-of assignment pattern
     private static final Pattern DEREF_VAR_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\*([a-zA-Z_][a-zA-Z0-9_]*);"); // Dereference assignment pattern
 
-    private static final Pattern SUB_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);"); // Subtraction assignment pattern
-    private static final Pattern ADD_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);"); // Addition assignment pattern
-    private static final Pattern MUL_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);"); // Multiplication assignment pattern
-    private static final Pattern DIV_ASSIGN_PATTERN      = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);"); // Division assignment pattern
-    private static final Pattern ADD_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);"); // Addition self-assignment pattern
-    private static final Pattern SUB_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);"); // Subtraction self-assignment pattern
-    private static final Pattern MUL_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);"); // Multiplication self-assignment pattern
-    private static final Pattern DIV_SELF_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);"); // Division self-assignment pattern
+    private static final Pattern SUB_ASSIGN_PATTERN        = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*-\\s*(\\d+);"); // Subtraction assignment pattern
+    private static final Pattern ADD_ASSIGN_PATTERN        = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\+\\s*(\\d+);"); // Addition assignment pattern
+    private static final Pattern MUL_ASSIGN_PATTERN        = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\*\\s*(\\d+);"); // Multiplication assignment pattern
+    private static final Pattern DIV_ASSIGN_PATTERN        = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*\\1\\s*\\/\\s*(\\d+);"); // Division assignment pattern
+    private static final Pattern ADD_SELF_ASSIGN_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+=\\s*(\\d+);"); // Addition self-assignment pattern
+    private static final Pattern SUB_SELF_ASSIGN_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*-=\\s*(\\d+);"); // Subtraction self-assignment pattern
+    private static final Pattern MUL_SELF_ASSIGN_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\*=\\s*(\\d+);"); // Multiplication self-assignment pattern
+    private static final Pattern DIV_SELF_ASSIGN_PATTERN   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\/=\\s*(\\d+);"); // Division self-assignment pattern
     private static final Pattern VAR_OP_VAR_ASSIGN_PATTERN = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*([+\\-*/])\\s*([a-zA-Z_][a-zA-Z0-9_]*);"); // Variable-Op-Variable assignment pattern
-    private static final Pattern INCREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;"); // Increment pattern
-    private static final Pattern DECREMENT_PATTERN       = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;"); // Decrement pattern
+    private static final Pattern INCREMENT_PATTERN         = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\+\\+;"); // Increment pattern
+    private static final Pattern DECREMENT_PATTERN         = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*--;"); // Decrement pattern
 
-    private static final Pattern MAIN_DECL_PATTERN     = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{"); // Main function declaration pattern
-    private static final Pattern FUNC_DECL_PATTERN     = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{"); // Function declaration pattern
-    private static final Pattern FUNC_CALL_PATTERN_1   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call pattern
-    private static final Pattern FUNC_CALL_PATTERN_2   = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call with assignment pattern
-    private static final Pattern RETURN_PATTERN        = Pattern.compile("^\\s*return\\s+(\\d+|[a-zA-Z_][a-zA-Z0-9_]*);"); // Return statement pattern
+    private static final Pattern MAIN_DECL_PATTERN   = Pattern.compile("^\\s*void\\s+main\\s*\\(\\)\\s*\\{"); // Main function declaration pattern
+    private static final Pattern FUNC_DECL_PATTERN   = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\)\\s*\\{"); // Function declaration pattern
+    private static final Pattern FUNC_CALL_PATTERN_1 = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call pattern
+    private static final Pattern FUNC_CALL_PATTERN_2 = Pattern.compile("^\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Function call with assignment pattern
+    private static final Pattern RETURN_PATTERN      = Pattern.compile("^\\s*return\\s+(\\d+|[a-zA-Z_][a-zA-Z0-9_]*);"); // Return statement pattern
 
-    private static final Pattern CONDITION_PATTERN     = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*"); // Condition pattern
-    private static final Pattern WHILE_PATTERN         = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{"); // While loop pattern
-    private static final Pattern IF_PATTERN            = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{"); // If statement pattern
+    private static final Pattern CONDITION_PATTERN = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*"); // Condition pattern
+    private static final Pattern WHILE_PATTERN     = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{"); // While loop pattern
+    private static final Pattern IF_PATTERN        = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{"); // If statement pattern
+    private static final Pattern PRINT_PATTERN     = Pattern.compile("^\\s*print\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Print statement pattern
+
+    private String printHexRoutine = null;
+
+    private String getPrintHexRoutine() {
+        if (printHexRoutine == null) {
+            // This relies on the "data/includes" directory being available in the classpath.
+            try (java.io.InputStream is = CCompiler.class.getClassLoader().getResourceAsStream("includes/print_hex.asm");
+                 java.util.Scanner scanner = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A")) {
+                if (!scanner.hasNext()) {
+                    throw new CompilationException("Resource file includes/print_hex.asm is empty or not found.");
+                }
+                printHexRoutine = scanner.next();
+            } catch (Exception e) {
+                throw new CompilationException("Could not load or parse includes/print_hex.asm routine: " + e.getMessage());
+            }
+        }
+        return printHexRoutine;
+    }
 
     public String compile(String sourceCode) {
         symbolTable.clear();
@@ -166,6 +185,10 @@ public class CCompiler {
             throw new CompilationException("Error: 'void main()' function not found.");
         }
 
+        // Append the print_hex routine at the end of the code
+        finalCode.append("\n");
+        finalCode.append(getPrintHexRoutine());
+
         return finalCode.toString();
     }
 
@@ -203,6 +226,9 @@ public class CCompiler {
 
         Matcher ifMatcher = IF_PATTERN.matcher(line);
         if (ifMatcher.matches()) return compileIfElse(ifMatcher, remainingLines);
+
+        Matcher printMatcher = PRINT_PATTERN.matcher(line);
+        if (printMatcher.matches()) return compilePrintCall(printMatcher);
 
         Matcher funcCallMatcher = FUNC_CALL_PATTERN_1.matcher(line);
         if (funcCallMatcher.matches()) return compileFunctionCall(funcCallMatcher);
@@ -277,6 +303,19 @@ public class CCompiler {
 
         // Variable not found
         throw new CompilationException("Undeclared variable: " + varName);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Compilation method for print calls
+    // ---------------------------------------------------------------------------
+
+    private String compilePrintCall(Matcher matcher) {
+        String varName = matcher.group(1);
+        String addressMode = getAddressMode(varName);
+        String comment = "; print(" + varName + ");";
+        String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
+        String line2 = "    CALL print_hex\n";
+        return line1 + line2;
     }
 
     // ---------------------------------------------------------------------------

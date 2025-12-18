@@ -350,6 +350,9 @@ public class Assembler {
                             } else {
                                 throw new IllegalArgumentException("ADD does not support this operands on line " + lineNumber);
                             }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
                             break;
                         case "SUB":
                             if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
@@ -378,6 +381,118 @@ public class Assembler {
                                 opCode = Opcodes.CMP_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("CMP does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "SHL":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.SHL_REG_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.SHL_REGADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.SHL_ADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.SHL_NUMBER_WITH_REG;
+                            } else {
+                                throw new IllegalArgumentException("SHL does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "SHR":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.SHR_REG_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.SHR_REGADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.SHR_ADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.SHR_NUMBER_WITH_REG;
+                            } else {
+                                throw new IllegalArgumentException("SHR does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "MUL":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.MUL_REG_TO_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.MUL_REGADDRESS_TO_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.MUL_ADDRESS_TO_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.MUL_NUMBER_TO_REG;
+                            } else {
+                                throw new IllegalArgumentException("MUL does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "DIV":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.DIV_REG_FROM_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.DIV_REGADDRESS_FROM_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.DIV_ADDRESS_FROM_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.DIV_NUMBER_FROM_REG;
+                            } else {
+                                throw new IllegalArgumentException("DIV does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "AND":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.AND_REG_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.AND_REGADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.AND_ADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.AND_NUMBER_WITH_REG;
+                            } else {
+                                throw new IllegalArgumentException("AND does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "OR":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.OR_REG_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.OR_REGADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.OR_ADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.OR_NUMBER_WITH_REG;
+                            } else {
+                                throw new IllegalArgumentException("OR does not support this operands on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "XOR":
+                            if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGISTER) {
+                                opCode = Opcodes.XOR_REG_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.REGADDRESS) {
+                                opCode = Opcodes.XOR_REGADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
+                                opCode = Opcodes.XOR_ADDRESS_WITH_REG;
+                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                                opCode = Opcodes.XOR_NUMBER_WITH_REG;
+                            } else {
+                                throw new IllegalArgumentException("XOR does not support this operands on line " + lineNumber);
                             }
                             code[addressCounter++] = opCode;
                             addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);

@@ -2218,11 +2218,12 @@ Fin:
 <h3 id="toc_68">Déclaration et affectation des variables :</h3>
 
 <ul>
-<li><strong>Déclaration simple</strong> : <code>int ma_variable;</code></li>
+<li><strong>Déclaration simple</strong> : <code>int variable;</code></li>
 <li><strong>Déclaration avec initialisation</strong> : <code>int compteur = 10;</code></li>
-<li><strong>Types de données</strong> : Le seul type de données géré est <code>int</code></li>
+<li><strong>Déclaration de pointeur</strong> : <code>int* ptr = &amp;variable;</code></li>
 <li><strong>Assigner une valeur numérique</strong> : <code>compteur = 25;</code></li>
-<li><strong>Assigner la valeur d&#39;une autre variable</strong> : <code>var2 = var1;</code></li>
+<li><strong>Assigner la valeur d&#39;une variable</strong> : <code>compteur = variable;</code></li>
+<li><strong>Type de données</strong> : Le seul type de données géré est <code>int</code></li>
 </ul>
 
 <h3 id="toc_69">Opérateurs arithmétiques :</h3>
@@ -2255,12 +2256,11 @@ variable--;</code></pre></div>
 <li><p><strong>Prendre l&#39;adresse d&#39;une variable</strong> :</p>
 
 <div><pre><code class="language-c">int valeur = 123;
-int ptr;
+int* ptr;
 ptr = &amp;valeur; // ptr contient maintenant l&#39;adresse de &#39;valeur&#39;</code></pre></div></li>
 <li><p><strong>Obtenir la valeur pointée (déréférencement)</strong> :</p>
 
 <div><pre><code class="language-c">int resultat;
-// Suite de l&#39;exemple précédent
 resultat = *ptr; // resultat vaut maintenant 123</code></pre></div></li>
 </ul>
 

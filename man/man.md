@@ -613,11 +613,12 @@ Cette partie résume la syntaxe du langage C reconnue par le mini-compilateur in
 
 ### Déclaration et affectation des variables :
 
-- **Déclaration simple** : `int ma_variable;`
+- **Déclaration simple** : `int variable;`
 - **Déclaration avec initialisation** : `int compteur = 10;`
-- **Types de données** : Le seul type de données géré est `int`
+- **Déclaration de pointeur** : `int* ptr = &variable;`
 - **Assigner une valeur numérique** : `compteur = 25;`
-- **Assigner la valeur d'une autre variable** : `var2 = var1;`
+- **Assigner la valeur d'une variable** : `compteur = variable;`
+- **Type de données** : Le seul type de données géré est `int`
 
 ### Opérateurs arithmétiques :
 
@@ -653,7 +654,7 @@ Les opérateurs d'adresse `&` et de déréférencement `*` sont supportés pour 
 
   ```c
   int valeur = 123;
-  int ptr;
+  int* ptr;
   ptr = &valeur; // ptr contient maintenant l'adresse de 'valeur'
   ```
 
@@ -661,7 +662,6 @@ Les opérateurs d'adresse `&` et de déréférencement `*` sont supportés pour 
 
   ```c
   int resultat;
-  // Suite de l'exemple précédent
   resultat = *ptr; // resultat vaut maintenant 123
   ```
 
