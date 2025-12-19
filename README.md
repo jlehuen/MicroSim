@@ -1,4 +1,4 @@
-# MicroSim 8 bits
+# MicroSim x86
 
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![Language](https://img.shields.io/badge/Language-Java-orange.svg)
@@ -8,9 +8,9 @@
 
 ## Introduction
 
-MicroSim is an 8-bit microprocessor simulator designed as an educational tool for learning x86 MASM-type assembly language programming. It provides a complete environment: a code editor with syntax highlighting, a visualization of registers and 256-byte RAM (8-bit addresses), as well as several interactive virtual devices.
+MicroSim x86 is an 8-bit microprocessor simulator designed as an educational tool for learning MASM-type x86 machine language programming. It provides a complete environment: a code editor with syntax highlighting, visualization of registers and 256-bytes RAM (8-bits data and addresses), as well as several virtual devices. It also provides a mini C compiler that compiles a subset of C language, including pointer operations `&var` (address) and `*var` (dereferencing).
 
-The goal is to illustrate the fundamental concepts of computer architecture, such as registers, memory, the stack, and the internal workings of a CPU through a simple yet complete and realistic instruction set.
+The goal is to illustrate the fundamental concepts of computer architecture, such as registers, memory, stack, and the internal workings of a CPU through a simple but comprehensive and realistic instructions set.
 
 This project is inspired by two other similar open-source projects:
 
@@ -39,22 +39,20 @@ MicroSim includes several input/output devices that can be controlled by your pr
 
 ## Quick Start Guide
 
+
 1.  **Write your code:**
-
-	- Type your program in the code editor.
-
-2.  **Assemble it:**
-
+	- Type your program into the code editor.
+	- Or drop a `.c` or `.asm` file into the editor.
+2. **Compile it:**
+	- If it's a C program, you must compile it to produce executable code.
+	- The C compiler is limited (see the supported <a href=man/man.html#compiler>syntax</a>).
+3.  **Assemble it:**
 	- Click the "Assemble" button. Syntax errors will be displayed in a dialog box.
-
 3.  **Run your program:**
-
-    - Click "Run" to start the program and adjust the execution speed.
-    - Click "Step" to execute one instruction at a time and observe its effect on the registers and memory.
-
+	- Click "Run" to start the program and set the execution speed.
+	- Click "Step Through" to execute one instruction at a time and observe the effects of each instruction on the registers and memory.
 4.  **Debug:**
-
-	- Use the step-by-step mode and the device windows to find and fix logic errors.
+	- Use the step-through mode and device windows to find and correct errors in your logic.
 
 ### "Hello World" Example
 
@@ -108,7 +106,7 @@ If you want to build the project from the source files, you can use the provided
 
 A comprehensive reference manual for the assembler, including the full instruction set, is available.
 
-- **[Read the HTML Manual](man/man.md)**
+- **[Read the HTML Manual](man/man.html)**
 
 ## License
 
