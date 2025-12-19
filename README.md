@@ -24,6 +24,7 @@ This project is inspired by two other similar open-source projects:
 - **RAM Inspector:** View the entire 256-byte memory in hexadecimal or ASCII. The `IP` (Instruction Pointer) and `SP` (Stack Pointer) locations are highlighted.
 - **Execution Control:** Run the code continuously at adjustable speeds or execute it instruction by instruction in step-by-step mode.
 - **Virtual Devices:** Interact with your programs through several I/O devices.
+- **Mini-C compiler:** Compiles a subset of C language, including pointer operations.
 - **Cross-Platform:** Built with Java, MicroSim runs on macOS, Linux, and Windows.
 
 ## Virtual Devices
@@ -45,7 +46,6 @@ MicroSim includes several input/output devices that can be controlled by your pr
 	- Or drop a `.c` or `.asm` file into the editor.
 2. **Compile it:**
 	- If it's a C program, you must compile it to produce executable code.
-	- The C compiler is limited (see the supported <a href=man/man.html#compiler>syntax</a>).
 3.  **Assemble it:**
 	- Click the "Assemble" button. Syntax errors will be displayed in a dialog box.
 3.  **Run your program:**
@@ -106,7 +106,7 @@ If you want to build the project from the source files, you can use the provided
 
 A comprehensive reference manual for the assembler, including the full instruction set, is available.
 
-- **[Read the HTML Manual](man/man.html)**
+- **[Read the HTML Manual](man/man.md)**
 
 ## License
 
