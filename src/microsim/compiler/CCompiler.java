@@ -39,6 +39,11 @@ public class CCompiler {
     private Map<String, String> localSymbolTable = new HashMap<>();
     private int nextStaticAddress = STATIC_VAR_START_ADDRESS;
     private int labelCounter = 0;
+    private boolean microioIncluded;
+
+    // ---------------------------------------------------------------------------
+    // Regex patterns for parsing
+    // ---------------------------------------------------------------------------
 
     private static final Pattern VAR_DECL_PATTERN_1  = Pattern.compile("^\\s*int[\\*]?\\s+([a-zA-Z_][a-zA-Z0-9_]*);"); // int and int* declarations
     private static final Pattern VAR_DECL_PATTERN_2  = Pattern.compile("^\\s*int\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(\\d+);"); // int declaration with assignment
@@ -70,30 +75,19 @@ public class CCompiler {
     private static final Pattern CONDITION_PATTERN = Pattern.compile("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(>|<|==|!=|>=|<=)\\s*(\\d+|[a-zA-Z_][a-zA-Z0-9_]*)\\s*"); // Condition pattern
     private static final Pattern WHILE_PATTERN     = Pattern.compile("^\\s*while\\s*\\((.*)\\)\\s*\\{"); // While loop pattern
     private static final Pattern IF_PATTERN        = Pattern.compile("^\\s*if\\s*\\((.*)\\)\\s*\\{"); // If statement pattern
+    
     private static final Pattern PRINT_PATTERN     = Pattern.compile("^\\s*print\\s*\\(\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\);"); // Print statement pattern
+    private static final Pattern INCLUDE_PATTERN   = Pattern.compile("^\\s*#include\\s*<(.*)>"); // Include statement pattern
 
-    private String printHexRoutine = null;
-
-    private String getPrintHexRoutine() {
-        if (printHexRoutine == null) {
-            // This relies on the "data/includes" directory being available in the classpath.
-            try (java.io.InputStream is = CCompiler.class.getClassLoader().getResourceAsStream("includes/print_hex.asm");
-                 java.util.Scanner scanner = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A")) {
-                if (!scanner.hasNext()) {
-                    throw new CompilationException("Resource file includes/print_hex.asm is empty or not found.");
-                }
-                printHexRoutine = scanner.next();
-            } catch (Exception e) {
-                throw new CompilationException("Could not load or parse includes/print_hex.asm routine: " + e.getMessage());
-            }
-        }
-        return printHexRoutine;
-    }
+    // ---------------------------------------------------------------------------
+    // Main compilation method
+    // ---------------------------------------------------------------------------
 
     public String compile(String sourceCode) {
         symbolTable.clear();
         nextStaticAddress = STATIC_VAR_START_ADDRESS;
         labelCounter = 0;
+        microioIncluded = false;
 
         // Remove C-style comments
         String cleanedSourceCode = sourceCode.replaceAll("/\\*.*?\\*/", ""); // Remove multi-line comments
@@ -103,7 +97,7 @@ public class CCompiler {
         String[] lines = cleanedSourceCode.split("\\r?\\n");
         for (String line : lines) {
             String trimmedLine = line.trim();
-            if (trimmedLine.isEmpty()) continue;
+            if (trimmedLine.isEmpty() || trimmedLine.startsWith("#include")) continue;
 
             Matcher declMatcher = VAR_DECL_PATTERN_1.matcher(trimmedLine);
             Matcher declAssignMatcher = VAR_DECL_PATTERN_2.matcher(trimmedLine);
@@ -144,15 +138,39 @@ public class CCompiler {
         if (!symbolTable.isEmpty()) {
             finalCode.append("; Variable addresses:\n");
             for (Map.Entry<String, Integer> entry : symbolTable.entrySet()) {
-                finalCode.append(String.format(";   %-10s: 0x%02x\n", entry.getKey(), entry.getValue()));
+                finalCode.append(String.format(";   %-10s: 0x%02X\n", entry.getKey(), entry.getValue()));
             }
             finalCode.append("\n"); // Add a blank line for separation
         }
 
+        StringBuilder routinesCode = new StringBuilder();
+        List<String> lineList = new ArrayList<>(List.of(lines));
+
+        // Process includes first
+        List<String> codeLines = new ArrayList<>();
+        for (String line : lineList) {
+            String trimmedLine = line.trim();
+            if (trimmedLine.startsWith("#include")) {
+                Matcher includeMatcher = INCLUDE_PATTERN.matcher(trimmedLine);
+                if (includeMatcher.matches()) {
+                    String header = includeMatcher.group(1);
+                    if ("microio.h".equals(header)) {
+                        microioIncluded = true;
+                        routinesCode.append("\n");
+                        routinesCode.append(getPrintHexRoutine());
+                    } else {
+                        throw new CompilationException("Unsupported header file: " + header);
+                    }
+                }
+            } else {
+                codeLines.add(line);
+            }
+        }
+        lineList = codeLines;
+
         finalCode.append("    CALL main_func\n");
         finalCode.append("    HLT\n");
 
-        List<String> lineList = new ArrayList<>(List.of(lines));
         boolean mainFound = false;
 
         // Find and compile all functions
@@ -177,7 +195,12 @@ public class CCompiler {
                 String paramName = funcDeclMatcher.group(2);
                 finalCode.append(compileFunctionBody("func_" + functionName, lineList, paramName, false));
             } else {
-                throw new CompilationException("Top-level code outside of a function is not supported: " + line);
+                // This check is tricky now with includes being processed first.
+                // A line here is code if it wasn't an include.
+                if (!line.trim().isEmpty()) {
+                    throw new CompilationException("Top-level code outside of a function is not supported: " + line);
+                }
+                lineList.remove(0);
             }
         }
 
@@ -185,12 +208,15 @@ public class CCompiler {
             throw new CompilationException("Error: 'void main()' function not found.");
         }
 
-        // Append the print_hex routine at the end of the code
-        finalCode.append("\n");
-        finalCode.append(getPrintHexRoutine());
+        // Append any included routines at the end of the code
+        finalCode.append(routinesCode.toString());
 
         return finalCode.toString();
     }
+
+    // ---------------------------------------------------------------------------
+    // Line compilation dispatcher
+    // ---------------------------------------------------------------------------
 
     private String compileLine(String line, List<String> remainingLines) {
         if (line.isEmpty()) {
@@ -210,8 +236,8 @@ public class CCompiler {
             int address = symbolTable.get(varName);
 
             String comment = "; int " + varName + " = " + value + ";";
-            String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", value, comment);
-            String line2 = String.format("    MOV [0x%02x], AL\n", address);
+            String line1 = String.format("    MOV AL, 0x%02X\t\t%s\n", value, comment);
+            String line2 = String.format("    MOV [0x%02X], AL\n", address);
             return line1 + line2;
         }
 
@@ -298,7 +324,7 @@ public class CCompiler {
         // Check global symbols
         if (symbolTable.containsKey(varName)) {
             int address = symbolTable.get(varName);
-            return String.format("[0x%02x]", address);
+            return String.format("[0x%02X]", address);
         }
 
         // Variable not found
@@ -306,10 +332,35 @@ public class CCompiler {
     }
 
     // ---------------------------------------------------------------------------
+    // Routine loader for print_hex
+    // ---------------------------------------------------------------------------
+
+    private String printHexRoutine = null;
+
+    private String getPrintHexRoutine() {
+        if (printHexRoutine == null) {
+            // This relies on the "data/includes" directory being available in the classpath.
+            try (java.io.InputStream is = CCompiler.class.getClassLoader().getResourceAsStream("includes/print_hex.asm");
+                 java.util.Scanner scanner = new java.util.Scanner(is, "UTF-8").useDelimiter("\\A")) {
+                if (!scanner.hasNext()) {
+                    throw new CompilationException("Resource file includes/print_hex.asm is empty or not found.");
+                }
+                printHexRoutine = scanner.next();
+            } catch (Exception e) {
+                throw new CompilationException("Could not load or parse includes/print_hex.asm routine: " + e.getMessage());
+            }
+        }
+        return printHexRoutine;
+    }
+
+    // ---------------------------------------------------------------------------
     // Compilation method for print calls
     // ---------------------------------------------------------------------------
 
     private String compilePrintCall(Matcher matcher) {
+        if (!microioIncluded) {
+            throw new CompilationException("Undefined function 'print'. Did you forget to #include <microio.h>?");
+        }
         String varName = matcher.group(1);
         String addressMode = getAddressMode(varName);
         String comment = "; print(" + varName + ");";
@@ -327,7 +378,7 @@ public class CCompiler {
         int value = Integer.parseInt(assignMatcher.group(2));
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " = " + value + ";";
-        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", value, comment);
+        String line1 = String.format("    MOV AL, 0x%02X\t\t%s\n", value, comment);
         String line2 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2;
     }
@@ -357,7 +408,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " = " + varName + " - " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line2 = String.format("    SUB AL, 0x%02X\n", value);
         String line3 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3;
     }
@@ -372,7 +423,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " = " + varName + " + " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line2 = String.format("    ADD AL, 0x%02X\n", value);
         String line3 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3;
     }
@@ -387,7 +438,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " = " + varName + " * " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line2 = String.format("    MOV BL, 0x%02X\n", value);
         String line3 = "    MUL BL\n";
         String line4 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3 + line4;
@@ -403,7 +454,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " = " + varName + " / " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line2 = String.format("    MOV BL, 0x%02X\n", value);
         String line3 = "    DIV BL\n";
         String line4 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3 + line4;
@@ -419,7 +470,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " += " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    ADD AL, 0x%02x\n", value);
+        String line2 = String.format("    ADD AL, 0x%02X\n", value);
         String line3 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3;
     }
@@ -434,7 +485,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " -= " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    SUB AL, 0x%02x\n", value);
+        String line2 = String.format("    SUB AL, 0x%02X\n", value);
         String line3 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3;
     }
@@ -449,7 +500,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " *= " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line2 = String.format("    MOV BL, 0x%02X\n", value);
         String line3 = "    MUL BL\n";
         String line4 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3 + line4;
@@ -465,7 +516,7 @@ public class CCompiler {
         String addressMode = getAddressMode(varName);
         String comment = "; " + varName + " /= " + value + ";";
         String line1 = String.format("    MOV AL, %s\t\t%s\n", addressMode, comment);
-        String line2 = String.format("    MOV BL, 0x%02x\n", value);
+        String line2 = String.format("    MOV BL, 0x%02X\n", value);
         String line3 = "    DIV BL\n";
         String line4 = String.format("    MOV %s, AL\n", addressMode);
         return line1 + line2 + line3 + line4;
@@ -584,7 +635,7 @@ public class CCompiler {
             try {
                 int valueRight = Integer.parseInt(operandRight);
                 // It's a number literal
-                loopCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
+                loopCode.append(String.format("    CMP AL, 0x%02X\n", valueRight));
             } catch (NumberFormatException e) {
                 // It's a variable name
                 String addressModeRight = getAddressMode(operandRight);
@@ -649,7 +700,7 @@ public class CCompiler {
             int address = symbolTable.get(mangledParamName);
             // Adjusted offset for 3 GPRs + 1 Flag reg + return addr
             functionCode.append(String.format("    MOV AL, [SP+6]\t\t; Load param '%s' from stack (after PUSHes)\n", paramName));
-            functionCode.append(String.format("    MOV [0x%02x], AL\t; Store in shadow variable '%s'\n", address, mangledParamName));
+            functionCode.append(String.format("    MOV [0x%02X], AL\t; Store in shadow variable '%s'\n", address, mangledParamName));
         }
 
         int braceCount = 1; // Expecting '{' to be already consumed for the function start
@@ -724,7 +775,7 @@ public class CCompiler {
 
             try {
                 int valueRight = Integer.parseInt(operandRight);
-                ifCode.append(String.format("    CMP AL, 0x%02x\n", valueRight));
+                ifCode.append(String.format("    CMP AL, 0x%02X\n", valueRight));
             } catch (NumberFormatException e) {
                 String addressModeRight = getAddressMode(operandRight);
                 ifCode.append(String.format("    MOV BL, %s\n", addressModeRight));
@@ -803,7 +854,7 @@ public class CCompiler {
         try {
             int literalValue = Integer.parseInt(argument);
             // It's a number literal
-            sb.append(String.format("    PUSH 0x%02x\t\t\t%s\n", literalValue, comment));
+            sb.append(String.format("    PUSH 0x%02X\t\t\t%s\n", literalValue, comment));
 
         } catch (NumberFormatException e) {
             // It's a variable name
@@ -832,7 +883,7 @@ public class CCompiler {
         try {
             int literalValue = Integer.parseInt(returnValue);
             // It's a number literal
-            return String.format("    MOV AL, 0x%02x\t\t%s\n", literalValue, comment);
+            return String.format("    MOV AL, 0x%02X\t\t%s\n", literalValue, comment);
         } catch (NumberFormatException e) {
             // It's a variable name
             String addressMode = getAddressMode(returnValue);
@@ -856,7 +907,7 @@ public class CCompiler {
 
         try {
             int literalValue = Integer.parseInt(argument);
-            sb.append(String.format("    PUSH 0x%02x\t\t\t%s\n", literalValue, comment));
+            sb.append(String.format("    PUSH 0x%02X\t\t\t%s\n", literalValue, comment));
         } catch (NumberFormatException e) {
             String addressMode = getAddressMode(argument);
             sb.append(String.format("    PUSH %s\t\t%s\n", addressMode, comment));
@@ -893,7 +944,7 @@ public class CCompiler {
         StringBuilder sb = new StringBuilder();
 
         // 1. Load the value of the pointer variable (which is an address) into AL
-        sb.append(String.format("    MOV AL, [0x%02x]\t\t%s\n", ptrVarAddress, comment));
+        sb.append(String.format("    MOV AL, [0x%02X]\t\t%s\n", ptrVarAddress, comment));
         // 2. Use AL's content as an address to load the actual value into BL
         //    (assuming BL is a scratch register and can be used for indirect addressing)
         sb.append("    MOV BL, [AL]\n"); // Load value from the address pointed to by AL
@@ -920,8 +971,8 @@ public class CCompiler {
         // Get the address mode for the left-hand side variable (the pointer)
         String addressModeLeft = getAddressMode(varNameLeft); // This gives [0xXX]
 
-        String comment = String.format("; int* %s = &%s; (0x%02x)", varNameLeft, varNameRight, addressOfRightVar);
-        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", addressOfRightVar, comment);
+        String comment = String.format("; int* %s = &%s; (0x%02X)", varNameLeft, varNameRight, addressOfRightVar);
+        String line1 = String.format("    MOV AL, 0x%02X\t\t%s\n", addressOfRightVar, comment);
         String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
         return line1 + line2;
     }
@@ -943,8 +994,8 @@ public class CCompiler {
         // Get the address mode for the left-hand side variable
         String addressModeLeft = getAddressMode(varNameLeft); // This gives [0xXX]
 
-        String comment = String.format("; %s = &%s; (0x%02x)", varNameLeft, varNameRight, addressOfRightVar);
-        String line1 = String.format("    MOV AL, 0x%02x\t\t%s\n", addressOfRightVar, comment);
+        String comment = String.format("; %s = &%s; (0x%02X)", varNameLeft, varNameRight, addressOfRightVar);
+        String line1 = String.format("    MOV AL, 0x%02X\t\t%s\n", addressOfRightVar, comment);
         String line2 = String.format("    MOV %s, AL\n", addressModeLeft);
         return line1 + line2;
     }

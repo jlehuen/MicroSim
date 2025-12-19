@@ -18,12 +18,11 @@ code {
 }
 </style>
 
-
 # MicroSim x86
 
 ## 1. Introduction
 
-MicroSim x86 est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l'apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (données et adresses sur 8 bits) ainsi que plusieurs périphériques virtuels interactifs.
+MicroSim x86 est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l'apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (données et adresses sur 8 bits) ainsi que plusieurs périphériques virtuels. Il fournit également un mini-compilateur C qui compile un sous-ensemble du C qui inclut notamment les opérations de pointeur `&var` (adresse) et `*var` (déréférencement) permettant de faire le lien avec la mémoire adressable.
 
 L'objectif est d'illustrer les concepts fondamentaux de l'architecture des ordinateurs, tels que les registres, la mémoire, la pile, et le fonctionnement interne d'un CPU à travers un jeu d'instructions simple, mais complet et réaliste.
 
@@ -654,8 +653,7 @@ Les opérateurs d'adresse `&` et de déréférencement `*` sont supportés pour 
 
   ```c
   int valeur = 123;
-  int* ptr;
-  ptr = &valeur; // ptr contient maintenant l'adresse de 'valeur'
+  int* ptr = &valeur; // ptr contient maintenant l'adresse de 'valeur'
   ```
 
 - **Obtenir la valeur pointée (déréférencement)** :
@@ -730,6 +728,67 @@ int ma_fonction(int parametre) {
   // ...
   return parametre;
 }
+```
+
+Le compilateur autorise la directive `#include` afin d'illustrer l'édition de lien. L'unique librairie `microio.h` permet d'inclure la fonction `void print(int value)` qui affiche un entier en hexadécimal dans le mini-terminal ASCII :
+
+```c
+#include <microio.h>
+
+void main() {
+	int a = 10;
+	print(a);
+}
+```
+
+La compilation de ce code va produire le code exécutable suivant :
+
+```
+; C source compiled by MicroSim CCompiler (Static Memory Model)
+
+; Variable addresses:
+;   a         : 0x80
+
+	call	main_func
+	hlt
+
+main_func:
+	mov	AL, 0x0A      ; int a = 10;
+	mov	[0x80], AL
+	mov	AL, [0x80]    ; print(a);
+	call	print_hex
+	ret
+
+; Prints the hexadecimal value of AL to the ASCII terminal.
+
+print_hex:
+	push	AL            ; Save original value
+
+; Process high nibble
+	shr	AL, 4         ; Move high nibble to low nibble position
+	call	to_hex_char
+	mov	[0xC0], AL    ; Print first hex char
+	pop	AL            ; Restore original value
+
+; Process low nibble
+	and	AL, 0x0F      ; Isolate low nibble
+	call	to_hex_char
+	mov	[0xC1], AL    ; Print second hex char
+
+	ret
+
+; Converts the low nibble of AL to a hex ASCII character.
+
+to_hex_char:
+	cmp	AL, 9
+	jbe	.is_digit
+; It's a letter (A-F)
+	add	AL, 0x37
+	ret
+.is_digit:
+; It's a digit (0-9)
+	add	AL, 0x30
+	ret
 ```
 
 ![sep](img/sep.png)

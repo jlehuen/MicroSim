@@ -135,6 +135,7 @@ public class EditorPanel extends JPanel {
      */
     public void setNewContent(String content) {
         textArea.setText(content);
+        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // Set to assembly for compiled code
         currentFile = null;
         setDirtyFlag(true);
     }
@@ -245,6 +246,17 @@ public class EditorPanel extends JPanel {
         try {
             String content = new String(Files.readAllBytes(file.toPath()));
             textArea.setText(content);
+
+            // Set syntax based on file extension
+            String fileName = file.getName().toLowerCase();
+            if (fileName.endsWith(".c")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C);
+            } else if (fileName.endsWith(".asm")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86);
+            } else {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+            }
+
             textArea.discardAllEdits();
             currentFile = file;
             mainframe.getToolBar().update();

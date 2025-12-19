@@ -495,7 +495,7 @@ code {
 
 <h2 id="toc_1">1. Introduction</h2>
 
-<p>MicroSim x86 est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l&#39;apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (données et adresses sur 8 bits) ainsi que plusieurs périphériques virtuels interactifs.</p>
+<p>MicroSim x86 est un simulateur de microprocesseur 8 bits conçu comme un outil pédagogique pour l&#39;apprentissage de la programmation en langage machine x86 de type MASM. Il fournit un environnement complet : un éditeur de code avec coloration syntaxique, une visualisation des registres et de la mémoire RAM 256 octets (données et adresses sur 8 bits) ainsi que plusieurs périphériques virtuels. Il fournit également un mini-compilateur C qui compile un sous-ensemble du C qui inclut notamment les opérations de pointeur <code>&amp;var</code> (adresse) et <code>*var</code> (déréférencement) permettant de faire le lien avec la mémoire adressable.</p>
 
 <p>L&#39;objectif est d&#39;illustrer les concepts fondamentaux de l&#39;architecture des ordinateurs, tels que les registres, la mémoire, la pile, et le fonctionnement interne d&#39;un CPU à travers un jeu d&#39;instructions simple, mais complet et réaliste.</p>
 
@@ -2256,8 +2256,7 @@ variable--;</code></pre></div>
 <li><p><strong>Prendre l&#39;adresse d&#39;une variable</strong> :</p>
 
 <div><pre><code class="language-c">int valeur = 123;
-int* ptr;
-ptr = &amp;valeur; // ptr contient maintenant l&#39;adresse de &#39;valeur&#39;</code></pre></div></li>
+int* ptr = &amp;valeur; // ptr contient maintenant l&#39;adresse de &#39;valeur&#39;</code></pre></div></li>
 <li><p><strong>Obtenir la valeur pointée (déréférencement)</strong> :</p>
 
 <div><pre><code class="language-c">int resultat;
@@ -2318,6 +2317,63 @@ if (variable &gt; 5) {
   // ...
   return parametre;
 }</code></pre></div>
+
+<p>Le compilateur autorise la directive <code>#include</code> afin d&#39;illustrer l&#39;édition de lien. L&#39;unique librairie <code>microio.h</code> permet d&#39;inclure la fonction <code>void print(int value)</code> qui affiche un entier en hexadécimal dans le mini-terminal ASCII :</p>
+
+<div><pre><code class="language-c">#include &lt;microio.h&gt;
+
+void main() {
+    int a = 10;
+    print(a);
+}</code></pre></div>
+
+<p>La compilation de ce code va produire le code exécutable suivant :</p>
+
+<div><pre><code class="language-none">; C source compiled by MicroSim CCompiler (Static Memory Model)
+
+; Variable addresses:
+;   a         : 0x80
+
+    call    main_func
+    hlt
+
+main_func:
+    mov AL, 0x0A      ; int a = 10;
+    mov [0x80], AL
+    mov AL, [0x80]    ; print(a);
+    call    print_hex
+    ret
+
+; Prints the hexadecimal value of AL to the ASCII terminal.
+
+print_hex:
+    push    AL            ; Save original value
+
+; Process high nibble
+    shr AL, 4         ; Move high nibble to low nibble position
+    call    to_hex_char
+    mov [0xC0], AL    ; Print first hex char
+    pop AL            ; Restore original value
+
+; Process low nibble
+    and AL, 0x0F      ; Isolate low nibble
+    call    to_hex_char
+    mov [0xC1], AL    ; Print second hex char
+
+    ret
+
+; Converts the low nibble of AL to a hex ASCII character.
+
+to_hex_char:
+    cmp AL, 9
+    jbe .is_digit
+; It&#39;s a letter (A-F)
+    add AL, 0x37
+    ret
+.is_digit:
+; It&#39;s a digit (0-9)
+    add AL, 0x30
+    ret</code></pre></div>
 
 <p><img src="img/sep.png" alt="sep"></p>
 
