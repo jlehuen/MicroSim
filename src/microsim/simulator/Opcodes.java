@@ -24,8 +24,8 @@ public final class Opcodes {
         // Private constructor to prevent instantiation
     }
 
-    /** No operation / Halt instruction. */
-    public static final int NONE = 0;
+    // -- HLT instruction (0) ---
+    public static final int HALT = 0;
 
     // --- MOV instructions (1-10) ---
     public static final int MOV_NUMBER_TO_REG = 1;      // reg, byte

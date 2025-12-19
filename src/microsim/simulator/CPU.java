@@ -50,6 +50,7 @@ public class CPU {
     private boolean overflow;
     private boolean sign;
     private boolean fault;
+    private boolean halted;
 
     /**
      * Constructs a new CPU and links it to the provided memory unit.
@@ -149,6 +150,15 @@ public class CPU {
     }
 
     /**
+     * Checks if the Halted flag is set.
+     *
+     * @return True if the Halted flag is set, false otherwise.
+     */
+    public boolean isHalted() {
+        return halted;
+    }
+
+    /**
      * Resets the CPU to its initial state:
      * - All general-purpose registers are cleared.
      * - Stack pointer is set to its initial base value.
@@ -164,6 +174,7 @@ public class CPU {
         overflow = false;
         sign = false;
         fault = false;
+        halted = false;
         
         SP = maxSP;
         IP = 0;
@@ -194,9 +205,10 @@ public class CPU {
 
             switch (instr) {
             
-                case Opcodes.NONE:
-                    // Halt, do nothing
-                    return;
+                case Opcodes.HALT:
+                    halted = true;
+                    IP++;
+                    break;
                 case Opcodes.MOV_REG_TO_REG:
                     regTo = memory.load(++IP);
                     regFrom = memory.load(++IP);

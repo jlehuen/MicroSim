@@ -288,7 +288,7 @@ public class Assembler {
                     }
                     break;
                 case "HLT":
-                    code[addressCounter++] = Opcodes.NONE;
+                    code[addressCounter++] = Opcodes.HALT;
                     break;
                 case "MOV":
                 case "ADD":

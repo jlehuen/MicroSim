@@ -112,7 +112,7 @@ public class Simulator {
                 highlightTag = null;
             }
 
-            while (running && !cpu.isFault() && ram.load(cpu.getIP()) != Opcodes.NONE) {
+            while (running && !cpu.isFault()) {
                 int currentIp = cpu.getIP();
                 final Integer lineToHighlight = addressToLineMap.get(currentIp);
 
@@ -143,6 +143,10 @@ public class Simulator {
                         }   
                     }
                     if (running) cpu.step(); // Execute one instruction
+
+                    if (cpu.isHalted()) {
+                        break;
+                    }
 
                 } catch (InterruptedException e) {
                     running = false; // Exit loop if interrupted
