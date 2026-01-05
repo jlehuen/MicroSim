@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
@@ -29,6 +29,19 @@ import microsim.ToolBar;
  * (binary, hexadecimal, signed decimal).
  */
 public class Utils {
+
+    /**
+     * Determines the operating system on which the application is running.
+     * @return A string representing the operating system: "Windows", "Linux", "Mac", or null if unknown.
+     */
+    public static String getOperatingSystem() {
+		final String osName = System.getProperty("os.name");
+		if (osName.startsWith("Windows")) return "Windows";
+		if (osName.startsWith("Linux")) return "Linux";
+		if (osName.startsWith("Unix")) return "Linux";
+		if (osName.startsWith("Mac")) return "Mac";
+		return null;
+	}
 
     /**
      * Retrieves the file extension from a given File object.

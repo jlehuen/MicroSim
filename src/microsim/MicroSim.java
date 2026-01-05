@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
@@ -28,6 +28,7 @@ import microsim.devices.KeyboardFrame;
 import microsim.devices.LightsFrame;
 import microsim.editor.EditorPanel;
 import microsim.simulator.Simulator;
+import microsim.simulator.Utils;
 
 /**
  * The MicroSim class is the main window of the 8-bit Microprocessor Simulator.
@@ -39,18 +40,22 @@ import microsim.simulator.Simulator;
 public class MicroSim extends JFrame {
 
     public static MicroSim self; // Static reference for global access
+	public static final String SYSTEM = Utils.getOperatingSystem();
 
     public final String BASE_TITLE = "8 Bits Microprocessor Simulator";
-    private final Dimension DIMENSION = new Dimension(850, 600);
-    private final int DIVIDER_LOCATION = 250;
+    private final Dimension DIMENSION = new Dimension(800, 600);
+    private final int HORIZONTAL_DIVIDER_LOCATION = 250;
+    private final int VERTICAL_DIVIDER_LOCATION = 400;
     
     private Simulator simulator;
     private ToolBar toolBar;
     private EditorPanel editor;
     private RegistersPanel registersPanel;
+    private Console console;
 
-    public Simulator getSimulator() { return simulator; }
     public ToolBar getToolBar() { return toolBar; }
+    public Console getConsole() { return console; }
+    public Simulator getSimulator() { return simulator; }
     public EditorPanel getEditor() { return editor; }
     public RegistersPanel getRegisters() { return registersPanel; }
 
@@ -67,7 +72,7 @@ public class MicroSim extends JFrame {
 
         setTitle(BASE_TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(1000, 800);
         setMinimumSize(DIMENSION);
         setLocation(220, 210);
 
@@ -75,19 +80,29 @@ public class MicroSim extends JFrame {
         editor = new EditorPanel(this);
         registersPanel = new RegistersPanel(simulator);
         toolBar = new ToolBar(editor, simulator);
+        console = new Console();
 
         registersPanel.update();
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        splitPane.setLeftComponent(registersPanel);
-        splitPane.setRightComponent(editor);
-        splitPane.setDividerLocation(DIVIDER_LOCATION);
-        splitPane.setDividerSize(0);
-        splitPane.setEnabled(false);
+        JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        horizontalSplitPane.setLeftComponent(registersPanel);
+        horizontalSplitPane.setRightComponent(editor);
+        horizontalSplitPane.setDividerLocation(HORIZONTAL_DIVIDER_LOCATION);
+        horizontalSplitPane.setDividerSize(0);
+        horizontalSplitPane.setEnabled(false);
+
+        JSplitPane verticalSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        verticalSplitPane.setTopComponent(horizontalSplitPane);
+        verticalSplitPane.setBottomComponent(console);
+        verticalSplitPane.setDividerLocation(VERTICAL_DIVIDER_LOCATION);
+        verticalSplitPane.setResizeWeight(1.0);
+        verticalSplitPane.setDividerSize(5);
+        verticalSplitPane.setEnabled(true);
 
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(toolBar, BorderLayout.NORTH);
-        getContentPane().add(splitPane, BorderLayout.CENTER);
+        getContentPane().add(verticalSplitPane, BorderLayout.CENTER);
+
         setVisible(true);
         self = this;
     }

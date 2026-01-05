@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
@@ -187,7 +187,7 @@ public class MemoryFrame extends AbstractDevice {
                     if (value >= 32 && value <= 126) { // Printable ASCII characters
                         return String.valueOf((char) value);
                     } else {
-                        return "-"; // Placeholder for non-printable characters
+                        return " "; // Placeholder for non-printable characters
                     }
                 case HEX:
                 default:

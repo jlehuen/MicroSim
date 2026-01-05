@@ -2,14 +2,15 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
 
 package microsim;
 
+import java.awt.Color;
 import java.io.File;
 
 import javax.swing.Box;
@@ -185,8 +186,10 @@ public class ToolBar extends JToolBar {
      * Compiles the C code from the editor.
      */
     private void action_comp() {
+        MicroSim.self.getConsole().println("Compiling C code...", Color.GREEN);
         String sourceCode = editor.getTextArea().getText();
         if (sourceCode.trim().isEmpty()) {
+            MicroSim.self.getConsole().println("C compilation failed: editor is empty", Color.RED);
             JOptionPane.showMessageDialog(MicroSim.self, "The editor is empty, there is nothing to compile.", "C Compilation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -202,9 +205,11 @@ public class ToolBar extends JToolBar {
             assemblyCode = Formatter.reformat(assemblyCode, tabSize);
 
             editor.setNewContent(assemblyCode);
+            MicroSim.self.getConsole().println("C compilation successful", Color.GREEN);
             editor.saveFileAs();
 
         } catch (Exception e) {
+            MicroSim.self.getConsole().println("C compilation failed: " + e.getMessage(), Color.RED);
             JOptionPane.showMessageDialog(MicroSim.self, "Error during C compilation:\n" + e.getMessage(), "C Compilation Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
@@ -217,10 +222,12 @@ public class ToolBar extends JToolBar {
         if (simulator.stepmode) {
             simulator.stepmode = false;
             modeButton.setIcon(iconStepOff);
+            MicroSim.self.getConsole().println("Exiting step mode", Color.GREEN);
             simulator.resume(); // Wake up the thread to continue execution
         } else {
             simulator.stepmode = true;
             modeButton.setIcon(iconStepOn);
+            MicroSim.self.getConsole().println("Entering step mode", Color.GREEN);
         }
     }
 

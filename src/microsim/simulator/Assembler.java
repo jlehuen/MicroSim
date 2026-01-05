@@ -2,8 +2,8 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
@@ -11,7 +11,9 @@
 package microsim.simulator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -34,15 +36,18 @@ public class Assembler {
     public static class AssemblyResult {
         public final int[] machineCode;
         public final Map<Integer, Integer> addressToLineMap;
+        public final String listing;
 
         /**
          * Constructs an AssemblyResult.
          * @param machineCode The generated machine code.
          * @param addressToLineMap A map from memory addresses to line numbers.
+         * @param listing The assembly listing.
          */
-        AssemblyResult(int[] machineCode, Map<Integer, Integer> addressToLineMap) {
+        AssemblyResult(int[] machineCode, Map<Integer, Integer> addressToLineMap, String listing) {
             this.machineCode = machineCode;
             this.addressToLineMap = addressToLineMap;
+            this.listing = listing;
         }
     }
 
@@ -257,11 +262,14 @@ public class Assembler {
                 continue;
             }
             
-            addressToLineMap.put(addressCounter, i);
             // Parse instruction and operands
             String[] lineParts = line.split("\\s+", 2);
             String instruction = lineParts[0];
             String operandsString = (lineParts.length > 1) ? lineParts[1] : "";
+
+            if (!instruction.equalsIgnoreCase("ORG")) {
+                addressToLineMap.put(addressCounter, i);
+            }
 
             // Process instructions
             switch (instruction.toUpperCase()) {
@@ -631,7 +639,9 @@ public class Assembler {
         int[] finalCode = new int[addressCounter];
         System.arraycopy(code, 0, finalCode, 0, addressCounter);
         
-        return new AssemblyResult(finalCode, addressToLineMap);
+        String listing = buildListing(source, finalCode, addressToLineMap);
+
+        return new AssemblyResult(finalCode, addressToLineMap, listing);
     }
 
     /**
@@ -652,10 +662,76 @@ public class Assembler {
             labelReferences.put(addressCounter, (String) operand.value);
             code[addressCounter++] = 0; // Placeholder for the label address
         } else if (operand.value instanceof Integer) {
+            addressToLineMap.put(addressCounter, lineNumber - 1); // Also map number operands to line number
             code[addressCounter++] = (Integer) operand.value;
         } else {
             throw new IllegalArgumentException("Invalid operand value: " + operand.value + " on line " + lineNumber);
         }
         return addressCounter;
+    }
+
+    /**
+     * Builds an assembly listing that maps source lines to their corresponding machine code.
+     * @param source
+     * @param machineCode
+     * @param addressToLineMap
+     * @return
+     */
+    private String buildListing(String source, int[] machineCode, Map<Integer, Integer> addressToLineMap) {
+        StringBuilder listing = new StringBuilder();
+        listing.append("\n");
+        listing.append(String.format("%-4s %-12s %s\n", "RAM", "CODE", "SOURCE"));
+        listing.append(String.format("%-4s %-12s %s\n", "---", "-----------", "-----------------------------------"));
+
+        String[] sourceLines = source.split("\n");
+
+        int currentAddr = 0;
+        while (currentAddr < machineCode.length) {
+            if (addressToLineMap.containsKey(currentAddr)) {
+                int lineNumber = addressToLineMap.get(currentAddr);
+                String sourceLine = "";
+                if (lineNumber < sourceLines.length) {
+                    sourceLine = sourceLines[lineNumber].trim();
+                }
+
+                int instructionLength = 0;
+                int tempAddr = currentAddr;
+                while (tempAddr < machineCode.length && addressToLineMap.containsKey(tempAddr) && addressToLineMap.get(tempAddr) == lineNumber) {
+                    instructionLength++;
+                    tempAddr++;
+                }
+
+                StringBuilder machineCodeHex = new StringBuilder();
+                if (sourceLine.toUpperCase().startsWith("DB")) {
+                    // TODO => Cela ne fonctionne pas
+                    int maxBytesToShow = 4;
+                    for (int i = 0; i < instructionLength; i++) {
+                        if (i < maxBytesToShow) {
+                            System.out.format("[%s]\n", machineCode[currentAddr + i]);
+                           machineCodeHex.append(String.format("%02X ", machineCode[currentAddr + i]));
+                        }
+                    }
+                    if (instructionLength > maxBytesToShow) {
+                        machineCodeHex.append("...");
+                    }
+                } else {
+                    for (int i = 0; i < instructionLength; i++) {
+                        if (currentAddr + i < machineCode.length) {
+                            machineCodeHex.append(String.format("%02X ", machineCode[currentAddr + i]));
+                        }
+                    }
+                }
+
+                listing.append(String.format("%02X:  %-12s %s\n", currentAddr, machineCodeHex.toString().trim(), sourceLine));
+                
+                currentAddr += instructionLength;
+            } else {
+                currentAddr++;
+            }
+        }
+
+        listing.append("-----------------------------------------------------\n");
+    
+        return listing.toString();
     }
 }

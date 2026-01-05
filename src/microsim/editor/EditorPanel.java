@@ -2,22 +2,28 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
 
 package microsim.editor;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.TransferHandler;
+import javax.swing.BorderFactory;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
@@ -307,7 +313,9 @@ public class EditorPanel extends JPanel {
                 filePath = filePath.substring(0, dotIndex);
             }
             file = new File(filePath + extensionToAppend);
+            currentFile = file;
             saveFile(file);
+            updateFrameTitle();
         }
     }
 

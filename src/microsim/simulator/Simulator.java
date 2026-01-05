@@ -2,14 +2,15 @@
  * Project : MicroSim - 8 bits microprocessor simulator for educational purposes.
  *
  * @author Jérôme Lehuen
- * @version 1.1
- * @since 2025-12-17
+ * @version 1.2
+ * @since 2026-01-05
  *
  * License: GNU General Public License v3.0
  */
 
 package microsim.simulator;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -98,6 +99,7 @@ public class Simulator {
      */
     public void run() {
         if (running) return;
+        mainFrame.getConsole().println("Running program...", Color.GREEN);
         running = true;
         stepRequested = false;
 
@@ -145,6 +147,7 @@ public class Simulator {
                     if (running) cpu.step(); // Execute one instruction
 
                     if (cpu.isHalted()) {
+                        mainFrame.getConsole().println("Program halted", Color.GREEN);
                         break;
                     }
 
@@ -194,6 +197,8 @@ public class Simulator {
      * Stops the currently running simulation.
      */
     public void stop() {
+        if (!running) return;
+        mainFrame.getConsole().println("Program stopped", Color.GREEN);
         running = false;
         if (cpuThread != null) {
             cpuThread.interrupt();
@@ -242,6 +247,7 @@ public class Simulator {
      * @return true if assembly was successful, false otherwise.
      */
     public boolean assemble(String program) {
+        mainFrame.getConsole().println("Assembling program...", Color.GREEN);
         try {
             mainFrame.getEditor().removeErrorHighlight();
             AssemblyResult result = assembler.assemble(program);
@@ -252,12 +258,16 @@ public class Simulator {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
             });
+            mainFrame.getConsole().println("Assembly successful", Color.GREEN);
+            mainFrame.getConsole().println("Assembly listing:", Color.GREEN);
+            mainFrame.getConsole().println(result.listing, Color.ORANGE);
             return true;
         } catch (IllegalArgumentException e) {
             int line = getLineFromException(e);
             if (line != -1) {
                 mainFrame.getEditor().highlightErrorLine(line);
             }
+            mainFrame.getConsole().println("Assembly failed: " + e.getMessage(), Color.RED);
             JOptionPane.showMessageDialog(MicroSim.self, "Assembly Error: " + e.getMessage(), "Assembly Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
@@ -268,6 +278,7 @@ public class Simulator {
      * Stops any running simulation, resets the CPU and clears UI highlights.
      */
     public void reset() {
+        mainFrame.getConsole().println("System reset", Color.GREEN);
         stop();
         cpu.reset();
         ram.reset();
@@ -289,6 +300,7 @@ public class Simulator {
      * @return true if the file was loaded and assembled successfully, false otherwise.
      */
     public boolean loadFile(String path) {
+        mainFrame.getConsole().println("Loading and assembling file: " + path, Color.GREEN);
         try {
             mainFrame.getEditor().removeErrorHighlight();
             String program = new String(Files.readAllBytes(Paths.get(path)));
@@ -300,19 +312,26 @@ public class Simulator {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
             });
+            mainFrame.getConsole().println("File loaded and assembled successfully", Color.GREEN);
             return true;
         } catch (java.nio.file.NoSuchFileException e) {
-            JOptionPane.showMessageDialog(MicroSim.self, "Error: File not found: " + path, "File Not Found", JOptionPane.ERROR_MESSAGE);
+            String errorMessage = "Error: File not found: " + path;
+            mainFrame.getConsole().println(errorMessage, Color.RED);
+            JOptionPane.showMessageDialog(MicroSim.self, errorMessage, "File Not Found", JOptionPane.ERROR_MESSAGE);
             return false;
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(MicroSim.self, "Error reading file '" + path + "': " + e.getMessage(), "I/O Error", JOptionPane.ERROR_MESSAGE);
+            String errorMessage = "Error reading file '" + path + "': " + e.getMessage();
+            mainFrame.getConsole().println(errorMessage, Color.RED);
+            JOptionPane.showMessageDialog(MicroSim.self, errorMessage, "I/O Error", JOptionPane.ERROR_MESSAGE);
             return false;
         } catch (IllegalArgumentException e) {
             int line = getLineFromException(e);
             if (line != -1) {
                 mainFrame.getEditor().highlightErrorLine(line);
             }
-            JOptionPane.showMessageDialog(MicroSim.self, "Assembly Error: " + e.getMessage(), "Assembly Error", JOptionPane.ERROR_MESSAGE);
+            String errorMessage = "Assembly Error: " + e.getMessage();
+            mainFrame.getConsole().println(errorMessage, Color.RED);
+            JOptionPane.showMessageDialog(MicroSim.self, errorMessage, "Assembly Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }

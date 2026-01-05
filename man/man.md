@@ -276,8 +276,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `HLT` (halt)
 - **Description :** Arrête l'exécution du programme.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `HLT` | `0x00` | Implicite | `00` |
 
 ### Instructions de mouvement de données :
@@ -285,8 +285,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `MOV` (move)
 - **Description :** Copie une valeur d'une source vers une destination.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `MOV reg, byte` | `0x01` | Immédiat | `01 reg byte` |
 | `MOV reg, reg` | `0x02` | Registre | `02 reg reg` |
 | `MOV reg, [addr]` | `0x03` | Direct | `03 reg addr` |
@@ -303,29 +303,29 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `INC` (increment)
 - **Description :** Incrémente la valeur d'un registre de 1.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `INC reg` | `0x13` | Registre | `13 reg` |
 
 ### `DEC` (decrement)
 - **Description :** Décrémente la valeur d'un registre de 1.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `DEC reg` | `0x14` | Registre | `14 reg` |
 
 ### `NEG` (negation)
 - **Description :** Effectue un complément à 2 sur la valeur d'un registre.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `NEG reg` | `0x15` | Registre | `15 reg` |
 
 ### `ADD` (addition)
 - **Description :** Additionne la valeur de la source au registre de destination.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `ADD reg, byte` | `0x0B` | Immédiat | `0B reg byte` |
 | `ADD reg, reg` | `0x0C` | Registre | `0C reg reg` |
 | `ADD reg, [addr]` | `0x0D` | Direct | `0D reg addr` |
@@ -334,8 +334,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `SUB` (subtraction)
 - **Description :** Soustrait la valeur de la source du registre de destination.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `SUB reg, byte` | `0x0F` | Immédiat | `0F reg byte` |
 | `SUB reg, reg` | `0x10` | Registre | `10 reg reg` |
 | `SUB reg, [addr]` | `0x11` | Direct | `11 reg addr` |
@@ -344,8 +344,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `MUL` (multiplication)
 - **Description : :** Multiplie la valeur de la source au registre de destination.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `MUL reg, byte` | `0x36` | Immédiat | `36 reg byte` |
 | `MUL reg, reg` | `0x37` | Registre | `37 reg reg` |
 | `MUL reg, [addr]` | `0x38` | Direct | `38 reg addr` |
@@ -354,8 +354,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `DIV` (division)
 - **Description :** Divise la valeur de la source au registre de destination.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `DIV reg, byte` | `0x3A` | Immédiat | `3A reg byte` |
 | `DIV reg, reg` | `0x3B` | Registre | `3B reg reg` |
 | `DIV reg, [addr]` | `0x3C` | Direct | `3C reg addr` |
@@ -366,8 +366,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `AND`
 - **Description :** Effectue un ET logique (bitwise AND) entre le registre de destination et la source.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `AND reg, byte` | `0x3E` | Immédiat | `3E reg byte` |
 | `AND reg, reg` | `0x3F` | Registre | `3F reg reg` |
 | `AND reg, [addr]` | `0x40` | Direct | `40 reg addr` |
@@ -376,8 +376,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `OR`
 - **Description : :** Effectue un OU logique (bitwise OR) entre le registre de destination et la source.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `OR reg, byte` | `0x42` | Immédiat | `42 reg byte` |
 | `OR reg, reg` | `0x43` | Registre | `43 reg reg` |
 | `OR reg, [addr]` | `0x44` | Direct | `44 reg addr` |
@@ -386,8 +386,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `XOR`
 - **Description : :** Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `XOR reg, byte` | `0x46` | Immédiat | `46 reg byte` |
 | `XOR reg, reg` | `0x47` | Registre | `47 reg reg` |
 | `XOR reg, [addr]` | `0x48` | Direct | `48 reg addr` |
@@ -396,15 +396,15 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `NOT`
 - **Description : :** Inverse tous les bits d'un registre (bitwise NOT).
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `NOT reg` | `0x4A` | Registre | `4A reg` |
 
 ### `SHL` (shift left)
 - **Description :** Décale les bits du registre de destination vers la gauche.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `SHL reg, byte` | `0x4B` | Immédiat | `4B reg byte` |
 | `SHL reg, reg` | `0x4C` | Registre | `4C reg reg` |
 | `SHL reg, [addr]` | `0x4D` | Direct | `4D reg addr` |
@@ -413,8 +413,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `SHR` (shift right)
 - **Description :** Décale les bits du registre de destination vers la droite.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `SHR reg, byte` | `0x4F` | Immédiat | `4F reg byte` |
 | `SHR reg, reg` | `0x50` | Registre | `50 reg reg` |
 | `SHR reg, [addr]` | `0x51` | Direct | `51 reg addr` |
@@ -425,8 +425,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `CMP` (compare)
 - **Description :** Compare deux valeurs et met à jour les drapeaux (Zero, Carry) en fonction du résultat de la soustraction (destination - source).
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `CMP reg, byte` | `0x16` | Immédiat | `16 reg byte` |
 | `CMP reg, reg` | `0x17` | Registre | `17 reg reg` |
 | `CMP reg, [addr]` | `0x18` | Direct | `18 reg addr` |
@@ -435,72 +435,72 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `JUMP`
 - **Description :** Saut inconditionnel vers une adresse ou un label.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JMP addr` | `0x1A` | Direct | `1A addr` |
 | `JMP [reg]` | `0x1B` | Indirect | `1B reg` |
 
 ### `JC` / `JB` (jump if carry / jump if below)
 - **Description :** Saute si le drapeau de retenue (Carry Flag) est à 1.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JC addr` | `0x1C` | Direct | `1C addr` |
 | `JC [reg]` | `0x1D` | Indirect | `1D reg ` |
 
 ### `JNC` / `JAE` (jump if no carry / jump if above or equal)
 - **Description :** Saute si le drapeau de retenue (Carry Flag) est à 0.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JNC addr` | `0x1E` | Direct | `1E addr` |
 | `JNC [reg]` | `0x1F` | Indirect | `1F reg` |
 
 ### `JZ` / `JE` (jump if zero / jump if equal)
 - **Description :** Saute si le drapeau Zéro (Zero Flag) est à 1.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JZ addr` | `0x20` | Direct | `20 addr` |
 | `JZ [reg]` | `0x21` | Indirect | `21 reg` |
 
 ### `JNZ` / `JNE` (jump if not zero / jump if not equal
 - **Description :** Saute si le drapeau Zéro (Zero Flag) est à 0.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JNZ addr` | `0x22` | Direct | `22 addr` |
 | `JNZ [reg]` | `0x23` | Indirect | `23 reg` |
 
 ### `JA` / `JNBE` (jump if above / jump if not below or equal)
 - **Description :** Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JA addr` | `0x24` | Direct | `24 addr` |
 | `JA [reg]` | `0x25` | Indirect | `25 reg` |
 
 ### `JNA` / `JBE` (jump if not above / jump if below or equal)
 - **Description :** Saute si le drapeau Zéro ou le drapeau Retenue est à 1.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JNA addr` | `0x26` | Direct | `26 addr` |
 | `JNA [reg]` | `0x27` | Indirect | `27 reg` |
 
 ### `JS` (jump if sign)
 - **Description :** Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JS addr` | `0x28` | Direct | `28 addr` |
 | `JS [reg]` | `0x29` | Indirect | `29 reg` |
 
 ### `JNS` (jump if not sign)
 - **Description :** Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `JNS addr` | `0x2A` | Direct | `2A addr` |
 | `JNS [reg]` | `0x2B` | Indirect | `2B reg` |
 
@@ -509,8 +509,8 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `PUSH`
 - **Description :** Empile une valeur sur la pile.
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `PUSH byte` | `0x2C` | Immédiat | `2C byte` |
 | `PUSH reg` | `0x2D` | Registre | `2D reg` |
 | `PUSH [addr]` | `0x2E` | Direct | `2E addr` |
@@ -519,22 +519,22 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `POP`
 - **Description :** Dépile une valeur de la pile vers un registre.
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `POP reg` | `0x30` | Registre | `30 reg` |
 
 ### `PUSHF` (push flags)
 - **Description : :** Empile le contenu du registre SR (sauvegarde des flags).
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `PUSHF` | `0x31` | Implicite | `31` |
 
 ### `POPF` (pop flags)
 - **Description : :** Dépile vers le registre SR (restauration des flags).
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `POPF` | `0x32` | Implicite | `32` |
 
 ### Instructions de sous-programmes (subroutines) :
@@ -542,16 +542,16 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `CALL`
 - **Description : :** Appelle un sous-programme en empilant l'adresse de retour et en sautant à l'adresse du sous-programme.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `CALL addr` | `0x33` | Direct | `33 addr` |
 | `CALL [reg]` | `0x34` | Indirect | `34 reg` |
 
 ### `RET` (return)
 - **Description : :** Revient d'un sous-programme en dépilant l'adresse de retour de la pile.
 
-| Syntaxe Complète | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `RET` | `0x35` | Implicite | `35` |
 
 ### Instructions d'entrées / sorties :
@@ -559,15 +559,15 @@ Toute opérande de type `reg` est codée sur un octet :
 ### `OUT`
 - **Description :** Écrit la valeur du registre `AL` sur un port d'entrée/sortie.
 
-| Syntax | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `OUT byte` | `0x53` | Immédiat | `53 byte` |
 
 ### `IN`
 - **Description :** Lit une valeur depuis un port d'entrée/sortie et la stocke dans le registre `AL`.
 
-| Syntaxe | Opcode | Adressage | Format en Mémoire |
-|:---|:---:|:---|:---|
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
 | `IN byte` | `0x54` | Immédiat | `54 byte` |
 
 ![sep](img/sep.png)
