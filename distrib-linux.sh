@@ -18,7 +18,8 @@ rm $DIST_DIR/$ARCH_NAME
 echo "Copie des fichiers de l'application..."
 # -----------------------------------------------------------------------
 
-cp -r build/* $DIST_DIR/microsim/
+cp build/microsim.jar $DIST_DIR/microsim/
+cp build/lib/*.jar $DIST_DIR/microsim/
 
 mkdir $DIST_DIR/microsim/man/
 cp -r man/* $DIST_DIR/microsim/man/

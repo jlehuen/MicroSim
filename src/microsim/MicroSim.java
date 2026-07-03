@@ -30,6 +30,8 @@ import microsim.editor.EditorPanel;
 import microsim.simulator.Simulator;
 import microsim.simulator.Utils;
 
+import javax.swing.JTabbedPane;
+
 /**
  * The MicroSim class is the main window of the 8-bit Microprocessor Simulator.
  * It sets up the entire user interface, including the toolbar, the editor panel,
@@ -51,6 +53,7 @@ public class MicroSim extends JFrame {
     private ToolBar toolBar;
     private EditorPanel editor;
     private RegistersPanel registersPanel;
+    private VisualizationPanel visualizationPanel;
     private Console console;
 
     public ToolBar getToolBar() { return toolBar; }
@@ -58,6 +61,7 @@ public class MicroSim extends JFrame {
     public Simulator getSimulator() { return simulator; }
     public EditorPanel getEditor() { return editor; }
     public RegistersPanel getRegisters() { return registersPanel; }
+    public VisualizationPanel getVisualizationPanel() { return visualizationPanel; }
 
     /**
      * Constructs the main frame and all its components.
@@ -81,12 +85,17 @@ public class MicroSim extends JFrame {
         registersPanel = new RegistersPanel(simulator);
         toolBar = new ToolBar(editor, simulator);
         console = new Console();
+        visualizationPanel = new VisualizationPanel(simulator);
 
         registersPanel.update();
 
+        JTabbedPane editorAndVizTab = new JTabbedPane();
+        editorAndVizTab.addTab("Editor", editor);
+        editorAndVizTab.addTab("Visualization", visualizationPanel);
+
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         horizontalSplitPane.setLeftComponent(registersPanel);
-        horizontalSplitPane.setRightComponent(editor);
+        horizontalSplitPane.setRightComponent(editorAndVizTab);
         horizontalSplitPane.setDividerLocation(HORIZONTAL_DIVIDER_LOCATION);
         horizontalSplitPane.setDividerSize(0);
         horizontalSplitPane.setEnabled(false);

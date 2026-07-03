@@ -39,6 +39,7 @@ public class Simulator {
     private Assembler assembler = new Assembler();
 
     private Thread cpuThread;
+    private final Object animationLock = new Object();
     private int executionSpeedDelay = SpeedSlider.MAX_DELAY;
     private volatile boolean running = false;
     private static final int MIN_HIGHLIGHT_DELAY = 10;
@@ -89,11 +90,9 @@ public class Simulator {
      * Checks if the simulation is currently running.
      * @return true if the simulation is running, false otherwise.
      */
-    public boolean isRunning() {
-        return running;
-    }
-
-    /**
+              public boolean isRunning() {
+                 return running;
+             }    /**
      * Starts the simulation of the assembled program.
      * The simulation runs in a separate thread to keep the UI responsive.
      */
@@ -163,11 +162,39 @@ public class Simulator {
                     mainFrame.getToolBar().setStepButtonVisible(false);
                 }
 
-                // Update UI on the Event Dispatch Thread
-                SwingUtilities.invokeLater(() -> {
-                    memoryFrame.updateMemoryView();
-                    mainFrame.getRegisters().update();
-                });
+                // Update UI and wait for animations if any
+                try {
+                    // Block the simulation thread until the UI thread is done starting the animation
+                    SwingUtilities.invokeAndWait(() -> {
+                        memoryFrame.updateMemoryView();
+                        mainFrame.getRegisters().update();
+                        mainFrame.getVisualizationPanel().updateAndAnimate(() -> {
+                            synchronized (animationLock) {
+                                animationLock.notifyAll();
+                            }
+                        });
+                    });
+                } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
+                    running = false;
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+
+                // Now, we can safely check if an animation is running
+                if (mainFrame.getVisualizationPanel().isAnimating()) {
+                    synchronized (animationLock) {
+                        try {
+                            // Re-check state to be safe from race conditions
+                            if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                animationLock.wait();
+                            }
+                        } catch (InterruptedException e) {
+                            running = false;
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
 
                 // Control execution speed
                 if (!stepmode) {
@@ -257,8 +284,8 @@ public class Simulator {
             SwingUtilities.invokeLater(() -> {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
+                mainFrame.getVisualizationPanel().updateAndAnimate(null);
             });
-            mainFrame.getConsole().println("Assembly successful", Color.GREEN);
             mainFrame.getConsole().println("Assembly listing:", Color.GREEN);
             mainFrame.getConsole().println(result.listing, Color.ORANGE);
             return true;
@@ -290,6 +317,7 @@ public class Simulator {
             mainFrame.getEditor().getTextArea().setHighlightCurrentLine(true);
             memoryFrame.updateMemoryView();
             mainFrame.getRegisters().update();
+            mainFrame.getVisualizationPanel().updateAndAnimate(null);
         });
         lastHighlightedLine = -1;
     }
@@ -311,6 +339,7 @@ public class Simulator {
             SwingUtilities.invokeLater(() -> {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
+                mainFrame.getVisualizationPanel().updateAndAnimate(null);
             });
             mainFrame.getConsole().println("File loaded and assembled successfully", Color.GREEN);
             return true;

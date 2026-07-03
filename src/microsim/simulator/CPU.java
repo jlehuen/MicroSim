@@ -23,6 +23,12 @@ import microsim.devices.LightsFrame;
  */
 public class CPU {
 
+    public enum BusActivity {
+        NONE,
+        READ,
+        WRITE
+    }
+
     /** Port address for the simulated Keyboard device. */
     public final int KEYBOARD_PORT = 0x01;
     /** Port address for the simulated Traffic Lights device. */
@@ -52,6 +58,11 @@ public class CPU {
     private boolean fault;
     private boolean halted;
 
+    // Bus activity tracking
+    private int lastMemoryAddress = -1;
+    private int lastDataValue = -1;
+    private BusActivity lastBusActivity = BusActivity.NONE;
+
     /**
      * Constructs a new CPU and links it to the provided memory unit.
      *
@@ -60,6 +71,16 @@ public class CPU {
     public CPU(RAM memory) {
         this.memory = memory;
         reset();
+    }
+
+    public int getLastMemoryAddress() { return lastMemoryAddress; }
+    public int getLastDataValue() { return lastDataValue; }
+    public BusActivity getLastBusActivity() { return lastBusActivity; }
+
+    public void resetBusActivity() {
+        lastBusActivity = BusActivity.NONE;
+        lastMemoryAddress = -1;
+        lastDataValue = -1;
     }
 
     /**
@@ -178,6 +199,7 @@ public class CPU {
         
         SP = maxSP;
         IP = 0;
+        resetBusActivity();
     }
 
     /**
@@ -218,49 +240,73 @@ public class CPU {
                 case Opcodes.MOV_ADDRESS_TO_REG:
                     regTo = memory.load(++IP);
                     memFrom = memory.load(++IP);
-                    registers[regTo] = memory.load(memFrom);
+                    lastMemoryAddress = memFrom;
+                    lastBusActivity = BusActivity.READ;
+                    lastDataValue = memory.load(memFrom);
+                    registers[regTo] = lastDataValue;
                     IP++;
                     break;
                 case Opcodes.MOV_REGADDRESS_TO_REG:
                     regTo = memory.load(++IP);
                     regFrom = memory.load(++IP);
-                    registers[regTo] = memory.load(indirectRegisterAddress(regFrom));
+                    lastMemoryAddress = indirectRegisterAddress(regFrom);
+                    lastBusActivity = BusActivity.READ;
+                    lastDataValue = memory.load(lastMemoryAddress);
+                    registers[regTo] = lastDataValue;
                     IP++;
                     break;
                 case Opcodes.MOV_REG_TO_ADDRESS:
                     memFrom = memory.load(++IP);
                     regFrom = memory.load(++IP);
-                    memory.store(memFrom, registers[regFrom]);
+                    lastMemoryAddress = memFrom;
+                    lastBusActivity = BusActivity.WRITE;
+                    lastDataValue = registers[regFrom];
+                    memory.store(memFrom, lastDataValue);
                     IP++;
                     break;
                 case Opcodes.MOV_REG_TO_REGADDRESS:
                     regTo = memory.load(++IP);
                     regFrom = memory.load(++IP);
-                    memory.store(indirectRegisterAddress(regTo), registers[regFrom]);
+                    lastMemoryAddress = indirectRegisterAddress(regTo);
+                    lastBusActivity = BusActivity.WRITE;
+                    lastDataValue = registers[regFrom];
+                    memory.store(lastMemoryAddress, lastDataValue);
                     IP++;
                     break;
                 case Opcodes.MOV_NUMBER_TO_ADDRESS:
                     memFrom = memory.load(++IP);
                     number = memory.load(++IP);
+                    lastMemoryAddress = memFrom;
+                    lastBusActivity = BusActivity.WRITE;
+                    lastDataValue = number;
                     memory.store(memFrom, number);
                     IP++;
                     break;
                 case Opcodes.MOV_NUMBER_TO_REGADDRESS:
                     regTo = memory.load(++IP);
                     number = memory.load(++IP);
-                    memory.store(indirectRegisterAddress(regTo), number);
+                    lastMemoryAddress = indirectRegisterAddress(regTo);
+                    lastBusActivity = BusActivity.WRITE;
+                    lastDataValue = number;
+                    memory.store(lastMemoryAddress, number);
                     IP++;
                     break;
                 case Opcodes.MOV_STACK_OFFSET_TO_REG: // MOV reg, [SP+offset]
                     regTo = memory.load(++IP);
                     number = memory.load(++IP); // Here, 'number' is the offset
-                    registers[regTo] = memory.load(SP + number);
+                    lastMemoryAddress = SP + number;
+                    lastBusActivity = BusActivity.READ;
+                    lastDataValue = memory.load(lastMemoryAddress);
+                    registers[regTo] = lastDataValue;
                     IP++;
                     break;
                 case Opcodes.MOV_REG_TO_STACK_OFFSET: // MOV [SP+offset], reg
                     number = memory.load(++IP); // Here, 'number' is the offset
                     regFrom = memory.load(++IP);
-                    memory.store(SP + number, registers[regFrom]);
+                    lastMemoryAddress = SP + number;
+                    lastBusActivity = BusActivity.WRITE;
+                    lastDataValue = registers[regFrom];
+                    memory.store(lastMemoryAddress, lastDataValue);
                     IP++;
                     break;
                 case Opcodes.MOV_NUMBER_TO_REG:
@@ -968,6 +1014,9 @@ public class CPU {
      * @throws IllegalStateException If a stack overflow occurs (SP goes below minSP).
      */
     private void push(int value) {
+        lastMemoryAddress = SP;
+        lastBusActivity = BusActivity.WRITE;
+        lastDataValue = value;
         memory.store(SP--, value);
         if (SP < minSP) {
             throw new IllegalStateException("Stack overflow");
@@ -981,10 +1030,13 @@ public class CPU {
      * @throws IllegalStateException If a stack underflow occurs (SP goes above maxSP).
      */
     private int pop() {
-        int value = memory.load(++SP);
-        if (SP > maxSP) {
+        if ((SP + 1) > maxSP) {
             throw new IllegalStateException("Stack underflow");
         }
+        int value = memory.load(++SP);
+        lastMemoryAddress = SP;
+        lastBusActivity = BusActivity.READ;
+        lastDataValue = value;
         return value;
     }
 

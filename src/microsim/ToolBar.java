@@ -227,7 +227,7 @@ public class ToolBar extends JToolBar {
         } else {
             simulator.stepmode = true;
             modeButton.setIcon(iconStepOn);
-            MicroSim.self.getConsole().println("Entering step mode", Color.GREEN);
+            MicroSim.self.getConsole().println("Entering step mode (clic on \"Execute one instruction\" to advance)", Color.GREEN);
         }
     }
 

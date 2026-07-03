@@ -1,4 +1,4 @@
-#include <microio.h>
+// #include <microio.h>
 
 void main() {
     int a = 10;

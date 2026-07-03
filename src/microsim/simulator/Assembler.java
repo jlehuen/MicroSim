@@ -224,6 +224,7 @@ public class Assembler {
         addressToLineMap = new HashMap<>();
         int[] code = new int[256]; // Represents the full 256-byte memory map
         int addressCounter = 0;
+        int maxAddressReached = 0;
         Map<String, Integer> labels = new HashMap<>();
         Map<Integer, String> labelReferences = new HashMap<>();
 
@@ -287,6 +288,7 @@ public class Assembler {
                         code[addressCounter++] = (Integer) p1.value;
                     } else if (p1.type == Operand.Type.NUMBERS) {
                         for (int val : (List<Integer>) p1.value) {
+                            addressToLineMap.put(addressCounter, i);
                             code[addressCounter++] = val;
                         }
                     } else {
@@ -620,6 +622,7 @@ public class Assembler {
                 default:
                     throw new IllegalArgumentException("Invalid instruction: " + instruction + " on line " + lineNumber);
             }
+            maxAddressReached = Math.max(maxAddressReached, addressCounter);
         }
 
         // Second pass: Replace labels with their actual addresses
@@ -634,8 +637,8 @@ public class Assembler {
             }
         }
 
-        int[] finalCode = new int[addressCounter];
-        System.arraycopy(code, 0, finalCode, 0, addressCounter);
+        int[] finalCode = new int[maxAddressReached];
+        System.arraycopy(code, 0, finalCode, 0, maxAddressReached);
         
         String listing = buildListing(source, finalCode, addressToLineMap);
 
@@ -701,12 +704,10 @@ public class Assembler {
 
                 StringBuilder machineCodeHex = new StringBuilder();
                 if (sourceLine.toUpperCase().startsWith("DB")) {
-                    // TODO => Cela ne fonctionne pas
                     int maxBytesToShow = 4;
                     for (int i = 0; i < instructionLength; i++) {
                         if (i < maxBytesToShow) {
-                            System.out.format("[%s]\n", machineCode[currentAddr + i]);
-                           machineCodeHex.append(String.format("%02X ", machineCode[currentAddr + i]));
+                            machineCodeHex.append(String.format("%02X ", machineCode[currentAddr + i]));
                         }
                     }
                     if (instructionLength > maxBytesToShow) {
