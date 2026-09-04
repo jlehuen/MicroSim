@@ -8,3 +8,4 @@ mkdir "distrib"
 
 ./distrib-linux.sh
 ./distrib-macos.sh
+./distrib-windows.sh
