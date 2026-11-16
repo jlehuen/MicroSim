@@ -28,6 +28,7 @@ gemini.sh
 run-grader.sh
 run-doc.sh
 distrib.sh
+push-doc.sh
 scripts/
 
 # TP4 & Autograder
