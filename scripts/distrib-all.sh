@@ -19,3 +19,4 @@ mkdir -p "distrib"
 echo "Copie du manuel dans distrib/..."
 mkdir -p "$PROJECT_ROOT/distrib/man"
 cp -r "$PROJECT_ROOT/man/"* "$PROJECT_ROOT/distrib/man/"
+rm -f "$PROJECT_ROOT/distrib/man/"*.md

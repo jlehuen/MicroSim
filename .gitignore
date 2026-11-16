@@ -28,3 +28,6 @@ gemini.sh
 
 # Configuration de Gemini
 GEMINI.md
+
+# Documentation source Markdown (seul le manuel final man/man.html est versionné)
+man/*.md

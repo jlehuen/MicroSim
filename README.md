@@ -111,8 +111,8 @@ If you want to build the project from the source files, you can use the provided
 
 A comprehensive reference manual for the assembler, including the full instruction set and peripheral descriptions, is available:
 
-- **[Read the Reference Manual (Markdown)](man/man.md)**
-- **[Read the Reference Manual (HTML)](man/man.html)**
+- **[Read the Online Reference Manual (HTML)](https://jlehuen.github.io/MicroSim/man/man.html)**
+- **[View the Reference Manual in Repository](man/man.html)**
 
 ## License
 
