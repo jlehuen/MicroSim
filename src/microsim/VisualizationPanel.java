@@ -5,7 +5,9 @@ import javax.swing.Timer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -18,21 +20,42 @@ import microsim.simulator.Simulator;
 import microsim.simulator.Utils;
 
 /**
- * A panel for visualizing the CPU, RAM, and buses.
+ * A panel for visualizing the CPU, RAM, and buses in an educational and modern style.
  */
 public class VisualizationPanel extends JPanel implements ActionListener {
 
     private static final int PADDING = 20;
     private static final int CPU_WIDTH = 200;
-    private static final int RAM_WIDTH = 150;
+    private static final int RAM_WIDTH = 155;
     private static final int DEV_WIDTH = 150;
-    private static final int RECT_HEIGHT = 200;
+    private static final int RECT_HEIGHT = 205;
     private static final int BUS_THICKNESS = 20;
-    private static final int BUS_TOP_MARGIN = 130; // Espace pour les bus en haut
+    private static final int BUS_TOP_MARGIN = 145; // Espace pour les bus et le bandeau de statut
     private static final int ANIMATION_DELAY = 16; // approx 60fps
-    private static final double ANIMATION_STEP = 0.005; // progress per frame
+    private static final double ANIMATION_STEP = 0.010; // vitesse d'animation confortable
 
+    // Typographies modernes
     private final Font monacoFont = new Font("Monaco", Font.PLAIN, 12);
+    private final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    private final Font boldCodeFont = new Font("Monaco", Font.BOLD, 12);
+    private final Font statusFont = new Font("SansSerif", Font.BOLD, 11);
+    private final Font busLabelFont = new Font("SansSerif", Font.BOLD, 11);
+    private final Font badgeFont = new Font("SansSerif", Font.BOLD, 9);
+    private final Font flagFont = new Font("SansSerif", Font.BOLD, 10);
+
+    // Palette moderne Dark Mode
+    private static final Color BG_PANEL = new Color(15, 23, 42);     // Slate 900
+    private static final Color CARD_BG = new Color(30, 41, 59);      // Slate 800
+    private static final Color CARD_BORDER = new Color(51, 65, 85);  // Slate 700
+    
+    private static final Color CPU_HEADER = new Color(51, 65, 85);    // Slate 700
+    private static final Color ALU_HEADER = new Color(79, 70, 229);   // Indigo 600
+    private static final Color RAM_HEADER = new Color(13, 148, 136);  // Teal 600
+    private static final Color DEV_HEADER = new Color(180, 83, 9);    // Amber 700
+
+    private static final Color BUS_ADDRESS = new Color(245, 158, 11); // Ambre / Orange
+    private static final Color BUS_DATA = new Color(14, 165, 233);    // Cyan / Bleu ciel
+    private static final Color BUS_CTRL = new Color(34, 197, 94);     // Vert vif
 
     private Simulator simulator;
 
@@ -43,6 +66,8 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private int animatedValue;
     private int animatedAddress;
     private CPU.BusActivity animatedActivity;
+    private boolean isAluAnimated = false;
+    private String animatedAluOp = null;
     private boolean addressAnimationFinished = false;
     private Runnable onAnimationComplete = null;
     private int ramViewStartAddr = 0;
@@ -50,15 +75,20 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     public VisualizationPanel(Simulator simulator) {
         super();
         this.simulator = simulator;
-        setBackground(Color.WHITE);
+        setBackground(BG_PANEL);
         animationTimer = new Timer(ANIMATION_DELAY, this);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(780, 515);
     }
 
     public boolean isAnimating() {
         return animationTimer.isRunning();
     }
 
-    private void startBusAnimation(CPU.BusActivity activity, int value, int address, Runnable onComplete) {
+    private void startAnimation(CPU.BusActivity activity, int value, int address, boolean aluActive, String aluOp, Runnable onComplete) {
         if (animationTimer.isRunning()) {
             if (onComplete != null) {
                 onComplete.run();
@@ -66,15 +96,19 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             return;
         }
 
-        // Adjust RAM view to show the animated address
-        int numLines = (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 40) / 15;
-        if (address < this.ramViewStartAddr || address >= this.ramViewStartAddr + numLines) {
-            this.ramViewStartAddr = Math.max(0, address - (numLines / 2)); // Center the address
+        // Adjust RAM view to center the animated address (seulement pour accès mémoire RAM)
+        if (activity == CPU.BusActivity.READ || activity == CPU.BusActivity.WRITE) {
+            int numLines = Math.max(1, (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 55) / 16);
+            if (address < this.ramViewStartAddr || address >= this.ramViewStartAddr + numLines) {
+                this.ramViewStartAddr = Math.max(0, address - (numLines / 2));
+            }
         }
 
         this.animatedActivity = activity;
         this.animatedValue = value;
         this.animatedAddress = address;
+        this.isAluAnimated = aluActive;
+        this.animatedAluOp = aluOp;
         this.animationProgress = 0.0;
         this.animationRunning = true;
         this.addressAnimationFinished = false;
@@ -86,9 +120,10 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         animationProgress += ANIMATION_STEP;
 
-        double totalDuration = (animatedActivity == CPU.BusActivity.READ) ? 2.0 : 1.0;
+        boolean isRead = (animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.IO_READ);
+        double totalDuration = isRead ? 2.0 : 1.0;
 
-        if (animationProgress >= 1.0 && animatedActivity == CPU.BusActivity.READ && !addressAnimationFinished) {
+        if (animationProgress >= 1.0 && isRead && !addressAnimationFinished) {
             addressAnimationFinished = true;
         }
 
@@ -96,12 +131,16 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             animationProgress = totalDuration;
             animationTimer.stop();
             animationRunning = false;
-            simulator.getCPU().resetBusActivity();
+            CPU cpu = simulator.getCPU();
+            if (cpu != null) {
+                cpu.resetBusActivity();
+                cpu.resetAluActive();
+            }
 
             // Notify completion
             if (onAnimationComplete != null) {
                 onAnimationComplete.run();
-                onAnimationComplete = null; // Consume it
+                onAnimationComplete = null;
             }
         }
         repaint();
@@ -109,23 +148,27 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     
     public void updateAndAnimate(Runnable onComplete) {
         CPU cpu = simulator.getCPU();
-        boolean shouldAnimate = this.isShowing() && cpu != null && cpu.getLastBusActivity() != CPU.BusActivity.NONE && !animationTimer.isRunning();
+        boolean hasBus = cpu != null && cpu.getLastBusActivity() != CPU.BusActivity.NONE;
+        boolean hasAlu = cpu != null && cpu.isAluActive();
+        boolean shouldAnimate = this.isShowing() && (hasBus || hasAlu) && !animationTimer.isRunning();
         
         if (shouldAnimate) {
-            startBusAnimation(
+            startAnimation(
                 cpu.getLastBusActivity(), 
                 cpu.getLastDataValue(), 
                 cpu.getLastMemoryAddress(),
+                hasAlu,
+                cpu.getLastAluOperation(),
                 onComplete
             );
         } else {
             repaint();
-            // If there's bus activity but we're not animating, we still need to reset it.
-            if (cpu != null && cpu.getLastBusActivity() != CPU.BusActivity.NONE) {
-                cpu.resetBusActivity();
+            if (cpu != null) {
+                if (cpu.getLastBusActivity() != CPU.BusActivity.NONE) cpu.resetBusActivity();
+                if (cpu.isAluActive()) cpu.resetAluActive();
             }
             if (onComplete != null) {
-                onComplete.run(); // If no animation, run callback immediately
+                onComplete.run();
             }
         }
     }
@@ -135,304 +178,693 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
-        g2d.setFont(monacoFont);
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        // Define component positions (abaissés pour laisser place aux bus en haut)
+        // Positions des composants
         int cpuX = PADDING;
         int cpuY = BUS_TOP_MARGIN + PADDING;
         int aluX = PADDING;
-        int aluY = cpuY + RECT_HEIGHT + PADDING;
-        int ramX = cpuX + 300; // RAM à 300 pixels du bord gauche du CPU
+        int aluY = cpuY + RECT_HEIGHT + PADDING + 10;
+        int aluHeight = 95;
+        int ramX = cpuX + 270;
         int ramY = BUS_TOP_MARGIN + PADDING;
-        int devX = ramX + 300; // DEVICE à 300 pixels du bord gauche de la RAM
+        int devX = ramX + 240;
         int devY = BUS_TOP_MARGIN + PADDING;
 
         // Positions des bus horizontaux en haut
         int busStartX = PADDING;
         int busEndX = getWidth() - PADDING;
-        int busLength = busEndX - busStartX;
-        int addressBusY = PADDING + 15;
-        int dataBusY = addressBusY + BUS_THICKNESS + 10;
-        int ctrlBusY = dataBusY + BUS_THICKNESS + 10;
+        int busLength = Math.max(10, busEndX - busStartX);
+        int addressBusY = PADDING + 12;
+        int dataBusY = addressBusY + BUS_THICKNESS + 8;
+        int ctrlBusY = dataBusY + BUS_THICKNESS + 8;
 
-        // Positions des dérivations verticales
+        // Dérivations verticales
         int cpuConnectionX = cpuX + CPU_WIDTH / 2;
         int ramConnectionX = ramX + RAM_WIDTH / 2;
         int devConnectionX = devX + DEV_WIDTH / 2;
 
-        // Draw static components (CPU, ALU, RAM boxes)
-        drawStaticComponents(g2d, cpuX, cpuY, aluX, aluY, ramX, ramY, devX, devY);
+        // 1. Dessiner les composants statiques (CPU, ALU, RAM, DEVICE)
+        drawStaticComponents(g2d, cpuX, cpuY, aluX, aluY, aluHeight, ramX, ramY, devX, devY);
 
-        // Draw register and RAM values
+        // 2. Dessiner les valeurs dynamiques (registres, flags, marqueurs IP/SP, mémoire)
         drawDynamicValues(g2d, cpuX, cpuY, ramX, ramY);
 
-        // Draw buses and animations
+        // 3. Dessiner les bus, les dérivations et les paquets animés
         drawBusesAndAnimation(g2d, cpuX, cpuY, ramX, ramY, devX, devY,
                               busStartX, busEndX, busLength, 
                               addressBusY, dataBusY, ctrlBusY,
                               cpuConnectionX, ramConnectionX, devConnectionX);
+
+        // 4. Bandeau pédagogique dynamique
+        drawEducationalBanner(g2d, busStartX, ctrlBusY + BUS_THICKNESS / 2 + 10, busLength, 28);
     }
 
-    private void drawStaticComponents(Graphics2D g2d, int cpuX, int cpuY, int aluX, int aluY, int ramX, int ramY, int devX, int devY) {
+    /**
+     * Dessine un bloc (carte) avec un en-tête coloré et des coins arrondis
+     */
+    private void drawCard(Graphics2D g2d, int x, int y, int width, int height, String title, Color headerColor) {
+        int arc = 12;
+        int headerHeight = 34;
 
-        g2d.setStroke(new BasicStroke(2));
+        g2d.setColor(CARD_BG);
+        g2d.fillRoundRect(x, y, width, height, arc, arc);
 
-        // Draw CPU Box
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.fillRect(cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT);
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT);
-        g2d.drawString("CPU", cpuX + 10, cpuY + 20);
+        g2d.setColor(headerColor);
+        g2d.fillRoundRect(x, y, width, headerHeight + arc, arc, arc);
+        g2d.fillRect(x, y + headerHeight, width, 2);
 
-        // Draw ALU Box
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.fillRect(aluX, aluY, CPU_WIDTH, RECT_HEIGHT / 2);
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(aluX, aluY, CPU_WIDTH, RECT_HEIGHT / 2);
-        g2d.drawString("ALU", aluX + 10, aluY + 20);
+        g2d.setColor(CARD_BORDER);
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.drawRoundRect(x, y, width, height, arc, arc);
 
-        // Draw RAM Box
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.fillRect(ramX, ramY, RAM_WIDTH, getHeight() - BUS_TOP_MARGIN - 2 * PADDING);
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(ramX, ramY, RAM_WIDTH, getHeight() - BUS_TOP_MARGIN - 2 * PADDING);
-        g2d.drawString("RAM", ramX + 10, ramY + 20);
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(titleFont);
+        g2d.drawString(title, x + 12, y + 28);
+    }
 
-        // Draw DEVICE Box
-        g2d.setColor(Color.LIGHT_GRAY);
-        g2d.fillRect(devX, devY, DEV_WIDTH, RECT_HEIGHT);
-        g2d.setColor(Color.BLACK);
-        g2d.drawRect(devX, devY, DEV_WIDTH, RECT_HEIGHT);
-        g2d.drawString("DEVICE", devX + 10, devY + 20);
+    private void drawStaticComponents(Graphics2D g2d, int cpuX, int cpuY, int aluX, int aluY, int aluHeight, int ramX, int ramY, int devX, int devY) {
+        int ramHeight = getHeight() - BUS_TOP_MARGIN - 2 * PADDING;
+        CPU cpu = simulator.getCPU();
+
+        // Liaison bus interne entre CPU et ALU
+        int busInterneX = cpuX + CPU_WIDTH / 2 - 12;
+        int busInterneY = cpuY + RECT_HEIGHT;
+        int busInterneH = aluY - busInterneY;
+        int busCenterX = busInterneX + 12;
+
+        if (isAluAnimated && animationRunning) {
+            // Bus interne sous tension (Indigo lumineux)
+            g2d.setColor(new Color(79, 70, 229));
+            g2d.fillRect(busInterneX, busInterneY, 24, busInterneH);
+            g2d.setColor(new Color(165, 180, 252));
+            g2d.setStroke(new BasicStroke(1.5f));
+            g2d.drawRect(busInterneX, busInterneY, 24, busInterneH);
+
+            boolean downwards = (animationProgress < 0.5);
+            drawInternalBusFlow(g2d, busCenterX, busInterneY, aluY, downwards);
+
+            g2d.setFont(new Font("SansSerif", Font.BOLD, 9));
+            g2d.setColor(new Color(224, 231, 255));
+            g2d.drawString(downwards ? "OP IN" : "RES OUT", cpuX + CPU_WIDTH / 2 + 16, cpuY + RECT_HEIGHT + 18);
+        } else {
+            // Bus au repos
+            g2d.setColor(new Color(30, 41, 59));
+            g2d.fillRect(busInterneX, busInterneY, 24, busInterneH);
+            g2d.setColor(new Color(71, 85, 105));
+            g2d.setStroke(new BasicStroke(1.2f));
+            g2d.drawRect(busInterneX, busInterneY, 24, busInterneH);
+            g2d.setFont(new Font("SansSerif", Font.ITALIC, 9));
+            g2d.setColor(new Color(148, 163, 184));
+            g2d.drawString("Internal bus", cpuX + CPU_WIDTH / 2 + 16, cpuY + RECT_HEIGHT + 18);
+        }
+
+        // Cartes des composants
+        drawCard(g2d, cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT, "CPU", CPU_HEADER);
+        drawCard(g2d, ramX, ramY, RAM_WIDTH, ramHeight, "RAM", RAM_HEADER);
+        drawCard(g2d, devX, devY, DEV_WIDTH, RECT_HEIGHT, "PERIPHERALS", DEV_HEADER);
+
+        // 3. Boîte ALU vivante
+        String lastAlu = (cpu != null) ? cpu.getLastAluOperation() : null;
+        if (lastAlu != null) {
+            drawCard(g2d, aluX, aluY, CPU_WIDTH, aluHeight, "ALU", new Color(79, 70, 229));
+            g2d.setFont(boldCodeFont);
+            g2d.setColor(new Color(165, 180, 252));
+            g2d.drawString(lastAlu, aluX + 10, aluY + 65);
+            g2d.setFont(new Font("SansSerif", Font.PLAIN, 10));
+            g2d.setColor(new Color(148, 163, 184));
+            g2d.drawString("Result forwarded to internal bus", aluX + 10, aluY + 85);
+        } else {
+            drawCard(g2d, aluX, aluY, CPU_WIDTH, aluHeight, "ALU", ALU_HEADER);
+            g2d.setFont(new Font("SansSerif", Font.PLAIN, 11));
+            g2d.setColor(new Color(203, 213, 225));
+            g2d.drawString("Operations: ADD, SUB, CMP, MUL", aluX + 10, aluY + 65);
+            g2d.drawString("Logic: AND, OR, XOR, NOT, SHL", aluX + 10, aluY + 85);
+        }
+
+        // Ports d'E/S dans le bloc Périphériques avec surbrillance du port ciblé
+        int[][] ports = {
+            {0x01, 65}, {0x02, 85}, {0x03, 105}, {0x06, 125}, {0x07, 145}, {0x09, 165}
+        };
+        String[] portNames = {
+            "0x01: Keyboard", "0x02: Lights", "0x03: Heater", "0x06: LED Bar", "0x07: 8x8 Matrix", "0x09: Banner"
+        };
+
+        boolean isIOAnimated = animationRunning && (animatedActivity == CPU.BusActivity.IO_WRITE || animatedActivity == CPU.BusActivity.IO_READ);
+
+        for (int p = 0; p < ports.length; p++) {
+            int portNum = ports[p][0];
+            int pY = devY + ports[p][1];
+            boolean isTargetPort = (isIOAnimated && animatedAddress == portNum);
+
+            if (isTargetPort) {
+                g2d.setColor(animatedActivity == CPU.BusActivity.IO_WRITE ? new Color(120, 53, 15) : new Color(12, 74, 96));
+                g2d.fillRoundRect(devX + 10, pY - 12, DEV_WIDTH - 20, 16, 4, 4);
+                g2d.setColor(animatedActivity == CPU.BusActivity.IO_WRITE ? new Color(253, 230, 138) : new Color(186, 230, 253));
+                g2d.setFont(boldCodeFont);
+            } else {
+                g2d.setColor(new Color(203, 213, 225));
+                g2d.setFont(monacoFont);
+            }
+            g2d.drawString(portNames[p], devX + 14, pY);
+        }
     }
 
     private void drawDynamicValues(Graphics2D g2d, int cpuX, int cpuY, int ramX, int ramY) {
         CPU cpu = simulator.getCPU();
         if (cpu == null) return;
 
-        // Draw CPU Registers
+        // Registres CPU
         int[] gpr = cpu.getRegisters();
-        int regY = cpuY + 40;
-        g2d.drawString("AL: " + Utils.toHexString0x(gpr[0]), cpuX + 20, regY); regY += 15;
-        g2d.drawString("BL: " + Utils.toHexString0x(gpr[1]), cpuX + 20, regY); regY += 15;
-        g2d.drawString("CL: " + Utils.toHexString0x(gpr[2]), cpuX + 20, regY); regY += 15;
-        g2d.drawString("DL: " + Utils.toHexString0x(gpr[3]), cpuX + 20, regY); regY = cpuY + 40;
-        g2d.drawString("IP: " + Utils.toHexString0x(cpu.getIP()), cpuX + 100, regY); regY += 15;
-        g2d.drawString("SP: " + Utils.toHexString0x(cpu.getSP()), cpuX + 100, regY); regY += 15;
-        g2d.drawString("SR: " + Utils.toHexString0x(cpu.getSR()), cpuX + 100, regY);
+        int regY = cpuY + 75;
+        g2d.setFont(boldCodeFont);
+        
+        // Colonne 1 : registres généraux AL, BL, CL, DL
+        String[] regNames = {"AL", "BL", "CL", "DL"};
+        for (int i = 0; i < 4; i++) {
+            g2d.setColor(new Color(15, 23, 42)); // Slate 900
+            g2d.fillRoundRect(cpuX + 12, regY - 14, 80, 22, 6, 6);
+            g2d.setColor(new Color(51, 65, 85)); // Slate 700
+            g2d.drawRoundRect(cpuX + 12, regY - 14, 80, 22, 6, 6);
 
-        // Draw RAM Content
+            g2d.setColor(new Color(241, 245, 249)); // Blanc ardoise
+            g2d.drawString(regNames[i] + ": " + Utils.toHexString0x(gpr[i]), cpuX + 18, regY + 2);
+            regY += 28;
+        }
+
+        // Colonne 2 : pointeurs (IP, SP, SR) et voyants des drapeaux
+        regY = cpuY + 75;
+        String[] ptrNames = {"IP", "SP", "SR"};
+        int[] ptrValues = {cpu.getIP(), cpu.getSP(), cpu.getSR()};
+        for (int i = 0; i < 3; i++) {
+            g2d.setColor(new Color(15, 23, 42));
+            g2d.fillRoundRect(cpuX + 105, regY - 14, 82, 22, 6, 6);
+            g2d.setColor(new Color(51, 65, 85));
+            g2d.drawRoundRect(cpuX + 105, regY - 14, 82, 22, 6, 6);
+
+            g2d.setColor(i == 0 ? new Color(251, 146, 60) : new Color(241, 245, 249));
+            g2d.drawString(ptrNames[i] + ": " + Utils.toHexString0x(ptrValues[i]), cpuX + 111, regY + 2);
+            regY += 28;
+        }
+
+        // 1. Voyants des drapeaux (Flags Z, C, S, O) alignés vis-à-vis de DL
+        int flagX = cpuX + 105;
+        int flagY = regY - 14;
+        int flagW = 18;
+        int flagH = 22;
+        String[] flagNames = {"Z", "C", "S", "O"};
+        boolean[] flagVals = {cpu.isZero(), cpu.isCarry(), cpu.isSign(), cpu.isOverflow()};
+
+        g2d.setFont(flagFont);
+        for (int f = 0; f < 4; f++) {
+            int fx = flagX + f * (flagW + 3);
+            if (flagVals[f]) {
+                g2d.setColor(new Color(22, 101, 52)); // Vert vif actif
+                g2d.fillRoundRect(fx, flagY, flagW, flagH, 4, 4);
+                g2d.setColor(new Color(34, 197, 94));
+                g2d.drawRoundRect(fx, flagY, flagW, flagH, 4, 4);
+                g2d.setColor(new Color(240, 253, 244));
+            } else {
+                g2d.setColor(new Color(15, 23, 42)); // Gris sombre inactif
+                g2d.fillRoundRect(fx, flagY, flagW, flagH, 4, 4);
+                g2d.setColor(new Color(51, 65, 85));
+                g2d.drawRoundRect(fx, flagY, flagW, flagH, 4, 4);
+                g2d.setColor(new Color(100, 116, 139));
+            }
+            g2d.drawString(flagNames[f], fx + 5, flagY + 15);
+        }
+
+        // Registre d'Instruction standard (IR)
+        // Pas vertical de 28px identique aux autres registres (hauteur 22px + espacement 6px)
+        int irX = cpuX + 12;
+        int irY = cpuY + 173;
+        int irW = CPU_WIDTH - 24;
+        int irH = 22;
+
+        g2d.setColor(new Color(15, 23, 42));
+        g2d.fillRoundRect(irX, irY, irW, irH, 6, 6);
+        g2d.setColor(new Color(51, 65, 85));
+        g2d.drawRoundRect(irX, irY, irW, irH, 6, 6);
+
+        String instrText = simulator.getCurrentInstructionText();
+        g2d.setFont(boldCodeFont);
+        g2d.setColor(new Color(241, 245, 249));
+        g2d.drawString("IR: ", irX + 6, irY + 16);
+
+        FontMetrics fm = g2d.getFontMetrics();
+        int prefixWidth = fm.stringWidth("IR: ");
+
+        if (instrText != null) {
+            g2d.drawString(instrText, irX + 6 + prefixWidth, irY + 16);
+        } else {
+            g2d.setColor(new Color(100, 116, 139));
+            g2d.drawString("(idle)", irX + 6 + prefixWidth, irY + 16);
+        }
+
+        // 4. Marqueurs [IP] et [SP] dans la colonne RAM
         RAM ram = simulator.getRAM();
         int startAddress = this.ramViewStartAddr;
-        int numLines = (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 40) / 15;
+        int numLines = Math.max(1, (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 65) / 16);
         int endAddress = Math.min(ram.getSize() - 1, startAddress + numLines - 1);
-        int memY = ramY + 40;
+        int memY = ramY + 65;
+
+        int currentIP = cpu.getIP();
+        int currentSP = cpu.getSP();
+
         for (int addr = startAddress; addr <= endAddress; addr++) {
             String line = Utils.toHexString0x(addr) + ": " + Utils.toHexString0x(ram.load(addr));
-            boolean shouldHighlightRed = false;
-            if (animationRunning && addr == animatedAddress) {
-                if (animatedActivity == CPU.BusActivity.WRITE && animationProgress >= 0.9) {
-                    shouldHighlightRed = true;
-                } else if (animatedActivity == CPU.BusActivity.READ && addressAnimationFinished) {
-                    shouldHighlightRed = true;
-                }
+            boolean isTarget = (animationRunning && (animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.WRITE) && addr == animatedAddress);
+
+            if (isTarget) {
+                g2d.setColor(animatedActivity == CPU.BusActivity.WRITE ? new Color(127, 29, 29) : new Color(12, 74, 96));
+                g2d.fillRoundRect(ramX + 8, memY - 12, RAM_WIDTH - 16, 15, 4, 4);
+                g2d.setColor(animatedActivity == CPU.BusActivity.WRITE ? new Color(254, 202, 202) : new Color(186, 230, 253));
+                g2d.setFont(boldCodeFont);
+            } else {
+                g2d.setColor(new Color(226, 232, 240));
+                g2d.setFont(monacoFont);
             }
 
-            if (shouldHighlightRed) {
-                g2d.setColor(Color.RED);
-            } else if (animationRunning && addr == animatedAddress) {
-                g2d.setColor(Color.MAGENTA);
-            } else {
-                g2d.setColor(Color.BLACK);
+            g2d.drawString(line, ramX + 12, memY);
+
+            // Badges IP / SP dans la RAM
+            int badgeX = ramX + 104;
+            if (addr == currentIP) {
+                g2d.setColor(new Color(154, 52, 18));
+                g2d.fillRoundRect(badgeX, memY - 11, 20, 13, 4, 4);
+                g2d.setColor(new Color(254, 215, 170));
+                g2d.setFont(badgeFont);
+                g2d.drawString("IP", badgeX + 4, memY - 1);
+                badgeX += 23;
             }
-            g2d.drawString(" " + line, ramX + 5, memY);
-            memY += 15;
+            if (addr == currentSP) {
+                g2d.setColor(new Color(91, 33, 182));
+                g2d.fillRoundRect(badgeX, memY - 11, 20, 13, 4, 4);
+                g2d.setColor(new Color(237, 233, 254));
+                g2d.setFont(badgeFont);
+                g2d.drawString("SP", badgeX + 3, memY - 1);
+            }
+
+            memY += 16;
         }
-        g2d.setColor(Color.BLACK);
     }
 
     /**
-     * Dessine un octet (paquet) animé à la position spécifiée
-     * @param g2d Le contexte graphique
-     * @param x Position X du centre du paquet
-     * @param y Position Y du centre du paquet
-     * @param text Texte à afficher dans le paquet (valeur hexadécimale)
+     * Dessine un paquet circulant sur les bus avec ombre douce, bordure nette et texte centré
      */
-    private void drawByte(Graphics2D g2d, int x, int y, String text) {
-        int packetWidth = 45; // Largeur du paquet
-        int packetHeight = 18; // Hauteur du paquet
-        int textXOffset = 9; // Décalage X du texte par rapport au coin supérieur gauche
-        int textYOffset = 4; // Décalage Y du texte par rapport au centre vertical
-        // Dessiner le rectangle noir
-        g2d.setColor(Color.BLACK);
-        g2d.fillRect(x - packetWidth / 2, y - packetHeight / 2, packetWidth, packetHeight);
-        // Dessiner le texte jaune
+    private void drawPacket(Graphics2D g2d, int x, int y, String text, Color bgColor, Color textColor) {
+        g2d.setFont(boldCodeFont);
+        FontMetrics fm = g2d.getFontMetrics();
+        int textWidth = fm.stringWidth(text);
+        int packetWidth = Math.max(48, textWidth + 14);
+        int packetHeight = 20;
+
+        g2d.setColor(new Color(15, 23, 42, 45));
+        g2d.fillRoundRect(x - packetWidth / 2 + 1, y - packetHeight / 2 + 2, packetWidth, packetHeight, 8, 8);
+
+        g2d.setColor(bgColor);
+        g2d.fillRoundRect(x - packetWidth / 2, y - packetHeight / 2, packetWidth, packetHeight, 8, 8);
+
         g2d.setColor(Color.WHITE);
-        g2d.drawString(text, x - packetWidth / 2 + textXOffset, y + textYOffset);
+        g2d.setStroke(new BasicStroke(1.5f));
+        g2d.drawRoundRect(x - packetWidth / 2, y - packetHeight / 2, packetWidth, packetHeight, 8, 8);
+
+        g2d.setColor(textColor);
+        int textX = x - textWidth / 2;
+        int textY = y + (fm.getAscent() - fm.getDescent()) / 2;
+        g2d.drawString(text, textX, textY);
     }
 
     private void drawBusesAndAnimation(Graphics2D g2d, int cpuX, int cpuY, int ramX, int ramY, int devX, int devY,
-                                      int busStartX, int busEndX, int busLength,
-                                      int addressBusY, int dataBusY, int ctrlBusY,
-                                      int cpuConnectionX, int ramConnectionX, int devConnectionX) {
+                                       int busStartX, int busEndX, int busLength,
+                                       int addressBusY, int dataBusY, int ctrlBusY,
+                                       int cpuConnectionX, int ramConnectionX, int devConnectionX) {
 
-        Color AdressColor = Color.ORANGE;
-        Color DataColor = new Color(51, 204, 255);
-        Color CtrlColor = new Color(102, 255, 102);
-        
-        // Draw Address Bus (horizontal)
-        g2d.setColor(AdressColor);
-        g2d.fillRect(busStartX, addressBusY - BUS_THICKNESS / 2, busLength, BUS_THICKNESS);
-        g2d.setColor(Color.BLACK);
-        g2d.drawString("Address", busStartX + 10, addressBusY - BUS_THICKNESS / 2 + 15);
+        int connectionOffset = BUS_THICKNESS * 2;
+        int ySpace = 3;
 
-        // Draw Data Bus (horizontal)
-        g2d.setColor(DataColor);
-        g2d.fillRect(busStartX, dataBusY - BUS_THICKNESS / 2, busLength, BUS_THICKNESS);
-        g2d.setColor(Color.BLACK);
-        g2d.drawString("Data", busStartX + 10, dataBusY - BUS_THICKNESS / 2 + 15);
+        // 1. Dérivations verticales d'abord (en arrière-plan)
+        // Dérivations CPU
+        drawBranch(g2d, cpuConnectionX - connectionOffset, addressBusY, cpuY - ySpace, BUS_ADDRESS);
+        drawBranch(g2d, cpuConnectionX, dataBusY, cpuY - ySpace, BUS_DATA);
+        drawBranch(g2d, cpuConnectionX + connectionOffset, ctrlBusY, cpuY - ySpace, BUS_CTRL);
 
-        // Draw Ctrl Bus (horizontal)
-        g2d.setColor(CtrlColor);
-        g2d.fillRect(busStartX, ctrlBusY - BUS_THICKNESS / 2, busLength, BUS_THICKNESS);
-        g2d.setColor(Color.BLACK);
-        g2d.drawString("Ctrl", busStartX + 10, ctrlBusY - BUS_THICKNESS / 2 + 15);
+        // Dérivations RAM
+        drawBranch(g2d, ramConnectionX - connectionOffset, addressBusY, ramY - ySpace, BUS_ADDRESS);
+        drawBranch(g2d, ramConnectionX, dataBusY, ramY - ySpace, BUS_DATA);
+        drawBranch(g2d, ramConnectionX + connectionOffset, ctrlBusY, ramY - ySpace, BUS_CTRL);
 
-        int connectionOffset = BUS_THICKNESS * 2; // Décalage pour éviter la superposition des dérivations
-        int ySpace = 2; // Espace entre les bus et les composants
-        
-        // Draw vertical connections from buses to CPU
-        g2d.setColor(AdressColor);
-        g2d.fillRect(cpuConnectionX - connectionOffset - BUS_THICKNESS / 2, addressBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, cpuY - addressBusY - BUS_THICKNESS / 2 - ySpace);
-        
-        g2d.setColor(DataColor);
-        g2d.fillRect(cpuConnectionX - BUS_THICKNESS / 2, dataBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, cpuY - dataBusY - BUS_THICKNESS / 2 - ySpace);
+        // Dérivations DEVICE (3 bus complets : Adresse/Port, Données, Contrôle)
+        drawBranch(g2d, devConnectionX - connectionOffset, addressBusY, devY - ySpace, BUS_ADDRESS);
+        drawBranch(g2d, devConnectionX, dataBusY, devY - ySpace, BUS_DATA);
+        drawBranch(g2d, devConnectionX + connectionOffset, ctrlBusY, devY - ySpace, BUS_CTRL);
 
-        g2d.setColor(CtrlColor);
-        g2d.fillRect(cpuConnectionX + connectionOffset - BUS_THICKNESS / 2, ctrlBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, cpuY - ctrlBusY - BUS_THICKNESS / 2 - ySpace);
+        // 2. Bus horizontaux dessinés par-dessus les dérivations verticales
+        drawSingleBus(g2d, busStartX, addressBusY, busLength, BUS_ADDRESS, "Address");
+        drawSingleBus(g2d, busStartX, dataBusY, busLength, BUS_DATA, "Data");
+        drawSingleBus(g2d, busStartX, ctrlBusY, busLength, BUS_CTRL, "Control");
 
-        // Draw vertical connections from buses to RAM
-        g2d.setColor(AdressColor);
-        g2d.fillRect(ramConnectionX - connectionOffset - BUS_THICKNESS / 2, addressBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, ramY - addressBusY - BUS_THICKNESS / 2 - ySpace);
-        
-        g2d.setColor(DataColor);
-        g2d.fillRect(ramConnectionX - BUS_THICKNESS / 2, dataBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, ramY - dataBusY - BUS_THICKNESS / 2 - ySpace);
-
-        g2d.setColor(CtrlColor);
-        g2d.fillRect(ramConnectionX + connectionOffset - BUS_THICKNESS / 2, ctrlBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, ramY - ctrlBusY - BUS_THICKNESS / 2 - ySpace);
-
-        // Draw vertical connections from buses to DEVICE
-        g2d.setColor(DataColor);
-        g2d.fillRect(devConnectionX - BUS_THICKNESS - BUS_THICKNESS / 2, dataBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, devY - dataBusY - BUS_THICKNESS / 2 - ySpace);
-        
-        g2d.setColor(CtrlColor);
-        g2d.fillRect(devConnectionX + BUS_THICKNESS - BUS_THICKNESS / 2, ctrlBusY + BUS_THICKNESS / 2, 
-                     BUS_THICKNESS, devY - ctrlBusY - BUS_THICKNESS / 2 - ySpace);
-
-        // Draw Animation
+        // 3. Animation dynamique des paquets et flux de bus (RAM et Périphériques unifiés)
         if (animationRunning) {
+            boolean isIO = (animatedActivity == CPU.BusActivity.IO_WRITE || animatedActivity == CPU.BusActivity.IO_READ);
+            int targetX = isIO ? devConnectionX : ramConnectionX;
+            int targetY = isIO ? devY : ramY;
+            boolean isWrite = (animatedActivity == CPU.BusActivity.WRITE || animatedActivity == CPU.BusActivity.IO_WRITE);
+
+            // Chevrons lumineux défilant à l'intérieur des bus actifs
+            if (isWrite) {
+                drawBusFlow(g2d, cpuConnectionX - connectionOffset, targetX - connectionOffset, addressBusY, true);
+                drawBusFlow(g2d, cpuConnectionX, targetX, dataBusY, true);
+                drawBusFlow(g2d, cpuConnectionX + connectionOffset, targetX + connectionOffset, ctrlBusY, true);
+            } else {
+                if (animationProgress < 1.0) {
+                    drawBusFlow(g2d, cpuConnectionX - connectionOffset, targetX - connectionOffset, addressBusY, true);
+                    drawBusFlow(g2d, cpuConnectionX + connectionOffset, targetX + connectionOffset, ctrlBusY, true);
+                } else {
+                    drawBusFlow(g2d, targetX, cpuConnectionX, dataBusY, false);
+                }
+            }
+
             String addressStr = Utils.toHexString0x(animatedAddress);
             String dataStr = Utils.toHexString0x(animatedValue);
+            String ctrlStr;
+            if (animatedActivity == CPU.BusActivity.WRITE) ctrlStr = "MEM_WR";
+            else if (animatedActivity == CPU.BusActivity.READ) ctrlStr = "MEM_RD";
+            else if (animatedActivity == CPU.BusActivity.IO_WRITE) ctrlStr = "IO_WR";
+            else ctrlStr = "IO_RD";
 
-            if (animatedActivity == CPU.BusActivity.WRITE) {
-                // WRITE: Address et data se déplacent ensemble du CPU vers la RAM
+            if (isWrite) {
+                // ÉCRITURE (WRITE ou IO_WRITE) : Adresse/Port, Donnée et Contrôle partent du CPU vers la cible
                 double progress = Math.min(1.0, animationProgress);
-                
+
                 if (progress < 0.25) {
-                    // Phase 1: Montée verticale du CPU vers le bus (0.0 -> 0.25)
                     double verticalProgress = progress / 0.25;
-                    int currentY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
                     
-                    // Address packet (dérivation gauche)
-                    drawByte(g2d, cpuConnectionX - connectionOffset, currentY, addressStr);
-                    
-                    // Data packet (dérivation centrale)
-                    int dataCurrentY = cpuY - (int)((cpuY - dataBusY) * verticalProgress);
-                    drawByte(g2d, cpuConnectionX, dataCurrentY, dataStr);
-                    
+                    int addrY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
+                    drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                    int dataY = cpuY - (int)((cpuY - dataBusY) * verticalProgress);
+                    drawPacket(g2d, cpuConnectionX, dataY, dataStr, BUS_DATA, Color.WHITE);
+
+                    int ctrlY = cpuY - (int)((cpuY - ctrlBusY) * verticalProgress);
+                    drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+
                 } else if (progress < 0.75) {
-                    // Phase 2: Déplacement horizontal sur le bus (0.25 -> 0.75)
                     double horizontalProgress = (progress - 0.25) / 0.5;
-                    int addrCurrentX = (cpuConnectionX - connectionOffset) + (int)(((ramConnectionX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress);
-                    int dataCurrentX = cpuConnectionX + (int)((ramConnectionX - cpuConnectionX) * horizontalProgress);
-                    
-                    // Address packet
-                    drawByte(g2d, addrCurrentX, addressBusY, addressStr);
-                    
-                    // Data packet
-                    drawByte(g2d, dataCurrentX, dataBusY, dataStr);
-                    
+
+                    int addrX = (cpuConnectionX - connectionOffset) + (int)(((targetX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress);
+                    drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                    int dataX = cpuConnectionX + (int)((targetX - cpuConnectionX) * horizontalProgress);
+                    drawPacket(g2d, dataX, dataBusY, dataStr, BUS_DATA, Color.WHITE);
+
+                    int ctrlX = (cpuConnectionX + connectionOffset) + (int)(((targetX + connectionOffset) - (cpuConnectionX + connectionOffset)) * horizontalProgress);
+                    drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL, Color.WHITE);
+
                 } else {
-                    // Phase 3: Descente verticale du bus vers la RAM (0.75 -> 1.0)
                     double verticalProgress = (progress - 0.75) / 0.25;
-                    int currentY = addressBusY + (int)((ramY - addressBusY) * verticalProgress);
-                    
-                    // Address packet (dérivation gauche)
-                    drawByte(g2d, ramConnectionX - connectionOffset, currentY, addressStr);
-                    
-                    // Data packet (dérivation centrale)
-                    int dataCurrentY = dataBusY + (int)((ramY - dataBusY) * verticalProgress);
-                    drawByte(g2d, ramConnectionX, dataCurrentY, dataStr);
+
+                    int addrY = addressBusY + (int)((targetY - addressBusY) * verticalProgress);
+                    drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                    int dataY = dataBusY + (int)((targetY - dataBusY) * verticalProgress);
+                    drawPacket(g2d, targetX, dataY, dataStr, BUS_DATA, Color.WHITE);
+
+                    int ctrlY = ctrlBusY + (int)((targetY - ctrlBusY) * verticalProgress);
+                    drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
                 }
-                
-            } else if (animatedActivity == CPU.BusActivity.READ) {
-                // READ: Address va du CPU à la RAM, puis data revient de la RAM au CPU
-                
+
+            } else {
+                // LECTURE (READ ou IO_READ)
                 if (animationProgress < 1.0) {
-                    // Phase 1: Address se déplace du CPU vers la RAM (0.0 -> 1.0)
+                    // Phase 1 (0.0 -> 1.0) : Adresse et Contrôle vont du CPU vers la cible
                     double progress = animationProgress;
-                    
+
                     if (progress < 0.25) {
-                        // Montée verticale du CPU vers le bus (dérivation gauche pour adresse)
                         double verticalProgress = progress / 0.25;
-                        int currentY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
-                        drawByte(g2d, cpuConnectionX - connectionOffset, currentY, addressStr);
                         
+                        int addrY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
+                        drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                        int ctrlY = cpuY - (int)((cpuY - ctrlBusY) * verticalProgress);
+                        drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+
                     } else if (progress < 0.75) {
-                        // Déplacement horizontal sur le bus d'adresse
                         double horizontalProgress = (progress - 0.25) / 0.5;
-                        int currentX = (cpuConnectionX - connectionOffset) + (int)(((ramConnectionX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress); 
-                        drawByte(g2d, currentX, addressBusY, addressStr);
-                        
+
+                        int addrX = (cpuConnectionX - connectionOffset) + (int)(((targetX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress);
+                        drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                        int ctrlX = (cpuConnectionX + connectionOffset) + (int)(((targetX + connectionOffset) - (cpuConnectionX + connectionOffset)) * horizontalProgress);
+                        drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL, Color.WHITE);
+
                     } else {
-                        // Descente verticale du bus vers la RAM (dérivation gauche)
                         double verticalProgress = (progress - 0.75) / 0.25;
-                        int currentY = addressBusY + (int)((ramY - addressBusY) * verticalProgress);
-                        drawByte(g2d, ramConnectionX - connectionOffset, currentY, addressStr);
+
+                        int addrY = addressBusY + (int)((targetY - addressBusY) * verticalProgress);
+                        drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+
+                        int ctrlY = ctrlBusY + (int)((targetY - ctrlBusY) * verticalProgress);
+                        drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
                     }
-                    
+
                 } else {
-                    // Phase 2: Data revient de la RAM vers le CPU (1.0 -> 2.0)
+                    // Phase 2 (1.0 -> 2.0) : La Donnée revient de la cible vers le CPU sur le bus de données
                     double dataProgress = animationProgress - 1.0;
-                    
+
                     if (dataProgress < 0.25) {
-                        // Montée verticale de la RAM vers le bus (dérivation centrale pour données)
                         double verticalProgress = dataProgress / 0.25;
-                        int currentY = ramY - (int)((ramY - dataBusY) * verticalProgress);
-                        drawByte(g2d, ramConnectionX, currentY, dataStr);
-                        
+                        int currentY = targetY - (int)((targetY - dataBusY) * verticalProgress);
+                        drawPacket(g2d, targetX, currentY, dataStr, BUS_DATA, Color.WHITE);
+
                     } else if (dataProgress < 0.75) {
-                        // Déplacement horizontal sur le bus de données (RAM vers CPU)
                         double horizontalProgress = (dataProgress - 0.25) / 0.5;
-                        int currentX = ramConnectionX - (int)((ramConnectionX - cpuConnectionX) * horizontalProgress);
-                        drawByte(g2d, currentX, dataBusY, dataStr);
-                        
+                        int currentX = targetX - (int)((targetX - cpuConnectionX) * horizontalProgress);
+                        drawPacket(g2d, currentX, dataBusY, dataStr, BUS_DATA, Color.WHITE);
+
                     } else {
-                        // Descente verticale du bus vers le CPU (dérivation centrale)
                         double verticalProgress = (dataProgress - 0.75) / 0.25;
                         int currentY = dataBusY + (int)((cpuY - dataBusY) * verticalProgress);
-                        drawByte(g2d, cpuConnectionX, currentY, dataStr);
+                        drawPacket(g2d, cpuConnectionX, currentY, dataStr, BUS_DATA, Color.WHITE);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Dessine un flux continu de petits chevrons lumineux se déplaçant dans le sens du signal sur le bus
+     */
+    private void drawBusFlow(Graphics2D g2d, int fromX, int toX, int busY, boolean toRight) {
+        int start = Math.min(fromX, toX);
+        int end = Math.max(fromX, toX);
+        if (end - start < 15) return;
+
+        int step = 20;
+        int shift = (int) ((animationProgress * 350) % step);
+        if (!toRight) {
+            shift = step - shift;
+        }
+
+        g2d.setColor(new Color(255, 255, 255, 175)); // Blanc lumineux translucide
+        for (int x = start + shift; x < end; x += step) {
+            if (x < start + 6 || x > end - 6) continue;
+            if (toRight) {
+                int[] xp = {x - 3, x + 4, x - 3};
+                int[] yp = {busY - 4, busY, busY + 4};
+                g2d.fillPolygon(xp, yp, 3);
+            } else {
+                int[] xp = {x + 3, x - 4, x + 3};
+                int[] yp = {busY - 4, busY, busY + 4};
+                g2d.fillPolygon(xp, yp, 3);
+            }
+        }
+    }
+
+    /**
+     * Dessine un flux continu de petits chevrons lumineux verticaux sur le bus interne CPU <-> ALU
+     */
+    private void drawInternalBusFlow(Graphics2D g2d, int busX, int startY, int endY, boolean downwards) {
+        int height = endY - startY;
+        if (height < 10) return;
+
+        int step = 12;
+        int shift = (int) ((animationProgress * 300) % step);
+        if (!downwards) {
+            shift = step - shift;
+        }
+
+        g2d.setColor(new Color(255, 255, 255, 220));
+        for (int y = startY + shift; y < endY; y += step) {
+            if (y < startY + 4 || y > endY - 4) continue;
+            if (downwards) {
+                int[] xp = {busX - 4, busX, busX + 4};
+                int[] yp = {y - 3, y + 4, y - 3};
+                g2d.fillPolygon(xp, yp, 3);
+            } else {
+                int[] xp = {busX - 4, busX, busX + 4};
+                int[] yp = {y + 3, y - 4, y + 3};
+                g2d.fillPolygon(xp, yp, 3);
+            }
+        }
+    }
+
+    private void drawSingleBus(Graphics2D g2d, int startX, int busY, int length, Color color, String label) {
+        int halfThickness = BUS_THICKNESS / 2;
+
+        g2d.setColor(color);
+        g2d.fillRoundRect(startX, busY - halfThickness, length, BUS_THICKNESS, 6, 6);
+
+        g2d.setColor(new Color(255, 255, 255, 140));
+        g2d.setStroke(new BasicStroke(1.0f));
+        g2d.drawRoundRect(startX, busY - halfThickness, length, BUS_THICKNESS, 6, 6);
+
+        g2d.setFont(busLabelFont);
+        g2d.setColor(Color.WHITE);
+        g2d.drawString(label, startX + 12, busY + 4);
+    }
+
+    private void drawBranch(Graphics2D g2d, int x, int startY, int endY, Color color) {
+        int width = BUS_THICKNESS;
+        int height = Math.max(0, endY - startY);
+
+        g2d.setColor(color);
+        g2d.fillRect(x - width / 2, startY, width, height);
+
+        g2d.setColor(new Color(255, 255, 255, 100));
+        g2d.setStroke(new BasicStroke(1.0f));
+        g2d.drawRect(x - width / 2, startY, width, height);
+    }
+
+    private String getPortName(int port) {
+        switch (port) {
+            case 0x01: return "Keyboard";
+            case 0x02: return "Lights";
+            case 0x03: return "Heater";
+            case 0x04: return "Buzzer Note";
+            case 0x05: return "Buzzer Duration";
+            case 0x06: return "LED Bar";
+            case 0x07: return "8x8 Matrix Row";
+            case 0x08: return "8x8 Matrix Data";
+            case 0x09: return "Banner Data";
+            case 0x0A: return "Banner Cmd";
+            default: return "Port " + Utils.toHexString0x(port);
+        }
+    }
+
+    /**
+     * Draws an educational status banner explaining the exact bus transaction step
+     */
+    private void drawEducationalBanner(Graphics2D g2d, int x, int y, int width, int height) {
+        String statusText;
+        Color bannerBg;
+        Color bannerBorder;
+        Color dotColor;
+        Color textColor;
+
+        if (!animationRunning) {
+            statusText = "System idle • Waiting for bus activity";
+            bannerBg = new Color(30, 41, 59);
+            bannerBorder = new Color(51, 65, 85);
+            dotColor = new Color(148, 163, 184);
+            textColor = new Color(226, 232, 240);
+        } else {
+            String addrHex = Utils.toHexString0x(animatedAddress);
+            String valHex = Utils.toHexString0x(animatedValue);
+
+            if (animatedActivity == CPU.BusActivity.WRITE) {
+                bannerBg = new Color(69, 26, 3);
+                bannerBorder = new Color(245, 158, 11);
+                dotColor = BUS_ADDRESS;
+                textColor = new Color(254, 243, 199);
+
+                if (animationProgress < 0.25) {
+                    statusText = "RAM Write: CPU outputs address " + addrHex + ", data " + valHex + " and MEM_WR signal...";
+                } else if (animationProgress < 0.75) {
+                    statusText = "RAM Write: Synchronized transfer across Address, Data and Control buses...";
+                } else {
+                    statusText = "RAM Write: RAM receives MEM_WR and stores value " + valHex + " at address " + addrHex + ".";
+                }
+            } else if (animatedActivity == CPU.BusActivity.READ) {
+                bannerBg = new Color(8, 47, 73);
+                bannerBorder = new Color(14, 165, 233);
+                dotColor = BUS_DATA;
+                textColor = new Color(224, 242, 254);
+
+                if (animationProgress < 0.25) {
+                    statusText = "RAM Read (1/2): CPU asserts address " + addrHex + " and MEM_RD read command...";
+                } else if (animationProgress < 0.75) {
+                    statusText = "RAM Read (1/2): Address and MEM_RD signal propagating to RAM...";
+                } else if (animationProgress < 1.0) {
+                    statusText = "RAM Read (1/2): RAM decodes address " + addrHex + " and extracts content...";
+                } else if (animationProgress < 1.25) {
+                    statusText = "RAM Read (2/2): RAM places value " + valHex + " onto Data bus...";
+                } else if (animationProgress < 1.75) {
+                    statusText = "RAM Read (2/2): Routing data " + valHex + " along Data bus to CPU...";
+                } else {
+                    statusText = "RAM Read (2/2): CPU latches value " + valHex + " into target register.";
+                }
+            } else if (animatedActivity == CPU.BusActivity.IO_WRITE) {
+                bannerBg = new Color(69, 26, 3);
+                bannerBorder = new Color(245, 158, 11);
+                dotColor = BUS_ADDRESS;
+                textColor = new Color(254, 243, 199);
+                String pName = getPortName(animatedAddress);
+
+                if (animationProgress < 0.25) {
+                    statusText = "I/O Output (OUT): CPU outputs value " + valHex + " to port " + addrHex + " (" + pName + ") with IO_WR...";
+                } else if (animationProgress < 0.75) {
+                    statusText = "I/O Output (OUT): Routing across buses to PERIPHERALS unit...";
+                } else {
+                    statusText = "I/O Output (OUT): Peripheral " + pName + " (" + addrHex + ") receives value " + valHex + ".";
+                }
+            } else if (animatedActivity == CPU.BusActivity.IO_READ) {
+                bannerBg = new Color(8, 47, 73);
+                bannerBorder = new Color(14, 165, 233);
+                dotColor = BUS_DATA;
+                textColor = new Color(224, 242, 254);
+                String pName = getPortName(animatedAddress);
+
+                if (animationProgress < 0.25) {
+                    statusText = "I/O Input (IN - 1/2): CPU polls port " + addrHex + " (" + pName + ") with IO_RD command...";
+                } else if (animationProgress < 0.75) {
+                    statusText = "I/O Input (IN - 1/2): Port address and IO_RD signal propagating to peripheral...";
+                } else if (animationProgress < 1.0) {
+                    statusText = "I/O Input (IN - 1/2): Peripheral " + pName + " prepares data...";
+                } else if (animationProgress < 1.25) {
+                    statusText = "I/O Input (IN - 2/2): Port " + addrHex + " places value " + valHex + " onto Data bus...";
+                } else if (animationProgress < 1.75) {
+                    statusText = "I/O Input (IN - 2/2): Transferring data along Data bus to CPU...";
+                } else {
+                    statusText = "I/O Input (IN - 2/2): CPU latches value " + valHex + " into AL register.";
+                }
+            } else { // Pure ALU operation
+                bannerBg = new Color(30, 27, 75); // Indigo 950
+                bannerBorder = new Color(99, 102, 241); // Indigo 500
+                dotColor = new Color(165, 180, 252);
+                textColor = new Color(224, 231, 255);
+
+                String op = (animatedAluOp != null) ? animatedAluOp : "Arithmetic/Logic Calculation";
+                if (animationProgress < 0.5) {
+                    statusText = "ALU Computation (1/2): Routing operands to ALU via Internal bus (" + op + ")...";
+                } else {
+                    statusText = "ALU Computation (2/2): Latching computed result back to CPU registers (" + op + ").";
+                }
+            }
+        }
+
+        g2d.setColor(bannerBg);
+        g2d.fillRoundRect(x, y, width, height, 8, 8);
+        g2d.setColor(bannerBorder);
+        g2d.setStroke(new BasicStroke(1.2f));
+        g2d.drawRoundRect(x, y, width, height, 8, 8);
+
+        g2d.setColor(dotColor);
+        g2d.fillOval(x + 12, y + height / 2 - 4, 8, 8);
+
+        g2d.setFont(statusFont);
+        g2d.setColor(textColor);
+        g2d.drawString(statusText, x + 28, y + height / 2 + 4);
     }
 }

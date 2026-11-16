@@ -22,7 +22,9 @@ public class CPU {
     public enum BusActivity {
         NONE,
         READ,
-        WRITE
+        WRITE,
+        IO_READ,
+        IO_WRITE
     }
 
     /** Port address for the simulated Keyboard device. */
@@ -68,6 +70,9 @@ public class CPU {
     private int lastMemoryAddress = -1;
     private int lastDataValue = -1;
     private BusActivity lastBusActivity = BusActivity.NONE;
+    private String lastAluOperation = null;
+    private boolean aluActive = false;
+    private int lastExecutedIP = 0;
 
     /**
      * Constructs a new CPU and links it to the provided memory unit using the default Swing peripherals.
@@ -93,11 +98,22 @@ public class CPU {
     public int getLastMemoryAddress() { return lastMemoryAddress; }
     public int getLastDataValue() { return lastDataValue; }
     public BusActivity getLastBusActivity() { return lastBusActivity; }
+    public String getLastAluOperation() { return lastAluOperation; }
+    public boolean isAluActive() { return aluActive; }
+    public int getLastExecutedIP() { return lastExecutedIP; }
 
     public void resetBusActivity() {
         lastBusActivity = BusActivity.NONE;
         lastMemoryAddress = -1;
         lastDataValue = -1;
+    }
+
+    public void resetAluActive() {
+        aluActive = false;
+    }
+
+    public void resetAluOperation() {
+        lastAluOperation = null;
     }
 
     /**
@@ -228,7 +244,10 @@ public class CPU {
         
         SP = maxSP;
         IP = 0;
+        lastExecutedIP = 0;
         resetBusActivity();
+        resetAluOperation();
+        resetAluActive();
     }
 
     /**
@@ -251,6 +270,7 @@ public class CPU {
                 throw new IllegalStateException("Instruction pointer is outside of memory");
             }
 
+            lastExecutedIP = IP;
             int instr = memory.load(IP);
             int regTo, regFrom, number, memFrom;
 
@@ -555,6 +575,7 @@ public class CPU {
                     int result_cmp_reg = val1_cmp_reg - val2_cmp_reg;
                     setSubFlags(val1_cmp_reg, val2_cmp_reg, result_cmp_reg);
                     setZeroAndSignFlags(result_cmp_reg);
+                    lastAluOperation = "CMP " + Utils.toHexString0x(val1_cmp_reg) + ", " + Utils.toHexString0x(val2_cmp_reg);
                     IP++;
                     break;
                 case Opcodes.CMP_REGADDRESS_WITH_REG:
@@ -565,6 +586,7 @@ public class CPU {
                     int result_cmp_regaddr = val1_cmp_regaddr - val2_cmp_regaddr;
                     setSubFlags(val1_cmp_regaddr, val2_cmp_regaddr, result_cmp_regaddr);
                     setZeroAndSignFlags(result_cmp_regaddr);
+                    lastAluOperation = "CMP " + Utils.toHexString0x(val1_cmp_regaddr) + ", " + Utils.toHexString0x(val2_cmp_regaddr);
                     IP++;
                     break;
                 case Opcodes.CMP_ADDRESS_WITH_REG:
@@ -575,6 +597,7 @@ public class CPU {
                     int result_cmp_addr = val1_cmp_addr - val2_cmp_addr;
                     setSubFlags(val1_cmp_addr, val2_cmp_addr, result_cmp_addr);
                     setZeroAndSignFlags(result_cmp_addr);
+                    lastAluOperation = "CMP " + Utils.toHexString0x(val1_cmp_addr) + ", " + Utils.toHexString0x(val2_cmp_addr);
                     IP++;
                     break;
                 case Opcodes.CMP_NUMBER_WITH_REG:
@@ -585,6 +608,7 @@ public class CPU {
                     int result_cmp_num = val1_cmp_num - val2_cmp_num;
                     setSubFlags(val1_cmp_num, val2_cmp_num, result_cmp_num);
                     setZeroAndSignFlags(result_cmp_num);
+                    lastAluOperation = "CMP " + Utils.toHexString0x(val1_cmp_num) + ", " + Utils.toHexString0x(val2_cmp_num);
                     IP++;
                     break;
                 case Opcodes.JMP_REGADDRESS:
@@ -1030,12 +1054,18 @@ public class CPU {
                     break;
                 case Opcodes.OUT_IMM8:
                     int outPort = memory.load(++IP);
-                    peripheralBus.out(outPort, registers[0]); // AL is always gpr[0]
+                    lastMemoryAddress = outPort;
+                    lastDataValue = registers[0]; // AL is always gpr[0]
+                    lastBusActivity = BusActivity.IO_WRITE;
+                    peripheralBus.out(outPort, registers[0]);
                     IP++;
                     break;
                 case Opcodes.IN_IMM8:
                     int inPort = memory.load(++IP);
+                    lastMemoryAddress = inPort;
+                    lastBusActivity = BusActivity.IO_READ;
                     registers[0] = peripheralBus.in(inPort) & 0xFF; // AL is always gpr[0]
+                    lastDataValue = registers[0];
                     IP++;
                     break;
                 default:
@@ -1091,6 +1121,7 @@ public class CPU {
         int result8bit = result & 0xFF;
         zero = (result8bit == 0);
         sign = (result8bit & 0x80) != 0;
+        aluActive = true;
     }
 
     /**
@@ -1100,6 +1131,7 @@ public class CPU {
      * @param result The full integer result of the addition.
      */
     private void setAddFlags(int operand1, int operand2, int result) {
+        lastAluOperation = "ADD " + Utils.toHexString0x(operand1) + ", " + Utils.toHexString0x(operand2) + " = " + Utils.toHexString0x(result & 0xFF);
         // Carry flag (unsigned overflow): Set if the sum exceeds 255.
         carry = ((operand1 & 0xFF) + (operand2 & 0xFF)) > 0xFF;
 
@@ -1119,6 +1151,7 @@ public class CPU {
      * @param result The full integer result of the subtraction.
      */
     private void setSubFlags(int operand1, int operand2, int result) {
+        lastAluOperation = "SUB " + Utils.toHexString0x(operand1) + ", " + Utils.toHexString0x(operand2) + " = " + Utils.toHexString0x(result & 0xFF);
         // Carry flag (borrow): Set if an unsigned borrow is required.
         carry = (operand1 & 0xFF) < (operand2 & 0xFF);
 
@@ -1138,6 +1171,7 @@ public class CPU {
      * @param result The full integer result of the multiplication.
      */
     private void setMulFlags(int operand1, int operand2, int result) {
+        lastAluOperation = "MUL " + Utils.toHexString0x(operand1) + ", " + Utils.toHexString0x(operand2) + " = " + Utils.toHexString0x(result & 0xFF);
         // Carry/Overflow: Set if the result cannot fit into a single byte.
         // For simplicity, we check if the result is outside the 8-bit unsigned range.
         boolean isOverflow = (result > 0xFF);
@@ -1153,6 +1187,7 @@ public class CPU {
      * @param result The result of the division.
      */
     private void setDivFlags(int operand1, int operand2, int result) {
+        lastAluOperation = "DIV " + Utils.toHexString0x(operand1) + ", " + Utils.toHexString0x(operand2) + " = " + Utils.toHexString0x(result & 0xFF);
         carry = false;
         overflow = false;
     }
@@ -1163,6 +1198,7 @@ public class CPU {
      * @param result The full integer result of the increment.
      */
     private void setIncFlags(int operand, int result) {
+        lastAluOperation = "INC " + Utils.toHexString0x(operand) + " -> " + Utils.toHexString0x(result & 0xFF);
         // Carry flag: Set if the operand was 0xFF, causing a wrap-around.
         carry = (operand & 0xFF) == 0xFF;
 
@@ -1176,6 +1212,7 @@ public class CPU {
      * @param result The full integer result of the decrement.
      */
     private void setDecFlags(int operand, int result) {
+        lastAluOperation = "DEC " + Utils.toHexString0x(operand) + " -> " + Utils.toHexString0x(result & 0xFF);
         // The DEC instruction does not affect the Carry flag.
 
         // Overflow flag: Set if the operand was 0x80 (-128), wrapping to 0x7F (127).
@@ -1188,6 +1225,7 @@ public class CPU {
      * @param result The full integer result of the negation.
      */
     private void setNegFlags(int operand, int result) {
+        lastAluOperation = "NEG " + Utils.toHexString0x(operand) + " -> " + Utils.toHexString0x(result & 0xFF);
         // Carry flag: Set if the original operand was not 0.
         carry = (operand & 0xFF) != 0;
 
@@ -1203,6 +1241,7 @@ public class CPU {
      * @param isLeftShift True for a left shift (SHL), false for a right shift (SHR).
      */
     private void setShiftFlags(int operand, int shiftAmount, boolean isLeftShift) {
+        lastAluOperation = (isLeftShift ? "SHL " : "SHR ") + Utils.toHexString0x(operand) + ", " + shiftAmount;
         carry = false;
         overflow = false; // Shifts typically clear overflow
 

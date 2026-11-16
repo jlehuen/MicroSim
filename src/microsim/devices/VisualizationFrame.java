@@ -39,14 +39,14 @@ public class VisualizationFrame extends AbstractDevice {
 
         setTitle(TITLE_STRING);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setAlwaysOnTop(false);
+        setAlwaysOnTop(true);
         setResizable(true);
 
         setLayout(new BorderLayout());
         add(visualizationPanel, BorderLayout.CENTER);
+        pack();
 
-        setMinimumSize(new Dimension(680, 420));
-        setSize(780, 520);
+        setMinimumSize(new Dimension(680, 515));
         setLocation(240, 260);
         setVisible(false);
     }

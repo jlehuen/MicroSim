@@ -46,6 +46,7 @@ public class Simulator {
     private static final int MIN_HIGHLIGHT_DELAY = 10;
 
     private Map<Integer, Integer> addressToLineMap;
+    private String[] sourceLines;
     private int lastHighlightedLine = -1;
     private Object highlightTag;
 
@@ -335,6 +336,7 @@ public class Simulator {
         mainFrame.getConsole().println("Assembling program...", Color.GREEN);
         try {
             mainFrame.getEditor().removeErrorHighlight();
+            sourceLines = program.split("\\r?\\n");
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
             addressToLineMap = result.addressToLineMap;
@@ -390,6 +392,7 @@ public class Simulator {
         try {
             mainFrame.getEditor().removeErrorHighlight();
             String program = new String(Files.readAllBytes(Paths.get(path)));
+            sourceLines = program.split("\\r?\\n");
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
             addressToLineMap = result.addressToLineMap;
@@ -421,5 +424,26 @@ public class Simulator {
             JOptionPane.showMessageDialog(MicroSim.self, errorMessage, "Assembly Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
+    }
+
+    /**
+     * Returns the textual representation of the current instruction being executed or about to be executed.
+     * @return The assembly instruction string, or null if unavailable.
+     */
+    public String getCurrentInstructionText() {
+        if (cpu == null || addressToLineMap == null || sourceLines == null) return null;
+        int ip = (mainFrame != null && mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isAnimating())
+                 ? cpu.getLastExecutedIP() : cpu.getIP();
+        Integer line = addressToLineMap.get(ip);
+        if (line == null && ip != cpu.getIP()) {
+            line = addressToLineMap.get(cpu.getIP());
+        }
+        if (line != null && line >= 0 && line < sourceLines.length) {
+            String text = sourceLines[line].trim();
+            int semi = text.indexOf(';');
+            if (semi != -1) text = text.substring(0, semi).trim();
+            return text.isEmpty() ? null : text;
+        }
+        return null;
     }
 }
