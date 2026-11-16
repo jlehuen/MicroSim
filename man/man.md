@@ -28,20 +28,20 @@ L'objectif est d'illustrer les concepts fondamentaux de l'architecture des ordin
 
 MicroSim est multiplateforme (car développé en Java) et comme il embarque sa propre machine virtuelle, il est autonome : pas besoin d'installer Java sur la machine hôte. Des scripts bash de packaging sont proposés pour chaque plateforme.
 
-Ce projet d'inspire de deux autres projets open-source similaires :
+Ce projet s'inspire de deux autres projets open-source similaires :
 
 - Le simulateur [x86 Microprocessor Simulator](https://github.com/dwhinham/Microprocessor-Simulator) de C. N. Bauers, hébergé par Dale Whinham.
 - Le simulateur en ligne [Simple 8-bit Assembler Simulator](https://github.com/Schweigi/assembler-simulator) de Marco Schweighauser.
 
 ## 2. Interface graphique
 
-L'interface du simulateur comprends plusieurs zones qui vous permettent d'écrire, d'exécuter et de déboguer du code x86. Le contenu de la mémoire et des registres sont actualisés en continu pendant l'exécution, à vitesse ajustable ou en mode pas-à-pas :
+L'interface du simulateur comprend plusieurs zones qui vous permettent d'écrire, d'exécuter et de déboguer du code x86. Le contenu de la mémoire et des registres est actualisé en continu pendant l'exécution, à vitesse ajustable ou en mode pas-à-pas :
 
 ![center](img/main.png)
 
-### L'éditeur de code :
+### L'éditeur de code multi-onglets :
 
-C'est la zone où vous écrivez votre programme en assembleur. L'éditeur offre une coloration syntaxique pour une meilleure lisibilité, ainsi qu'une fonction de reformatage / *beautifier* afin de normaliser la mise en forme du code.
+C'est la zone où vous écrivez vos programmes en assembleur ou en C. L'éditeur fonctionne désormais avec des **onglets**, permettant d'éditer simultanément plusieurs fichiers sources. Chaque onglet dispose de son propre historique d'annulation/rétablissement (undo/redo), de son indicateur de modification `*`, et d'un bouton de fermeture `[x]` avec confirmation de sauvegarde. Vous pouvez ouvrir des fichiers via le bouton *Open*, par glisser-déposer (*drag & drop*), ou en créant de nouveaux onglets avec le bouton *New*. L'éditeur offre une coloration syntaxique adaptée (`.asm` et `.c`), la numérotation des lignes, ainsi qu'une fonction de reformatage / *beautifier* afin de normaliser la mise en forme du code.
 
 ### Le panneau des registres :
 
@@ -53,33 +53,49 @@ Situé à gauche de l'éditeur, ce panneau affiche en temps réel l'état de tou
 
 ### La barre d'outils :
 
-Située au dessus de l'éditeur, elle donne accès aux fonctionnalités principales :
+Située au-dessus de l'éditeur, elle donne accès aux fonctionnalités principales réparties en sections logiques :
 
 ![center](img/barre.png)
 
+**Section Éditeur :**
+- **New program file :** Crée un nouvel onglet dans l'éditeur multi-fichiers.
+- **Open program file :** Ouvre un fichier existant dans un nouvel onglet.
+- **Save program as :** Sauvegarde le programme de l'onglet actif vers un fichier.
+- **Undo edition :** Annule une modification dans l'onglet actif.
+- **Redo edition :** Refait une modification annulée dans l'onglet actif.
+- **Reformat code :** Normalise la mise en forme du code assembleur de l'onglet actif.
+
+**Section Assemblage & Compilation :**
+- **Assemble :** Traduit le code source en code machine exécutable et le charge en mémoire.
+- **Compile :** Compile un petit programme en langage C vers un code assembleur MicroSim.
+
+**Section Contrôle d'exécution :**
 - **Start / stop :** Démarre / arrête l'exécution du programme (un curseur permet de régler la vitesse).
 - **Step-by-step :** Active / désactive le mode pas-à-pas, pour une analyse détaillée.
 - **Execute one :** Exécute une instruction lorsque le mode pas-à-pas est activé.
-- **Compile :** Compile un petit programme en langage C vers un code assembleur MicroSim.
-- **Assemble :** Traduit le code source en code machine exécutable et le charge en mémoire.
-- **Show / hide RAM :** Ouvre la fenêtre de visualisation du contenu de la mémoire 256 octets.
 - **Reset the system :** Réinitialise le processeur et la mémoire du simulateur.
+
+**Section Périphériques (Devices) :**
 - **Show / hide the display :** Ouvre / Ferme le terminal ASCII 4 lignes de 16 caractères.
 - **Show / hide the keyboard :** Ouvre / Ferme le clavier (représente le clavier physique).
 - **Show / hide the traffic lights :** Ouvre / Ferme les feux tricolores de circulation.
 - **Show / hide the heater device :** Ouvre / Ferme le combiné chaudière-thermostat.
-- **New program file :** Crée un nouveau fichier assembleur dans l'éditeur de code.
-- **Open program file :** Ouvre un fichier existant dans l'éditeur de code.
-- **Save program as :** Sauvegarde le programme de l'éditeur vers un fichier.
-- **Undo edition :** Annule une modification dans l'éditeur.
-- **Redo edition :** Refait une modification annulée.
-- **Reformat code :** Normalise la mise en forme du code assembleur.
+- **Show / hide the buzzer device :** Ouvre / Ferme le buzzer 8 bits.
+- **Show / hide the 8-LED bar :** Ouvre / Ferme la barre de 8 LED.
+- **Show / hide the 8x8 LED matrix :** Ouvre / Ferme la matrice de 8x8 LED.
+- **Show / hide the 64x8 LED banner :** Ouvre / Ferme le bandeau d'affichage défilant de 64x8 LED.
+
+**Section Vues Système (Mémoire & Architecture) :**
+- **Show / hide RAM :** Ouvre la fenêtre de visualisation du contenu de la mémoire 256 octets.
+- **Show / hide CPU & buses (VIZ) :** Ouvre la fenêtre de visualisation dynamique de l'architecture interne (CPU, registres, mémoire RAM et bus d'adresses/données animés).
+
+**Contrôle de vitesse & Aide :**
 - **Execution speed :** Ajuste la vitesse d'exécution du programme.
 - **User manual :** Ouvre cette documentation dans un navigateur.
 
 ### La mémoire RAM :
 
-Il est possible de visualiser le contenu de la mémoire vive (RAM) sous la forme d'une table de 16x16 octets notés sous forme hexadécimale ou ASCII. C'est un outil essentiel pour déboguer et comprendre comment vos données et votre code sont stockés. La visualisation indique également les emplacements pointés par les regitres `IP` (en rouge) et `SP` (en bleu) :
+Il est possible de visualiser le contenu de la mémoire vive (RAM) sous la forme d'une table de 16x16 octets notés sous forme hexadécimale ou ASCII. C'est un outil essentiel pour déboguer et comprendre comment vos données et votre code sont stockés. La visualisation indique également les emplacements pointés par les registres `IP` (en rouge) et `SP` (en bleu) :
 
 ![center](img/ram.png)
 
@@ -93,6 +109,10 @@ MicroSim x86 inclus plusieurs périphériques d'entrée/sortie qui peuvent être
 | Clavier | Port | `0x01` | `IN 0x01` |
 | Feux tricolores | Port | `0x02` | `OUT 0x02` |
 | Chauffage | Port | `0x03` | `IN 0x03` / `OUT 0x03` |
+| Buzzer 8-bit | Ports | `0x04` (Note), `0x05` (Durée) | `OUT 0x04` / `OUT 0x05` |
+| Barre de 8 LED | Port | `0x06` | `OUT 0x06` / `IN 0x06` |
+| Matrice 8x8 LED | Ports | `0x07` (Ligne), `0x08` (Données) | `OUT 0x07` / `OUT 0x08` |
+| Bandeau 64x8 LED | Ports | `0x09` (Donnée), `0x0A` (Commande) | `OUT 0x09` / `OUT 0x0A` |
 
 ### Le terminal ASCII (mapé en mémoire) :
 
@@ -102,7 +122,7 @@ C'est un petit écran texte de 4 lignes de 16 colonnes. Pour afficher un caract�
 
 ### Le clavier (via le port 01) :
 
-Le clavier permet d'entrer des caractères via l'intruction `IN 0x01` qui déclenche une attente d'une action sur le clavier physique de l'ordinateur. Le code ASCII de la touche actionnée sera placé dans le registre `AL` :
+Le clavier permet d'entrer des caractères via l'instruction `IN 0x01` qui déclenche une attente d'une action sur le clavier physique de l'ordinateur. Le code ASCII de la touche actionnée sera placé dans le registre `AL` :
 
 ![center](img/keyboard.png)
 
@@ -120,6 +140,67 @@ Ce périphérique représente un système de chauffage simple.
 - L'instruction `IN 0x03` modifie le registre `AL` selon l'état du système (bits 0, 1 et 7).
 
 ![center](img/heater.png)
+
+### Le buzzer 8-bit (via les ports 04 et 05) :
+
+Ce périphérique simule un générateur de son chiptune (onde carrée rétro) pour jouer des notes et des mélodies.
+- **Port `0x04` (Note MIDI / Fréquence)** :
+  - `OUT 0x04` : déclenche une note MIDI (voir tableau). La valeur `0` coupe le son immédiatement.
+  - `IN 0x04` : lit le numéro de note en cours de lecture.
+- **Port `0x05` (Durée du son)** :
+  - `OUT 0x05` : programme une durée en dizaines de millisecondes (ex: 20 = 200 ms). À la fin de cette durée, le son s'arrête automatiquement en tâche de fond.
+  - `IN 0x05` : renvoie `1` si un son est en cours d'émission, `0` sinon.
+
+#### Tableau des notes (Do4 à Do5) :
+
+| Note | Do4 | Do#4 | Ré4 | Ré#4 | Mi4 | Fa4 | Fa#4 | Sol4 | Sol#4 | La4 | La#4 | Si4 | Do5 |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Hexa** | `0x3C` | `0x3D` | `0x3E` | `0x3F` | `0x40` | `0x41` | `0x42` | `0x43` | `0x44` | `0x45` | `0x46` | `0x47` | `0x48` |
+
+![center](img/buzzer.png)
+
+### La barre de 8 LED (via le port 06) :
+
+Ce périphérique affiche une rampe horizontale de 8 LED rouges.
+- L'instruction `OUT 0x06` envoie la valeur du registre `AL` à la barre de LED. Chaque bit contrôle une LED (1 = allumée, 0 = éteinte) :
+  - Bit 7 (MSB) : LED à l'extrême gauche (`b7`).
+  - Bit 0 (LSB) : LED à l'extrême droite (`b0`).
+- L'instruction `IN 0x06` lit l'état actuel de la barre de LED et le place dans le registre `AL`.
+
+![center](img/bar.png)
+
+### La matrice de LED 8x8 (via les ports 07 et 08) :
+
+Ce périphérique affiche une grille de 8 lignes par 8 colonnes de LED rouges, avec une mémoire d'affichage interne (maintien de l'image stable même en mode pas-à-pas ou basse vitesse).
+- **Port `0x07` (Index de ligne)** :
+  - `OUT 0x07` : sélectionne la ligne active (valeur de 0 à 7).
+  - `IN 0x07` : renvoie l'index de la ligne active.
+- **Port `0x08` (Données de la ligne)** :
+  - `OUT 0x08` : met à jour les 8 LED de la ligne sélectionnée (bit 7 = gauche `b7`, bit 0 = droite `b0`).
+  - `IN 0x08` : lit l'octet de motif mémorisé pour la ligne sélectionnée.
+
+![center](img/matrix.png)
+
+### Le bandeau 64x8 LED (via les ports 09 et 0A) :
+
+Ce périphérique simule une matrice de LED horizontale de 64 colonnes par 8 lignes (organisée en 8 modules de 8x8 chaînés), spécialement conçue pour les textes défilants et animations graphiques.
+- **Port `0x09` (Données de colonne)** :
+  - `OUT 0x09` : charge un motif de colonne de 8 bits dans le registre de données interne (bit 7 = LED du haut, bit 0 = LED du bas).
+  - `IN 0x09` : relit la dernière donnée écrite.
+- **Port `0x0A` (Commande)** : l'instruction `OUT 0x0A` exécute la commande définie par la valeur du registre `AL` :
+  - `0` : Efface l'ensemble de la matrice (CLEAR).
+  - `1` : Décale la matrice d'une colonne vers la gauche (colonne 63 remise à 0).
+  - `2` : Décale la matrice d'une colonne vers la droite (colonne 0 remise à 0).
+  - `3` : Écrit la donnée du port `0x09` dans la colonne 0 (tout à gauche).
+  - `4` : Écrit la donnée du port `0x09` dans la colonne 63 (tout à droite).
+  - `5` : Défilement vers la gauche avec injection de la donnée en colonne 63 (PUSH RIGHT).
+  - `6` : Défilement vers la droite avec injection de la donnée en colonne 0 (PUSH LEFT).
+  - `IN 0x0A` : lit le dernier code de commande exécuté.
+  - `OUT 0x0A, 5` : Décale vers la gauche et injecte la donnée en colonne 63 (PUSH RIGHT, idéal pour le défilement de texte).
+  - `OUT 0x0A, 6` : Décale vers la droite et injecte la donnée en colonne 0 (PUSH LEFT).
+  - `IN 0x0A` : relit le dernier code de commande exécuté.
+
+![center](img/banner.png)
 
 ## 4. Guide de démarrage rapide
 
@@ -195,7 +276,16 @@ etiquette:
     mov AL, 0x01
 ```
 
-Les étiquettes sont essentielles car elles permettent de faire référence à des adresses de manière symbolique, sans avoir à calculer leur valeur manuellement. L'assembleur les remplace automatiquement par les adresses correspondantes lors de la compilation. Elles sont principalement utilisées avec les instructions de saut (`JMP`, `JZ`, etc.) et pour accéder à des données.
+Les étiquettes sont essentielles car elles permettent de faire référence à des adresses de manière symbolique, sans avoir à calculer leur valeur manuellement. L'assembleur les remplace automatiquement par les adresses correspondantes lors de la compilation.
+
+Une étiquette peut être utilisée de deux façons selon la présence ou non de crochets :
+
+- **Sans crochets (`label`) — Adresse immédiate ou cible de saut :**
+  - Cible de saut : `JMP boucle`, `CALL routine`.
+  - Chargement de l'adresse de l'étiquette dans un registre (initialisation de pointeur, équivalent de `reg = &label` en C) : `MOV BL, data`.
+  - Comparaison ou opération arithmétique avec l'adresse : `CMP BL, fin_data`.
+- **Entre crochets (`[label]`) — Accès au contenu mémoire (déréférencement) :**
+  - Lecture ou écriture directe de la valeur située à cette adresse (équivalent de `reg = *label` en C) : `MOV AL, [data]`.
 
 ### Les opérandes et les modes d'adressage :
 
@@ -209,7 +299,8 @@ Une instruction est composée d'un **code d'opération** (opcode) et éventuelle
 | `[SP+offset]` | Adresse mémoire relative au pointeur de pile avec un offset (décalage) | `[SP+4]` |
 | `byte` | Un octet noté en hexadécimal ou en décimal | `0xFF`, `255` |
 | `addr` | Une adresse notée en hexadécimal ou en décimal (utilisé par les sauts) | `0x50`, `80` |
-| `label` | Une étiquette (utilisé par les sauts) | `my_label` |
+| `label` | Une étiquette représentant son adresse immédiate (sauts ou initialisation de pointeur) | `JMP boucle`, `MOV BL, data` |
+| `[label]` | Accès direct au contenu mémoire situé à l'adresse de l'étiquette | `MOV AL, [data]` |
 | `char` | Un caractère littéral | `'A'` |
 | `string` | Une chaîne de caractères littérale | `"Hello"` |
 
@@ -278,7 +369,7 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `HLT` | `0x00` | Implicite | `00` |
+| `HLT` | `0x00` | Implicite | `00` | `HLT` |
 
 ### Instructions de mouvement de données :
 
@@ -287,16 +378,26 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `MOV reg, byte` | `0x01` | Immédiat | `01 reg byte` |
-| `MOV reg, reg` | `0x02` | Registre | `02 reg reg` |
-| `MOV reg, [addr]` | `0x03` | Direct | `03 reg addr` |
-| `MOV reg, [reg]` | `0x04` | Indirect | `04 reg reg` |
-| `MOV reg, [SP+offset]` | `0x05` | Offset | `05 reg offset`|
-| `MOV [addr], byte` | `0x06` | Immédiat | `06 addr byte` |
-| `MOV [addr], reg` | `0x07` | Registre | `07 addr reg` |
-| `MOV [reg], byte` | `0x08` | Immédiat | `08 reg byte` |
-| `MOV [reg], reg` | `0x09` | Registre | `09 reg reg` |
-| `MOV [SP+offset], reg`| `0x0A` | Registre | `0A offset reg`|
+| `MOV reg, byte` | `0x01` | Immédiat | `01 reg byte` | `MOV AL, 0x10` |
+| `MOV reg, reg` | `0x02` | Registre | `02 reg reg` | `MOV AL, BL` |
+| `MOV reg, [addr]` | `0x03` | Direct | `03 reg addr` | `MOV AL, [0x50]` |
+| `MOV reg, [reg]` | `0x04` | Indirect | `04 reg reg` | `MOV AL, [BL]` |
+| `MOV reg, [SP+offset]` | `0x05` | Offset | `05 reg offset` | `MOV AL, [SP+2]` |
+| `MOV [addr], byte` | `0x06` | Immédiat | `06 addr byte` | `MOV [0x50], 0x10` |
+| `MOV [addr], reg` | `0x07` | Registre | `07 addr reg` | `MOV [0x50], AL` |
+| `MOV [reg], byte` | `0x08` | Immédiat | `08 reg byte` | `MOV [BL], 0x10` |
+| `MOV [reg], reg` | `0x09` | Registre | `09 reg reg` | `MOV [BL], AL` |
+| `MOV [SP+offset], reg` | `0x0A` | Registre | `0A offset reg` | `MOV [SP+2], AL` |
+
+**Utilisation des étiquettes (labels) avec `MOV` :**
+Une étiquette symbolise une adresse mémoire (ex: `data: DB 0x42`). Elle peut s'utiliser de deux manières avec `MOV` :
+- **Sans crochets (`MOV reg, label`) — Pointeur / Adresse immédiate :** charge l'adresse mémoire du label dans un registre (codage `0x01`, équivalent de `reg = &label` en C). Cela permet d'initialiser un registre pour l'utiliser comme pointeur :
+  - `MOV BL, data` *(charge l'adresse de data dans BL)*
+- **Entre crochets (`MOV reg, [label]`) — Contenu / Déréférencement :** lit la valeur stockée à l'adresse du label (codage `0x03`, équivalent de `reg = *label` en C) :
+  - `MOV AL, [data]` *(charge la valeur 0x42 dans AL)*
+- **Écriture en mémoire (`MOV [label], reg` ou `MOV [label], byte`) :** écrit directement à l'adresse de l'étiquette (codages `0x07` et `0x06`) :
+  - `MOV [data], AL` *(écrit le contenu de AL dans data)*
+  - `MOV [data], 0xFF` *(écrit la constante 0xFF dans data)*
 
 ### Instructions arithmétiques :
 
@@ -305,61 +406,61 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `INC reg` | `0x13` | Registre | `13 reg` |
+| `INC reg` | `0x13` | Registre | `13 reg` | `INC AL` |
 
 ### `DEC` (decrement)
 - **Description :** Décrémente la valeur d'un registre de 1.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `DEC reg` | `0x14` | Registre | `14 reg` |
+| `DEC reg` | `0x14` | Registre | `14 reg` | `DEC BL` |
 
 ### `NEG` (negation)
 - **Description :** Effectue un complément à 2 sur la valeur d'un registre.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `NEG reg` | `0x15` | Registre | `15 reg` |
+| `NEG reg` | `0x15` | Registre | `15 reg` | `NEG AL` |
 
 ### `ADD` (addition)
 - **Description :** Additionne la valeur de la source au registre de destination.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `ADD reg, byte` | `0x0B` | Immédiat | `0B reg byte` |
-| `ADD reg, reg` | `0x0C` | Registre | `0C reg reg` |
-| `ADD reg, [addr]` | `0x0D` | Direct | `0D reg addr` |
-| `ADD reg, [reg]` | `0x0E` | Indirect | `0E reg reg` |
+| `ADD reg, byte` | `0x0B` | Immédiat | `0B reg byte` | `ADD AL, 0x05` |
+| `ADD reg, reg` | `0x0C` | Registre | `0C reg reg` | `ADD AL, BL` |
+| `ADD reg, [addr]` | `0x0D` | Direct | `0D reg addr` | `ADD AL, [0x50]` |
+| `ADD reg, [reg]` | `0x0E` | Indirect | `0E reg reg` | `ADD AL, [BL]` |
 
 ### `SUB` (subtraction)
 - **Description :** Soustrait la valeur de la source du registre de destination.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `SUB reg, byte` | `0x0F` | Immédiat | `0F reg byte` |
-| `SUB reg, reg` | `0x10` | Registre | `10 reg reg` |
-| `SUB reg, [addr]` | `0x11` | Direct | `11 reg addr` |
-| `SUB reg, [reg]` | `0x12` | Indirect | `12 reg reg` |
+| `SUB reg, byte` | `0x0F` | Immédiat | `0F reg byte` | `SUB AL, 0x05` |
+| `SUB reg, reg` | `0x10` | Registre | `10 reg reg` | `SUB AL, BL` |
+| `SUB reg, [addr]` | `0x11` | Direct | `11 reg addr` | `SUB AL, [0x50]` |
+| `SUB reg, [reg]` | `0x12` | Indirect | `12 reg reg` | `SUB AL, [BL]` |
 
 ### `MUL` (multiplication)
-- **Description : :** Multiplie la valeur de la source au registre de destination.
+- **Description :** Multiplie la valeur de la source au registre de destination.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `MUL reg, byte` | `0x36` | Immédiat | `36 reg byte` |
-| `MUL reg, reg` | `0x37` | Registre | `37 reg reg` |
-| `MUL reg, [addr]` | `0x38` | Direct | `38 reg addr` |
-| `MUL reg, [reg]` | `0x39` | Indirect | `39 reg reg` |
+| `MUL reg, byte` | `0x3A` | Immédiat | `3A reg byte` | `MUL AL, 0x03` |
+| `MUL reg, reg` | `0x3B` | Registre | `3B reg reg` | `MUL AL, BL` |
+| `MUL reg, [addr]` | `0x3C` | Direct | `3C reg addr` | `MUL AL, [0x50]` |
+| `MUL reg, [reg]` | `0x3D` | Indirect | `3D reg reg` | `MUL AL, [BL]` |
 
 ### `DIV` (division)
 - **Description :** Divise la valeur de la source au registre de destination.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `DIV reg, byte` | `0x3A` | Immédiat | `3A reg byte` |
-| `DIV reg, reg` | `0x3B` | Registre | `3B reg reg` |
-| `DIV reg, [addr]` | `0x3C` | Direct | `3C reg addr` |
-| `DIV reg, [reg]` | `0x3D` | Indirect | `3D reg reg` |
+| `DIV reg, byte` | `0x3E` | Immédiat | `3E reg byte` | `DIV AL, 0x02` |
+| `DIV reg, reg` | `0x3F` | Registre | `3F reg reg` | `DIV AL, BL` |
+| `DIV reg, [addr]` | `0x40` | Direct | `40 reg addr` | `DIV AL, [0x50]` |
+| `DIV reg, [reg]` | `0x41` | Indirect | `41 reg reg` | `DIV AL, [BL]` |
 
 ### Instructions logiques :
 
@@ -368,57 +469,57 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `AND reg, byte` | `0x3E` | Immédiat | `3E reg byte` |
-| `AND reg, reg` | `0x3F` | Registre | `3F reg reg` |
-| `AND reg, [addr]` | `0x40` | Direct | `40 reg addr` |
-| `AND reg, [reg]` | `0x41` | Indirect | `41 reg reg` |
+| `AND reg, byte` | `0x42` | Immédiat | `42 reg byte` | `AND AL, 0x0F` |
+| `AND reg, reg` | `0x43` | Registre | `43 reg reg` | `AND AL, BL` |
+| `AND reg, [addr]` | `0x44` | Direct | `44 reg addr` | `AND AL, [0x50]` |
+| `AND reg, [reg]` | `0x45` | Indirect | `45 reg reg` | `AND AL, [BL]` |
 
 ### `OR`
-- **Description : :** Effectue un OU logique (bitwise OR) entre le registre de destination et la source.
+- **Description :** Effectue un OU logique (bitwise OR) entre le registre de destination et la source.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `OR reg, byte` | `0x42` | Immédiat | `42 reg byte` |
-| `OR reg, reg` | `0x43` | Registre | `43 reg reg` |
-| `OR reg, [addr]` | `0x44` | Direct | `44 reg addr` |
-| `OR reg, [reg]` | `0x45` | Indirect | `45 reg reg` |
+| `OR reg, byte` | `0x46` | Immédiat | `46 reg byte` | `OR AL, 0x80` |
+| `OR reg, reg` | `0x47` | Registre | `47 reg reg` | `OR AL, BL` |
+| `OR reg, [addr]` | `0x48` | Direct | `48 reg addr` | `OR AL, [0x50]` |
+| `OR reg, [reg]` | `0x49` | Indirect | `49 reg reg` | `OR AL, [BL]` |
 
 ### `XOR`
-- **Description : :** Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.
+- **Description :** Effectue un OU exclusif (bitwise XOR) entre le registre de destination et la source.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `XOR reg, byte` | `0x46` | Immédiat | `46 reg byte` |
-| `XOR reg, reg` | `0x47` | Registre | `47 reg reg` |
-| `XOR reg, [addr]` | `0x48` | Direct | `48 reg addr` |
-| `XOR reg, [reg]` | `0x49` | Indirect | `49 reg reg` |
+| `XOR reg, byte` | `0x4A` | Immédiat | `4A reg byte` | `XOR AL, 0xFF` |
+| `XOR reg, reg` | `0x4B` | Registre | `4B reg reg` | `XOR AL, AL` |
+| `XOR reg, [addr]` | `0x4C` | Direct | `4C reg addr` | `XOR AL, [0x50]` |
+| `XOR reg, [reg]` | `0x4D` | Indirect | `4D reg reg` | `XOR AL, [BL]` |
 
 ### `NOT`
-- **Description : :** Inverse tous les bits d'un registre (bitwise NOT).
+- **Description :** Inverse tous les bits d'un registre (bitwise NOT).
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `NOT reg` | `0x4A` | Registre | `4A reg` |
+| `NOT reg` | `0x4E` | Registre | `4E reg` | `NOT AL` |
 
 ### `SHL` (shift left)
 - **Description :** Décale les bits du registre de destination vers la gauche.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `SHL reg, byte` | `0x4B` | Immédiat | `4B reg byte` |
-| `SHL reg, reg` | `0x4C` | Registre | `4C reg reg` |
-| `SHL reg, [addr]` | `0x4D` | Direct | `4D reg addr` |
-| `SHL reg, [reg]` | `0x4E` | Indirect | `4E reg reg` |
+| `SHL reg, byte` | `0x4F` | Immédiat | `4F reg byte` | `SHL AL, 1` |
+| `SHL reg, reg` | `0x50` | Registre | `50 reg reg` | `SHL AL, CL` |
+| `SHL reg, [addr]` | `0x51` | Direct | `51 reg addr` | `SHL AL, [0x50]` |
+| `SHL reg, [reg]` | `0x52` | Indirect | `52 reg reg` | `SHL AL, [BL]` |
 
 ### `SHR` (shift right)
 - **Description :** Décale les bits du registre de destination vers la droite.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `SHR reg, byte` | `0x4F` | Immédiat | `4F reg byte` |
-| `SHR reg, reg` | `0x50` | Registre | `50 reg reg` |
-| `SHR reg, [addr]` | `0x51` | Direct | `51 reg addr` |
-| `SHR reg, [reg]` | `0x52` | Indirect | `52 reg reg` |
+| `SHR reg, byte` | `0x53` | Immédiat | `53 reg byte` | `SHR AL, 1` |
+| `SHR reg, reg` | `0x54` | Registre | `54 reg reg` | `SHR AL, CL` |
+| `SHR reg, [addr]` | `0x55` | Direct | `55 reg addr` | `SHR AL, [0x50]` |
+| `SHR reg, [reg]` | `0x56` | Indirect | `56 reg reg` | `SHR AL, [BL]` |
 
 ### Instructions de comparaison et de saut :
 
@@ -427,82 +528,98 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `CMP reg, byte` | `0x16` | Immédiat | `16 reg byte` |
-| `CMP reg, reg` | `0x17` | Registre | `17 reg reg` |
-| `CMP reg, [addr]` | `0x18` | Direct | `18 reg addr` |
-| `CMP reg, [reg]` | `0x19` | Indirect | `19 reg reg` |
+| `CMP reg, byte` | `0x16` | Immédiat | `16 reg byte` | `CMP AL, 10` |
+| `CMP reg, reg` | `0x17` | Registre | `17 reg reg` | `CMP AL, BL` |
+| `CMP reg, [addr]` | `0x18` | Direct | `18 reg addr` | `CMP AL, [0x50]` |
+| `CMP reg, [reg]` | `0x19` | Indirect | `19 reg reg` | `CMP AL, [BL]` |
 
-### `JUMP`
+### `JMP` (jump)
 - **Description :** Saut inconditionnel vers une adresse ou un label.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JMP addr` | `0x1A` | Direct | `1A addr` |
-| `JMP [reg]` | `0x1B` | Indirect | `1B reg` |
+| `JMP addr` | `0x1A` | Direct | `1A addr` | `JMP 0x20` |
+| `JMP [reg]` | `0x1B` | Indirect | `1B reg` | `JMP [BL]` |
 
 ### `JC` / `JB` (jump if carry / jump if below)
 - **Description :** Saute si le drapeau de retenue (Carry Flag) est à 1.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JC addr` | `0x1C` | Direct | `1C addr` |
-| `JC [reg]` | `0x1D` | Indirect | `1D reg ` |
+| `JC addr` | `0x1C` | Direct | `1C addr` | `JC 0x30` |
+| `JC [reg]` | `0x1D` | Indirect | `1D reg` | `JC [BL]` |
 
 ### `JNC` / `JAE` (jump if no carry / jump if above or equal)
 - **Description :** Saute si le drapeau de retenue (Carry Flag) est à 0.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JNC addr` | `0x1E` | Direct | `1E addr` |
-| `JNC [reg]` | `0x1F` | Indirect | `1F reg` |
+| `JNC addr` | `0x1E` | Direct | `1E addr` | `JNC 0x30` |
+| `JNC [reg]` | `0x1F` | Indirect | `1F reg` | `JNC [BL]` |
 
 ### `JZ` / `JE` (jump if zero / jump if equal)
 - **Description :** Saute si le drapeau Zéro (Zero Flag) est à 1.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JZ addr` | `0x20` | Direct | `20 addr` |
-| `JZ [reg]` | `0x21` | Indirect | `21 reg` |
+| `JZ addr` | `0x20` | Direct | `20 addr` | `JZ 0x30` |
+| `JZ [reg]` | `0x21` | Indirect | `21 reg` | `JZ [BL]` |
 
-### `JNZ` / `JNE` (jump if not zero / jump if not equal
+### `JNZ` / `JNE` (jump if not zero / jump if not equal)
 - **Description :** Saute si le drapeau Zéro (Zero Flag) est à 0.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JNZ addr` | `0x22` | Direct | `22 addr` |
-| `JNZ [reg]` | `0x23` | Indirect | `23 reg` |
+| `JNZ addr` | `0x22` | Direct | `22 addr` | `JNZ 0x30` |
+| `JNZ [reg]` | `0x23` | Indirect | `23 reg` | `JNZ [BL]` |
 
 ### `JA` / `JNBE` (jump if above / jump if not below or equal)
 - **Description :** Saute si les drapeaux Zéro et Retenue sont tous les deux à 0.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JA addr` | `0x24` | Direct | `24 addr` |
-| `JA [reg]` | `0x25` | Indirect | `25 reg` |
+| `JA addr` | `0x24` | Direct | `24 addr` | `JA 0x30` |
+| `JA [reg]` | `0x25` | Indirect | `25 reg` | `JA [BL]` |
 
 ### `JNA` / `JBE` (jump if not above / jump if below or equal)
 - **Description :** Saute si le drapeau Zéro ou le drapeau Retenue est à 1.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JNA addr` | `0x26` | Direct | `26 addr` |
-| `JNA [reg]` | `0x27` | Indirect | `27 reg` |
+| `JNA addr` | `0x26` | Direct | `26 addr` | `JNA 0x30` |
+| `JNA [reg]` | `0x27` | Indirect | `27 reg` | `JNA [BL]` |
 
 ### `JS` (jump if sign)
 - **Description :** Saute si le drapeau de signe (Sign Flag) est à 1 (résultat négatif).
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JS addr` | `0x28` | Direct | `28 addr` |
-| `JS [reg]` | `0x29` | Indirect | `29 reg` |
+| `JS addr` | `0x28` | Direct | `28 addr` | `JS 0x30` |
+| `JS [reg]` | `0x29` | Indirect | `29 reg` | `JS [BL]` |
 
 ### `JNS` (jump if not sign)
 - **Description :** Saute si le drapeau de signe (Sign Flag) est à 0 (résultat positif ou nul).
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `JNS addr` | `0x2A` | Direct | `2A addr` |
-| `JNS [reg]` | `0x2B` | Indirect | `2B reg` |
+| `JNS addr` | `0x2A` | Direct | `2A addr` | `JNS 0x30` |
+| `JNS [reg]` | `0x2B` | Indirect | `2B reg` | `JNS [BL]` |
+
+### `JO` (jump if overflow)
+- **Description :** Saute si le drapeau de dépassement signé (Overflow Flag) est à 1.
+
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
+| `JO addr` | `0x2C` | Direct | `2C addr` | `JO 0x30` |
+| `JO [reg]` | `0x2D` | Indirect | `2D reg` | `JO [BL]` |
+
+### `JNO` (jump if no overflow)
+- **Description :** Saute si le drapeau de dépassement signé (Overflow Flag) est à 0.
+
+| Syntaxe | Opcode | Adressage | Codage | Exemple |
+|:--:|:--:|:--:|:--:|:--:|
+| `JNO addr` | `0x2E` | Direct | `2E addr` | `JNO 0x30` |
+| `JNO [reg]` | `0x2F` | Indirect | `2F reg` | `JNO [BL]` |
 
 ### Gestion de la pile :
 
@@ -511,48 +628,48 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `PUSH byte` | `0x2C` | Immédiat | `2C byte` |
-| `PUSH reg` | `0x2D` | Registre | `2D reg` |
-| `PUSH [addr]` | `0x2E` | Direct | `2E addr` |
-| `PUSH [reg]` | `0x2F` | Indirect | `2F reg` |
+| `PUSH byte` | `0x30` | Immédiat | `30 byte` | `PUSH 0x10` |
+| `PUSH reg` | `0x31` | Registre | `31 reg` | `PUSH AL` |
+| `PUSH [addr]` | `0x32` | Direct | `32 addr` | `PUSH [0x50]` |
+| `PUSH [reg]` | `0x33` | Indirect | `33 reg` | `PUSH [BL]` |
 
 ### `POP`
 - **Description :** Dépile une valeur de la pile vers un registre.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `POP reg` | `0x30` | Registre | `30 reg` |
+| `POP reg` | `0x34` | Registre | `34 reg` | `POP AL` |
 
 ### `PUSHF` (push flags)
-- **Description : :** Empile le contenu du registre SR (sauvegarde des flags).
+- **Description :** Empile le contenu du registre SR (sauvegarde des flags).
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `PUSHF` | `0x31` | Implicite | `31` |
+| `PUSHF` | `0x35` | Implicite | `35` | `PUSHF` |
 
 ### `POPF` (pop flags)
-- **Description : :** Dépile vers le registre SR (restauration des flags).
+- **Description :** Dépile vers le registre SR (restauration des flags).
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `POPF` | `0x32` | Implicite | `32` |
+| `POPF` | `0x36` | Implicite | `36` | `POPF` |
 
 ### Instructions de sous-programmes (subroutines) :
 
 ### `CALL`
-- **Description : :** Appelle un sous-programme en empilant l'adresse de retour et en sautant à l'adresse du sous-programme.
+- **Description :** Appelle un sous-programme en empilant l'adresse de retour et en sautant à l'adresse du sous-programme.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `CALL addr` | `0x33` | Direct | `33 addr` |
-| `CALL [reg]` | `0x34` | Indirect | `34 reg` |
+| `CALL addr` | `0x37` | Direct | `37 addr` | `CALL 0x60` |
+| `CALL [reg]` | `0x38` | Indirect | `38 reg` | `CALL [BL]` |
 
 ### `RET` (return)
-- **Description : :** Revient d'un sous-programme en dépilant l'adresse de retour de la pile.
+- **Description :** Revient d'un sous-programme en dépilant l'adresse de retour de la pile.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `RET` | `0x35` | Implicite | `35` |
+| `RET` | `0x39` | Implicite | `39` | `RET` |
 
 ### Instructions d'entrées / sorties :
 
@@ -561,14 +678,14 @@ Toute opérande de type `reg` est codée sur un octet :
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `OUT byte` | `0x53` | Immédiat | `53 byte` |
+| `OUT byte` | `0x57` | Immédiat | `57 byte` | `OUT 0x02` |
 
 ### `IN`
 - **Description :** Lit une valeur depuis un port d'entrée/sortie et la stocke dans le registre `AL`.
 
 | Syntaxe | Opcode | Adressage | Codage | Exemple |
 |:--:|:--:|:--:|:--:|:--:|
-| `IN byte` | `0x54` | Immédiat | `54 byte` |
+| `IN byte` | `0x58` | Immédiat | `58 byte` | `IN 0x01` |
 
 ![sep](img/sep.png)
 

@@ -29,7 +29,7 @@ echo "Copie des fichiers de l'application..."
 # -----------------------------------------------------------------------
 
 cp build/microsim.jar $DIST_DIR/microsim/
-cp build/lib/*.jar $DIST_DIR/microsim/
+cp -r build/lib $DIST_DIR/microsim/
 
 mkdir -p $DIST_DIR/microsim/man/
 cp -r man/* $DIST_DIR/microsim/man/

@@ -19,13 +19,14 @@ This project is inspired by two other similar open-source projects:
 
 ## Features
 
-- **Code Editor:** Write your assembly code with syntax highlighting and a code beautifier to standardize formatting.
-- **CPU Visualization:** Real-time display of all CPU registers and flags.
+- **Code Editor:** Write your assembly code with syntax highlighting, multi-tab support, and a code beautifier to standardize formatting.
+- **CPU Visualization:** Real-time display of all CPU registers, flags, and internal bus activity.
 - **RAM Inspector:** View the entire 256-byte memory in hexadecimal or ASCII. The `IP` (Instruction Pointer) and `SP` (Stack Pointer) locations are highlighted.
-- **Execution Control:** Run the code continuously at adjustable speeds or execute it instruction by instruction in step-by-step mode.
-- **Virtual Devices:** Interact with your programs through several I/O devices.
+- **Execution Control:** Run the code continuously with adjustable speeds up to 10,000 instructions/second with batch execution (zero UI freeze), or step by step.
+- **Virtual Devices:** Interact with your programs through 8 dedicated I/O devices.
 - **Mini-C compiler:** Compiles a subset of C language, including pointer operations.
-- **Cross-Platform:** Built with Java, MicroSim runs on macOS, Linux, and Windows.
+- **Headless Runner & Autograder:** CLI execution engine with JSON trace output and automated lab assessment.
+- **Cross-Platform:** Built with Java, MicroSim runs natively on macOS (Apple Silicon / Intel), Linux, and Windows.
 
 ## Virtual Devices
 
@@ -37,6 +38,10 @@ MicroSim includes several input/output devices that can be controlled by your pr
 | **Keyboard** | Allows character input using the `IN 0x01` instruction. The ASCII code of the pressed key is placed in the `AL` register. | ![Keyboard](man/img/keyboard.png) |
 | **Traffic Lights** | Simulates two traffic lights controlled via the `OUT 0x02` instruction, based on the byte in the `AL` register. | ![Traffic Lights](man/img/lights.png) |
 | **Heating System** | A heater controlled with `OUT 0x03` and a thermostat read with `IN 0x03`. The goal is to regulate the temperature. | ![Heating System](man/img/heater.png) |
+| **8-Bit Buzzer** | Chiptune sound synthesizer playing MIDI notes (1–127, 0=stop) on port `0x04` with automated duration on port `0x05`. | ![8-Bit Buzzer](man/img/buzzer.png) |
+| **8-LED Bar** | 8 red status LEDs with 3D relief and hexadecimal display, controlled via `OUT 0x06` and read via `IN 0x06`. | ![8-LED Bar](man/img/bar.png) |
+| **8x8 LED Matrix** | Dot matrix display refreshed line by line via port `0x07` (row selection) and port `0x08` (row byte). | ![8x8 LED Matrix](man/img/matrix.png) |
+| **64x8 LED Banner** | 64-column LED banner with hardware ticker scrolling commands on port `0x0A` and column data on port `0x09`. | ![64x8 LED Banner](man/img/banner.png) |
 
 ## Quick Start Guide
 
@@ -104,13 +109,14 @@ If you want to build the project from the source files, you can use the provided
 
 ## Documentation
 
-A comprehensive reference manual for the assembler, including the full instruction set, is available.
+A comprehensive reference manual for the assembler, including the full instruction set and peripheral descriptions, is available:
 
-- **[Read the HTML Manual](man/man.md)**
+- **[Read the Reference Manual (Markdown)](man/man.md)**
+- **[Read the Reference Manual (HTML)](man/man.html)**
 
 ## License
 
-Copyright (c) 2025 Jérôme Lehuen
+Copyright (c) 2025-2026 Jérôme Lehuen
 
 This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
 

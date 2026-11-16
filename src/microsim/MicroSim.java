@@ -23,9 +23,14 @@ import javax.swing.SwingUtilities;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import microsim.devices.AsciiFrame;
+import microsim.devices.BannerFrame;
+import microsim.devices.BuzzerFrame;
 import microsim.devices.HeaterFrame;
 import microsim.devices.KeyboardFrame;
+import microsim.devices.LedBarFrame;
 import microsim.devices.LightsFrame;
+import microsim.devices.MatrixFrame;
+import microsim.devices.VisualizationFrame;
 import microsim.editor.EditorPanel;
 import microsim.simulator.Simulator;
 import microsim.simulator.Utils;
@@ -45,7 +50,7 @@ public class MicroSim extends JFrame {
 	public static final String SYSTEM = Utils.getOperatingSystem();
 
     public final String BASE_TITLE = "8 Bits Microprocessor Simulator";
-    private final Dimension DIMENSION = new Dimension(800, 600);
+    private final Dimension DIMENSION = new Dimension(1050, 600);
     private final int HORIZONTAL_DIVIDER_LOCATION = 250;
     private final int VERTICAL_DIVIDER_LOCATION = 400;
     
@@ -53,7 +58,6 @@ public class MicroSim extends JFrame {
     private ToolBar toolBar;
     private EditorPanel editor;
     private RegistersPanel registersPanel;
-    private VisualizationPanel visualizationPanel;
     private Console console;
 
     public ToolBar getToolBar() { return toolBar; }
@@ -61,41 +65,45 @@ public class MicroSim extends JFrame {
     public Simulator getSimulator() { return simulator; }
     public EditorPanel getEditor() { return editor; }
     public RegistersPanel getRegisters() { return registersPanel; }
-    public VisualizationPanel getVisualizationPanel() { return visualizationPanel; }
+    public VisualizationPanel getVisualizationPanel() {
+        return VisualizationFrame.INSTANCE != null ? VisualizationFrame.INSTANCE.getVisualizationPanel() : null;
+    }
 
     /**
      * Constructs the main frame and all its components.
      */
     public MicroSim() {
 
-        // Placement of device windows
-        LightsFrame.INSTANCE.setLocation(0, 0);
-        HeaterFrame.INSTANCE.setLocation(0, 280);
-        KeyboardFrame.INSTANCE.setLocation(220, 0);
-        AsciiFrame.INSTANCE.setLocation(555, 0);
-
         setTitle(BASE_TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 800);
+        setSize(1220, 800);
         setMinimumSize(DIMENSION);
         setLocation(220, 210);
 
         simulator = new Simulator(this);
+        new VisualizationFrame(simulator);
+
+        // Placement of device windows
+        LightsFrame.INSTANCE.setLocation(0, 0);
+        HeaterFrame.INSTANCE.setLocation(0, 280);
+        BuzzerFrame.INSTANCE.setLocation(0, 490);
+        KeyboardFrame.INSTANCE.setLocation(220, 0);
+        LedBarFrame.INSTANCE.setLocation(220, 150);
+        AsciiFrame.INSTANCE.setLocation(555, 0);
+        MatrixFrame.INSTANCE.setLocation(555, 150);
+        BannerFrame.INSTANCE.setLocation(220, 230);
+        VisualizationFrame.INSTANCE.setLocation(240, 240);
+
         editor = new EditorPanel(this);
         registersPanel = new RegistersPanel(simulator);
         toolBar = new ToolBar(editor, simulator);
         console = new Console();
-        visualizationPanel = new VisualizationPanel(simulator);
 
         registersPanel.update();
 
-        JTabbedPane editorAndVizTab = new JTabbedPane();
-        editorAndVizTab.addTab("Editor", editor);
-        editorAndVizTab.addTab("Visualization", visualizationPanel);
-
         JSplitPane horizontalSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         horizontalSplitPane.setLeftComponent(registersPanel);
-        horizontalSplitPane.setRightComponent(editorAndVizTab);
+        horizontalSplitPane.setRightComponent(editor);
         horizontalSplitPane.setDividerLocation(HORIZONTAL_DIVIDER_LOCATION);
         horizontalSplitPane.setDividerSize(0);
         horizontalSplitPane.setEnabled(false);

@@ -11,232 +11,284 @@
 package microsim.editor;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.util.function.BiConsumer;
 
-import javax.swing.JPanel;
-import javax.swing.TransferHandler;
-import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
+import com.formdev.flatlaf.FlatClientProperties;
 
 import microsim.MicroSim;
 import microsim.simulator.Utils;
-import microsim.simulator.Simulator;
 
 /**
- * The EditorPanel class provides a sophisticated text editor for writing
- * assembly code. It features syntax highlighting, undo/redo functionality,
- * file operations (new, open, save), and drag-and-drop support for opening files.
- * It also manages the "dirty" state of the file and updates the main frame's
- * title accordingly.
+ * The EditorPanel class provides a tabbed multi-file text editor.
+ * It manages multiple EditorTab instances, allows opening/saving multiple files,
+ * closing tabs, syntax highlighting (ASM / C), undo/redo, and line highlights.
  */
 public class EditorPanel extends JPanel {
 
-    private MicroSim mainframe;
-    private RSyntaxTextArea textArea;
-    private boolean dirtyFlag = false;
-    private File currentFile;
+    private final MicroSim mainframe;
+    private final JTabbedPane tabbedPane;
     private static File lastDirectory = null;
-    
-    private static final Color HIGHLIGHT_COLOR = new Color(0, 255, 0, 100); // Green with transparency
-    private static final Color ERROR_HIGHLIGHT_COLOR = new Color(255, 0, 0, 100); // Red with transparency
-    private Object errorHighlightTag = null;
+    private int untitledCounter = 1;
 
     /**
-     * Constructs the editor panel.
-     * @param frame The main frame of the application.
+     * Constructs the multi-tab EditorPanel.
+     * @param mainframe The main application frame.
      */
-    public EditorPanel(MicroSim frame) {
-        this.mainframe = frame;
+    public EditorPanel(MicroSim mainframe) {
+        this.mainframe = mainframe;
         setLayout(new BorderLayout());
-        textArea = new RSyntaxTextArea();
-        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86);
-        textArea.setCodeFoldingEnabled(false);
-        textArea.setAntiAliasingEnabled(true);
-        
-        TransferHandler defaultHandler = textArea.getTransferHandler();
-        Simulator simulator = mainframe.getSimulator();
-        textArea.setTransferHandler(new EditorTransferHandler(this, defaultHandler, simulator));
 
-        textArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                setDirtyFlag(true);
-                removeErrorHighlight();
-            }
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                setDirtyFlag(true);
-                removeErrorHighlight();
-            }
+        // FlatLaf closable tabs support
+        tabbedPane.putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSABLE, true);
+        tabbedPane.putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSE_TOOLTIPTEXT, "Close tab");
+        tabbedPane.putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSE_CALLBACK,
+                (BiConsumer<JTabbedPane, Integer>) (pane, tabIndex) -> closeTab(tabIndex));
 
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                setDirtyFlag(true);
-                removeErrorHighlight();
+        // When switching tabs, update toolbar and window title
+        tabbedPane.addChangeListener(e -> {
+            updateFrameTitle();
+            if (this.mainframe.getToolBar() != null) {
+                this.mainframe.getToolBar().update();
             }
         });
 
-        textArea.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                removeErrorHighlight();
-            }
-        });
+        add(tabbedPane, BorderLayout.CENTER);
 
-        RTextScrollPane sp = new RTextScrollPane(textArea);
-        sp.setBorder(BorderFactory.createEmptyBorder());
-        add(sp, BorderLayout.CENTER);
-        updateFrameTitle();
+        // Open initial empty document
+        addNewTab();
     }
 
     /**
-     * Returns the underlying text area component.
-     * @return The RSyntaxTextArea instance.
+     * Creates and adds a new empty editor tab ("Untitled-X.asm").
+     * @return The newly created EditorTab.
+     */
+    public EditorTab addNewTab() {
+        String title = "Untitled-" + (untitledCounter++) + ".asm";
+        return addNewTab(title, "", null);
+    }
+
+    /**
+     * Creates and adds a new editor tab with specific title, content and file.
+     * @param title The tab title.
+     * @param content Initial text content.
+     * @param file Associated file or null.
+     * @return The created EditorTab.
+     */
+    public EditorTab addNewTab(String title, String content, File file) {
+        EditorTab tab = new EditorTab(this, mainframe, title, file);
+        if (content != null && !content.isEmpty()) {
+            tab.getTextArea().setText(content);
+            tab.getTextArea().discardAllEdits();
+        }
+        tabbedPane.addTab(title, tab);
+        tabbedPane.setSelectedComponent(tab);
+        updateTabHeader(tab);
+        updateFrameTitle();
+        if (mainframe.getToolBar() != null) {
+            mainframe.getToolBar().update();
+        }
+        return tab;
+    }
+
+    /**
+     * Returns the currently selected EditorTab, or null if none.
+     * @return The active EditorTab.
+     */
+    public EditorTab getCurrentTab() {
+        int index = tabbedPane.getSelectedIndex();
+        if (index >= 0 && index < tabbedPane.getTabCount()) {
+            return (EditorTab) tabbedPane.getComponentAt(index);
+        }
+        return null;
+    }
+
+    /**
+     * Closes the tab at the given index, asking to save if modified.
+     * If all tabs are closed, a new empty tab is automatically opened.
+     * @param index Tab index to close.
+     * @return true if closed, false if canceled by user.
+     */
+    public boolean closeTab(int index) {
+        if (index < 0 || index >= tabbedPane.getTabCount()) {
+            return false;
+        }
+
+        EditorTab tab = (EditorTab) tabbedPane.getComponentAt(index);
+        if (tab.isDirty()) {
+            int result = JOptionPane.showConfirmDialog(
+                    mainframe,
+                    "You have unsaved changes in '" + tab.getTitle() + "'. Do you want to save them before closing?",
+                    "Unsaved Changes",
+                    JOptionPane.YES_NO_CANCEL_OPTION);
+
+            if (result == JOptionPane.YES_OPTION) {
+                saveTab(tab);
+                if (tab.isDirty()) {
+                    return false; // User canceled save dialog
+                }
+            } else if (result == JOptionPane.CANCEL_OPTION) {
+                return false;
+            }
+        }
+
+        tabbedPane.removeTabAt(index);
+
+        if (tabbedPane.getTabCount() == 0) {
+            addNewTab();
+        } else {
+            updateFrameTitle();
+            if (mainframe.getToolBar() != null) {
+                mainframe.getToolBar().update();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Updates the tab header title and tooltip (appends * when dirty).
+     * @param tab The tab to update.
+     */
+    public void updateTabHeader(EditorTab tab) {
+        int index = tabbedPane.indexOfComponent(tab);
+        if (index >= 0) {
+            String label = tab.getTitle() + (tab.isDirty() ? " *" : "");
+            tabbedPane.setTitleAt(index, label);
+            tabbedPane.setToolTipTextAt(index,
+                    tab.getCurrentFile() != null ? tab.getCurrentFile().getAbsolutePath() : tab.getTitle());
+        }
+    }
+
+    /**
+     * Updates the main window title based on the active tab.
+     */
+    public void updateFrameTitle() {
+        EditorTab tab = getCurrentTab();
+        String baseTitle = mainframe.BASE_TITLE;
+        if (tab != null) {
+            String fileName = tab.getCurrentFile() != null ? tab.getCurrentFile().getName() : tab.getTitle();
+            String title = baseTitle + " - " + fileName;
+            if (tab.isDirty()) {
+                title += " [modified]";
+            }
+            mainframe.setTitle(title);
+        } else {
+            mainframe.setTitle(baseTitle);
+        }
+    }
+
+    /**
+     * Returns the RSyntaxTextArea of the active tab.
+     * @return The active RSyntaxTextArea, or null.
      */
     public RSyntaxTextArea getTextArea() {
-        return textArea;
+        EditorTab tab = getCurrentTab();
+        return tab != null ? tab.getTextArea() : null;
     }
 
     /**
-     * Undoes the last edit action.
+     * Undoes the last edit in the active tab.
      */
     public void undo() {
-		textArea.undoLastAction();
-	}
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.undo();
+    }
 
     /**
-     * Redoes the last undone edit action.
+     * Redoes the last edit in the active tab.
      */
-	public void redo() {
-		textArea.redoLastAction();
-	}
+    public void redo() {
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.redo();
+    }
 
     /**
-     * Returns the file currently being edited.
-     * @return The current file, or null if the file is new and unsaved.
+     * Returns the current file of the active tab.
+     * @return File or null.
      */
     public File getCurrentFile() {
-        return currentFile;
-    }  
+        EditorTab tab = getCurrentTab();
+        return tab != null ? tab.getCurrentFile() : null;
+    }
 
     /**
-     * Sets new content in the editor, marking it as dirty and clearing the current file.
-     * @param content The new content to set in the editor.
+     * Sets new content in a new tab or the active tab (used after C compilation).
+     * @param content Assembly code generated.
      */
     public void setNewContent(String content) {
-        textArea.setText(content);
-        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // Set to assembly for compiled code
-        currentFile = null;
-        setDirtyFlag(true);
+        EditorTab activeTab = getCurrentTab();
+        String asmTitle = "compiled.asm";
+        if (activeTab != null && activeTab.getCurrentFile() != null) {
+            String base = Utils.getFileNameWithoutExtension(activeTab.getCurrentFile());
+            asmTitle = base + ".asm";
+        }
+        EditorTab asmTab = addNewTab(asmTitle, content, null);
+        asmTab.setDirtyFlag(true);
     }
 
     /**
-     * Returns the file extension of the current file.
-     * @return The file extension as a string.
+     * Checks if the active tab contains a C file.
+     * @return true if C file.
      */
-    public boolean isCFile () {
-        if (currentFile == null) return false;
-        String ext = Utils.getFileExtension(currentFile);
-        return "c".equalsIgnoreCase(ext);
+    public boolean isCFile() {
+        EditorTab tab = getCurrentTab();
+        return tab != null && tab.isCFile();
     }
 
     /**
-     * Checks if the editor has unsaved changes.
-     * @return true if the file has been modified, false otherwise.
+     * Checks if the active tab has unsaved changes.
+     * @return true if modified.
      */
     public boolean isDirty() {
-        return dirtyFlag;
+        EditorTab tab = getCurrentTab();
+        return tab != null && tab.isDirty();
     }
 
     /**
-     * Sets the dirty flag indicating whether the file has unsaved changes.
-     * @param dirtyFlag true to mark the file as modified, false otherwise.
+     * Sets the dirty flag of the active tab.
+     * @param dirtyFlag true if modified.
      */
     public void setDirtyFlag(boolean dirtyFlag) {
-        if (this.dirtyFlag != dirtyFlag) {
-            this.dirtyFlag = dirtyFlag;
-            updateFrameTitle();
+        EditorTab tab = getCurrentTab();
+        if (tab != null) {
+            tab.setDirtyFlag(dirtyFlag);
         }
     }
 
     /**
-     * Updates the main frame's title to reflect the current file name and modification state.
-     */
-    private void updateFrameTitle() {
-        String baseTitle = mainframe.BASE_TITLE;
-        String newTitle = baseTitle;
-
-        if (currentFile != null) {
-            newTitle += " - " + currentFile.getName();
-        } else {
-            newTitle += " - [untitled]";
-        }
-
-        if (dirtyFlag) {
-            newTitle += " [modified]";
-        }
-        
-        mainframe.setTitle(newTitle);
-    }
-
-    /**
-     * Creates a new, empty file in the editor.
-     * Prompts the user to save if there are unsaved changes.
+     * Creates a new empty tab.
      */
     public void newFile() {
-        if (isDirty()) {
-            int result = JOptionPane.showConfirmDialog(mainframe, "You have unsaved changes. Do you want to save them?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                saveFile();
-                if (isDirty()) return; // Check if save was cancelled
-            }
-            else if (result == JOptionPane.CANCEL_OPTION) return;
-        }
-        textArea.setText("");
-        currentFile = null;
-        setDirtyFlag(false);
+        addNewTab();
     }
 
     /**
-     * Opens a file chooser to let the user select a file to open.
-     * Prompts the user to save if there are unsaved changes.
+     * Opens a file chooser to open a file.
+     * Opens into a new tab (or switches to existing tab if already opened).
      */
     public void openFile() {
-        if (isDirty()) {
-            int result = JOptionPane.showConfirmDialog(mainframe, "You have unsaved changes. Do you want to save them before opening a new file?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                saveFile();
-                if (isDirty()) return; // Check if save was cancelled
-            } else if (result == JOptionPane.CANCEL_OPTION) {
-                return;
-            }
-        }
-
         JFileChooser fileChooser = new JFileChooser();
         if (lastDirectory != null) {
             fileChooser.setCurrentDirectory(lastDirectory);
         }
-        FileNameExtensionFilter cFilter = new FileNameExtensionFilter("C Files", "c");
-        FileNameExtensionFilter asmFilter = new FileNameExtensionFilter("ASM Files", "asm");
+        FileNameExtensionFilter cFilter = new FileNameExtensionFilter("C Files (*.c)", "c");
+        FileNameExtensionFilter asmFilter = new FileNameExtensionFilter("ASM Files (*.asm)", "asm");
         fileChooser.addChoosableFileFilter(cFilter);
         fileChooser.addChoosableFileFilter(asmFilter);
-        fileChooser.setFileFilter(asmFilter); // Set ASM as default
+        fileChooser.setFileFilter(asmFilter);
+
         if (fileChooser.showOpenDialog(mainframe) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             lastDirectory = file.getParentFile();
@@ -245,156 +297,184 @@ public class EditorPanel extends JPanel {
     }
 
     /**
-     * Loads the content of the specified file into the editor.
+     * Loads a file into a tab. If already opened, switches to that tab.
+     * If the current tab is an untouched empty untitled document, reuses it.
+     * Otherwise opens a new tab.
      * @param file The file to load.
      */
     public void loadFile(File file) {
-        try {
-            String content = new String(Files.readAllBytes(file.toPath()));
-            textArea.setText(content);
+        if (file == null || !file.exists()) return;
 
-            // Set syntax based on file extension
-            String fileName = file.getName().toLowerCase();
-            if (fileName.endsWith(".c")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_C);
-            } else if (fileName.endsWith(".asm")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86);
-            } else {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+        // 1. Check if already open
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            EditorTab t = (EditorTab) tabbedPane.getComponentAt(i);
+            if (t.getCurrentFile() != null && t.getCurrentFile().equals(file)) {
+                tabbedPane.setSelectedIndex(i);
+                return;
             }
-
-            textArea.discardAllEdits();
-            currentFile = file;
-            mainframe.getToolBar().update();
-            setDirtyFlag(false);
         }
-        catch (IOException ex) {
+
+        // 2. Check if current tab is untouched untitled
+        EditorTab current = getCurrentTab();
+        if (current != null && current.getCurrentFile() == null && !current.isDirty()
+                && current.getTextArea().getText().trim().isEmpty()) {
+            try {
+                current.loadContent(file);
+                updateTabHeader(current);
+                updateFrameTitle();
+                if (mainframe.getToolBar() != null) mainframe.getToolBar().update();
+                return;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        // 3. Otherwise create a new tab
+        try {
+            EditorTab tab = new EditorTab(this, mainframe, file.getName(), file);
+            tab.loadContent(file);
+            tabbedPane.addTab(file.getName(), tab);
+            tabbedPane.setSelectedComponent(tab);
+            updateTabHeader(tab);
+            updateFrameTitle();
+            if (mainframe.getToolBar() != null) mainframe.getToolBar().update();
+        } catch (IOException ex) {
             ex.printStackTrace();
+            JOptionPane.showMessageDialog(mainframe, "Error reading file: " + file.getName(), "File Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     /**
-     * Saves the current content of the editor.
-     * If the file is new, it opens a "Save As" dialog.
+     * Saves the active tab.
      */
     public void saveFile() {
-        if (currentFile != null) {
-            saveFile(currentFile);
+        EditorTab tab = getCurrentTab();
+        if (tab != null) {
+            saveTab(tab);
         }
-        else saveFileAs();
     }
 
     /**
-     * Opens a "Save As" dialog to let the user choose a file to save the content to.
+     * Saves a specific tab. If it has no associated file, prompts with Save As.
+     * @param tab The tab to save.
+     */
+    public void saveTab(EditorTab tab) {
+        if (tab == null) return;
+        if (tab.getCurrentFile() != null) {
+            try {
+                tab.saveTo(tab.getCurrentFile());
+                updateTabHeader(tab);
+                updateFrameTitle();
+                if (mainframe.getToolBar() != null) mainframe.getToolBar().update();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(mainframe, "Error saving file: " + ex.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            saveTabAs(tab);
+        }
+    }
+
+    /**
+     * Opens "Save As" dialog for active tab.
      */
     public void saveFileAs() {
+        EditorTab tab = getCurrentTab();
+        if (tab != null) {
+            saveTabAs(tab);
+        }
+    }
+
+    /**
+     * Opens "Save As" dialog for a specific tab.
+     * @param tab The tab to save as.
+     */
+    public void saveTabAs(EditorTab tab) {
+        if (tab == null) return;
+
         JFileChooser fileChooser = new JFileChooser();
         if (lastDirectory != null) {
             fileChooser.setCurrentDirectory(lastDirectory);
         }
-        FileNameExtensionFilter cFilter = new FileNameExtensionFilter("C Files", "c");
-        FileNameExtensionFilter asmFilter = new FileNameExtensionFilter("ASM Files", "asm");
+        FileNameExtensionFilter cFilter = new FileNameExtensionFilter("C Files (*.c)", "c");
+        FileNameExtensionFilter asmFilter = new FileNameExtensionFilter("ASM Files (*.asm)", "asm");
         fileChooser.addChoosableFileFilter(cFilter);
         fileChooser.addChoosableFileFilter(asmFilter);
-        fileChooser.setFileFilter(asmFilter); // Set ASM as default
+
+        if (tab.isCFile()) {
+            fileChooser.setFileFilter(cFilter);
+        } else {
+            fileChooser.setFileFilter(asmFilter);
+        }
+
         if (fileChooser.showSaveDialog(mainframe) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             lastDirectory = file.getParentFile();
             String filePath = file.getAbsolutePath();
 
-            // Determine which filter was selected and append the corresponding extension
             FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
             String[] extensions = selectedFilter.getExtensions();
             String extensionToAppend = extensions.length > 0 ? "." + extensions[0] : "";
 
-            // Remove any existing extension then append the determined extension
             int dotIndex = filePath.lastIndexOf('.');
             if (dotIndex > 0 && dotIndex > filePath.lastIndexOf(File.separator)) {
                 filePath = filePath.substring(0, dotIndex);
             }
             file = new File(filePath + extensionToAppend);
-            currentFile = file;
-            saveFile(file);
-            updateFrameTitle();
+
+            try {
+                tab.saveTo(file);
+                updateTabHeader(tab);
+                updateFrameTitle();
+                if (mainframe.getToolBar() != null) mainframe.getToolBar().update();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(mainframe, "Error saving file: " + ex.getMessage(), "Save Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
     /**
-     * Saves the content of the editor to the specified file.
-     * @param file The file to save to.
-     */
-    private void saveFile(File file) {
-        try {
-            Files.write(file.toPath(), textArea.getText().getBytes());
-            currentFile = file;
-            setDirtyFlag(false);
-            mainframe.getToolBar().update();
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    /**
-     * Highlights a specific line in the editor.
-     * Used to show the current instruction being executed.
-     * @param line The line number to highlight.
-     * @return A tag that can be used to remove the highlight later.
+     * Highlights a line in the active tab.
+     * @param line Line number.
+     * @return Highlight tag.
      */
     public Object highlightLine(int line) {
-        try {
-            return textArea.addLineHighlight(line, HIGHLIGHT_COLOR);
-        }
-        catch (BadLocationException e) {
-            e.printStackTrace();
-            return null;
-        }
+        EditorTab tab = getCurrentTab();
+        return tab != null ? tab.highlightLine(line) : null;
     }
 
     /**
-     * Highlights a specific line in the editor with an error color.
-     * Used to show the location of an assembly error.
-     * @param line The line number to highlight.
+     * Highlights an error line in the active tab.
+     * @param line Line number.
      */
     public void highlightErrorLine(int line) {
-        try {
-            removeErrorHighlight();
-            textArea.setHighlightCurrentLine(false);
-            errorHighlightTag = textArea.addLineHighlight(line, ERROR_HIGHLIGHT_COLOR);
-            textArea.revalidate();
-            textArea.repaint();
-        }
-        catch (BadLocationException e) {
-            e.printStackTrace();
-        }
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.highlightErrorLine(line);
     }
 
     /**
-     * Removes a previously added line highlight.
-     * @param tag The tag returned by highlightLine().
+     * Removes line highlight in active tab.
+     * @param tag Highlight tag.
      */
     public void removeLineHighlight(Object tag) {
-        textArea.removeLineHighlight(tag);
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.removeLineHighlight(tag);
     }
-    
-    /**
-     * Removes a previously added error line highlight.
-     */
-    public void removeErrorHighlight() {
-        if (errorHighlightTag != null) {
-            textArea.removeLineHighlight(errorHighlightTag);
-            errorHighlightTag = null;
-            textArea.setHighlightCurrentLine(true);
-        }
-     }
 
     /**
-     * Reformats the code in the editor using the Formatter class.
+     * Removes error highlight in active tab.
+     */
+    public void removeErrorHighlight() {
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.removeErrorHighlight();
+    }
+
+    /**
+     * Reformats code in the active tab.
      */
     public void reformat() {
-        String text = textArea.getText();
-        int tabSize = textArea.getTabSize();
-        String reformattedText = Formatter.reformat(text, tabSize);
-        textArea.setText(reformattedText);
+        EditorTab tab = getCurrentTab();
+        if (tab != null) tab.reformat();
     }
 }

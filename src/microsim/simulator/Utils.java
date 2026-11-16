@@ -58,6 +58,20 @@ public class Utils {
     }
 
     /**
+     * Retrieves the file name without its extension from a given File object.
+     * @param file The file.
+     * @return The base name without extension.
+     */
+    public static String getFileNameWithoutExtension(File file) {
+        String name = file.getName();
+        int lastIndex = name.lastIndexOf('.');
+        if (lastIndex > 0) {
+            return name.substring(0, lastIndex);
+        }
+        return name;
+    }
+
+    /**
      * Loads an ImageIcon from the specified path within the JAR.
      * @param path The path to the image file.
      * @return An ImageIcon object, or null if loading fails.

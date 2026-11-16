@@ -40,7 +40,8 @@ public class Simulator {
 
     private Thread cpuThread;
     private final Object animationLock = new Object();
-    private int executionSpeedDelay = SpeedSlider.MAX_DELAY;
+    private volatile int executionSpeedDelay = SpeedSlider.MAX_DELAY;
+    private volatile int executionBatchSize = 1;
     private volatile boolean running = false;
     private static final int MIN_HIGHLIGHT_DELAY = 10;
 
@@ -79,11 +80,21 @@ public class Simulator {
     }
 
     /**
+     * Sets both the tick delay and the instruction batch size to control the simulation speed.
+     * @param delayMs Delay in milliseconds between execution cycles (always >= 1 ms).
+     * @param batchSize Number of instructions executed per cycle.
+     */
+    public void setExecutionSpeed(int delayMs, int batchSize) {
+        this.executionSpeedDelay = Math.max(1, delayMs);
+        this.executionBatchSize = Math.max(1, batchSize);
+    }
+
+    /**
      * Sets the delay between each instruction execution to control the simulation speed.
      * @param delay The delay in milliseconds.
      */
     public void setExecutionSpeedDelay(int delay) {
-        executionSpeedDelay = delay;
+        setExecutionSpeed(delay, 1);
     }
 
     /**
@@ -114,96 +125,137 @@ public class Simulator {
             }
 
             while (running && !cpu.isFault()) {
-                int currentIp = cpu.getIP();
-                final Integer lineToHighlight = addressToLineMap.get(currentIp);
+                // Step-by-step mode
+                if (stepmode) {
+                    try {
+                        synchronized (this) {
+                            mainFrame.getToolBar().setStepButtonVisible(true);
+                            while (!stepRequested && running && stepmode) wait();
+                            stepRequested = false;
+                            mainFrame.getToolBar().setStepButtonVisible(false);
+                        }
+                        if (running) cpu.step();
 
-                // Highlight the current line in the editor
-                if (lineToHighlight != null && lineToHighlight != lastHighlightedLine) {
-                    if (stepmode || (executionSpeedDelay >= MIN_HIGHLIGHT_DELAY)) {
-                        SwingUtilities.invokeLater(() -> {
+                        int currentIp = cpu.getIP();
+                        final Integer lineToHighlight = addressToLineMap.get(currentIp);
+                        SwingUtilities.invokeAndWait(() -> {
                             if (highlightTag != null) {
                                 mainFrame.getEditor().removeLineHighlight(highlightTag);
                             }
-                            highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
+                            if (lineToHighlight != null) {
+                                highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
+                            }
+                            memoryFrame.updateMemoryView();
+                            mainFrame.getRegisters().update();
+                            mainFrame.getVisualizationPanel().updateAndAnimate(null);
                         });
+                    } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
+                        running = false;
+                        Thread.currentThread().interrupt();
+                        break;
                     }
-                    else if (highlightTag != null) {
-                        mainFrame.getEditor().removeLineHighlight(highlightTag);
-                    }
-                    lastHighlightedLine = lineToHighlight;
-                }
-
-                try {
-                    if (stepmode) {
-                        synchronized (this) {
-                            mainFrame.getToolBar().setStepButtonVisible(true);
-                            // Wait for a step request or a resume signal
-                            while (!stepRequested && running && stepmode) wait();
-                            stepRequested = false; // Consume the step request
-                            mainFrame.getToolBar().setStepButtonVisible(false);
-                        }   
-                    }
-                    if (running) cpu.step(); // Execute one instruction
 
                     if (cpu.isHalted()) {
                         mainFrame.getConsole().println("Program halted", Color.GREEN);
                         break;
                     }
-
-                } catch (InterruptedException e) {
-                    running = false; // Exit loop if interrupted
-                } catch (Exception e) {
-                    final String errorMessage = e.getMessage();
-                    SwingUtilities.invokeLater(() -> 
-                        JOptionPane.showMessageDialog(mainFrame, "Runtime Error: " + errorMessage, "Execution Error", JOptionPane.ERROR_MESSAGE)
-                    );
-                    running = false; // Stop the simulation
-                } finally {
-                    mainFrame.getToolBar().setStepButtonVisible(false);
+                    continue;
                 }
 
-                // Update UI and wait for animations if any
-                try {
-                    // Block the simulation thread until the UI thread is done starting the animation
-                    SwingUtilities.invokeAndWait(() -> {
-                        memoryFrame.updateMemoryView();
-                        mainFrame.getRegisters().update();
-                        mainFrame.getVisualizationPanel().updateAndAnimate(() -> {
-                            synchronized (animationLock) {
-                                animationLock.notifyAll();
-                            }
-                        });
-                    });
-                } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
-                    running = false;
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                // Continuous execution: execute a batch of instructions
+                int currentBatch = executionBatchSize;
+                int currentDelay = executionSpeedDelay;
+                boolean halted = false;
 
-                // Now, we can safely check if an animation is running
-                if (mainFrame.getVisualizationPanel().isAnimating()) {
-                    synchronized (animationLock) {
-                        try {
-                            // Re-check state to be safe from race conditions
-                            if (mainFrame.getVisualizationPanel().isAnimating()) {
-                                animationLock.wait();
-                            }
-                        } catch (InterruptedException e) {
-                            running = false;
-                            Thread.currentThread().interrupt();
-                            break;
+                for (int i = 0; i < currentBatch; i++) {
+                    if (!running || cpu.isFault()) break;
+
+                    // Highlight line only in slow mode (batch == 1 and delay >= 40 ms)
+                    if (currentBatch == 1 && currentDelay >= 40) {
+                        int currentIp = cpu.getIP();
+                        final Integer lineToHighlight = addressToLineMap.get(currentIp);
+                        if (lineToHighlight != null && lineToHighlight != lastHighlightedLine) {
+                            SwingUtilities.invokeLater(() -> {
+                                if (highlightTag != null) {
+                                    mainFrame.getEditor().removeLineHighlight(highlightTag);
+                                }
+                                highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
+                            });
+                            lastHighlightedLine = lineToHighlight;
                         }
                     }
+
+                    try {
+                        cpu.step();
+                    } catch (Exception e) {
+                        final String errorMessage = e.getMessage();
+                        SwingUtilities.invokeLater(() -> 
+                            JOptionPane.showMessageDialog(mainFrame, "Runtime Error: " + errorMessage, "Execution Error", JOptionPane.ERROR_MESSAGE)
+                        );
+                        running = false;
+                        break;
+                    }
+
+                    if (cpu.isHalted()) {
+                        mainFrame.getConsole().println("Program halted", Color.GREEN);
+                        halted = true;
+                        break;
+                    }
                 }
 
-                // Control execution speed
-                if (!stepmode) {
+                if (!running || cpu.isFault() || halted) break;
+
+                // Update UI once per batch/tick
+                if (currentBatch == 1 && currentDelay >= 40) {
                     try {
-                        // Ensure a minimum delay to prevent UI freeze at max speed
-                        Thread.sleep(Math.max(1, executionSpeedDelay));
-                    } catch (InterruptedException e) {
+                        SwingUtilities.invokeAndWait(() -> {
+                            memoryFrame.updateMemoryView();
+                            mainFrame.getRegisters().update();
+                            mainFrame.getVisualizationPanel().updateAndAnimate(() -> {
+                                synchronized (animationLock) {
+                                    animationLock.notifyAll();
+                                }
+                            });
+                        });
+
+                        if (mainFrame.getVisualizationPanel().isAnimating()) {
+                            synchronized (animationLock) {
+                                if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                    animationLock.wait();
+                                }
+                            }
+                        }
+                    } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
                         running = false;
+                        Thread.currentThread().interrupt();
+                        break;
                     }
+                } else {
+                    // Fast mode: remove line highlight to avoid editor overhead, update asynchronously
+                    if (highlightTag != null) {
+                        SwingUtilities.invokeLater(() -> {
+                            if (highlightTag != null) {
+                                mainFrame.getEditor().removeLineHighlight(highlightTag);
+                                highlightTag = null;
+                            }
+                        });
+                        lastHighlightedLine = -1;
+                    }
+                    SwingUtilities.invokeLater(() -> {
+                        memoryFrame.updateMemoryView();
+                        mainFrame.getRegisters().update();
+                        if (mainFrame.getVisualizationPanel().isShowing()) {
+                            mainFrame.getVisualizationPanel().repaint();
+                        }
+                    });
+                }
+
+                // Sleep to maintain controlled cadence and keep Swing/OS completely fluid
+                try {
+                    Thread.sleep(Math.max(1, currentDelay));
+                } catch (InterruptedException e) {
+                    running = false;
+                    break;
                 }
             }
             running = false;
@@ -211,10 +263,16 @@ public class Simulator {
             SwingUtilities.invokeLater(() -> {
                 if (highlightTag != null) {
                     mainFrame.getEditor().removeLineHighlight(highlightTag);
+                    highlightTag = null;
                 }
                 mainFrame.getEditor().getTextArea().setHighlightCurrentLine(true);
                 mainFrame.getEditor().getTextArea().setEnabled(true);
                 mainFrame.getToolBar().update();
+                memoryFrame.updateMemoryView();
+                mainFrame.getRegisters().update();
+                if (mainFrame.getVisualizationPanel().isShowing()) {
+                    mainFrame.getVisualizationPanel().repaint();
+                }
             });
         });
         cpuThread.start();

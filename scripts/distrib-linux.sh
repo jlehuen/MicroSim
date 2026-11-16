@@ -12,16 +12,17 @@ JRE_LINUX=/Users/lehuen/bin/JRE-25.0.1+8-Linux/
 echo "Nettoyage de l'ancienne distribution..."
 # -----------------------------------------------------------------------
 
-rm $DIST_DIR/$ARCH_NAME
+rm -f $DIST_DIR/$ARCH_NAME
+rm -rf $DIST_DIR/microsim/*
 
 # -----------------------------------------------------------------------
 echo "Copie des fichiers de l'application..."
 # -----------------------------------------------------------------------
 
 cp build/microsim.jar $DIST_DIR/microsim/
-cp build/lib/*.jar $DIST_DIR/microsim/
+cp -r build/lib $DIST_DIR/microsim/
 
-mkdir $DIST_DIR/microsim/man/
+mkdir -p $DIST_DIR/microsim/man/
 cp -r man/* $DIST_DIR/microsim/man/
 
 mkdir $DIST_DIR/microsim/data/

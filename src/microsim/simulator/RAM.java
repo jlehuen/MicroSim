@@ -20,18 +20,29 @@ import microsim.devices.AsciiFrame;
 public class RAM {
     private final int[] data;
     private final int size;
-    private AsciiFrame asciiFrame = AsciiFrame.INSTANCE;
+    private final AsciiFrame asciiFrame;
 
     /**
-     * Constructs a new Memory unit with the specified size.
+     * Constructs a new Memory unit with the specified size and Swing ASCII display.
      * It also initializes the memory area dedicated to the ASCII display (0xC0-0xFF)
      * with space characters.
      *
      * @param size The total number of bytes in the memory.
      */
     public RAM(int size) {
+        this(size, false);
+    }
+
+    /**
+     * Constructs a new Memory unit with optional headless mode (no Swing AsciiFrame).
+     *
+     * @param size     The total number of bytes in the memory.
+     * @param headless True to disable Swing AsciiFrame updates.
+     */
+    public RAM(int size, boolean headless) {
         this.size = size;
         this.data = new int[size];
+        this.asciiFrame = headless ? null : AsciiFrame.INSTANCE;
         
         // Initialize ASCII display area with spaces
         for (int address = 0xC0; address <= 0xFF; address++) {
@@ -70,8 +81,8 @@ public class RAM {
         data[address] = value & 0xFF; // Ensure value is a byte
 
         // If the modified address is in the ASCII display range, update the display
-        if (address >= 0xC0 && address <= 0xFF) {
-            asciiFrame.setVisible(true);
+        if (asciiFrame != null && address >= 0xC0 && address <= 0xFF) {
+            if (!asciiFrame.isVisible()) asciiFrame.setVisible(true);
             asciiFrame.update(this);
         }
     }

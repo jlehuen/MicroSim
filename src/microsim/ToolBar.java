@@ -19,10 +19,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 
 import microsim.devices.AsciiFrame;
+import microsim.devices.BannerFrame;
+import microsim.devices.BuzzerFrame;
 import microsim.devices.HeaterFrame;
 import microsim.devices.KeyboardFrame;
+import microsim.devices.LedBarFrame;
 import microsim.devices.LightsFrame;
+import microsim.devices.MatrixFrame;
 import microsim.devices.MemoryFrame;
+import microsim.devices.VisualizationFrame;
 import microsim.editor.EditorPanel;
 import microsim.editor.SpeedSlider;
 import microsim.editor.Formatter;
@@ -47,6 +52,7 @@ public class ToolBar extends JToolBar {
     private ImageIcon iconComp = Utils.loadImageIcon("/icons/icon_comp.png");
     private ImageIcon iconAsm = Utils.loadImageIcon("/icons/icon_asm.png");
     private ImageIcon iconRam = Utils.loadImageIcon("/icons/icon_ram.png");
+    private ImageIcon iconViz = Utils.loadImageIcon("/icons/icon_viz.png");
     private ImageIcon iconReset = Utils.loadImageIcon("/icons/icon_reset.png");
 
     // Icons for device windows
@@ -54,6 +60,10 @@ public class ToolBar extends JToolBar {
     private ImageIcon iconKey = Utils.loadImageIcon("/icons/icon_key.png");
     private ImageIcon iconLights = Utils.loadImageIcon("/icons/icon_lights.png");
     private ImageIcon iconHeater = Utils.loadImageIcon("/icons/icon_heater.png");
+    private ImageIcon iconBuzzer = Utils.loadImageIcon("/icons/icon_buzzer.png");
+    private ImageIcon iconLedBar = Utils.loadImageIcon("/icons/icon_ledbar.png");
+    private ImageIcon iconMatrix = Utils.loadImageIcon("/icons/icon_matrix.png");
+    private ImageIcon iconBanner = Utils.loadImageIcon("/icons/icon_banner.png");
 
     // Icons for file and editor operations
     private ImageIcon iconNew = Utils.loadImageIcon("/icons/icon_new.png");
@@ -72,7 +82,7 @@ public class ToolBar extends JToolBar {
 
     // Toolbar buttons
     private ToolButton runButton, compButton, asmButton;
-    private ToolButton asciiButton, keybButton, lightsButton, heaterButton;
+    private ToolButton asciiButton, keybButton, lightsButton, heaterButton, ledBarButton, matrixButton, buzzerButton, bannerButton;
     private ToolButton newButton, openButton, saveButton,undoButton, redoButton, magicButton;
     private ToolButton modeButton, stepButton;
 
@@ -86,28 +96,46 @@ public class ToolBar extends JToolBar {
         this.simulator = simulator;
         this.editor = editor;
                 
-        add(runButton = new ToolButton("RUN", "--", "Start / stop the execution", iconRun, this));
-        add(modeButton = new ToolButton("STEPMODE", "--", "Step by step mode", iconStepOff, this));
-        add(stepButton = new ToolButton("STEP", "--", "Execute one instruction", iconStep, this));
-        add(compButton = new ToolButton("COMP", "--", "Compile C code to assembly", iconComp, this));
-        add(asmButton = new ToolButton("ASM", "--", "Assemble the machine code", iconAsm, this));
-
-        add(new ToolButton("RAM", "--", "Show / hide the memory content", iconRam, this));
-        add(new ToolButton("RESET", "--", "Reset the system", iconReset, this));
-
-        addSeparator();
-        add(asciiButton = new ToolButton("DISPLAY", "--", "Show / hide the ASCII display", iconAscii, this));
-        add(keybButton = new ToolButton("KEYBOARD", "--", "Show / hide the keyboard device", iconKey, this));
-        add(lightsButton = new ToolButton("LIGHTS", "--", "Show / hide the traffic lights device", iconLights, this));
-        add(heaterButton = new ToolButton("HEATER", "--", "Show / hide the heater device", iconHeater, this));
-
-        addSeparator();
+        // 1. Editor section
         add(newButton = new ToolButton("NEW", "--", "New program file", iconNew, this));
         add(openButton = new ToolButton("OPEN", "--", "Open program file", iconOpen, this));
         add(saveButton = new ToolButton("SAVE", "--", "Save program file as", iconSave, this));
         add(undoButton = new ToolButton("UNDO", "--", "Undo edition", iconUndo, this));   
         add(redoButton = new ToolButton("REDO", "--", "Redo edition", iconRedo, this));
         add(magicButton = new ToolButton("MAGIC", "--", "Reformat code", iconMagic, this));
+
+        addSeparator();
+
+        // 2. Build controls (Assemble / Compile)
+        add(asmButton = new ToolButton("ASM", "--", "Assemble the machine code", iconAsm, this));
+        add(compButton = new ToolButton("COMP", "--", "Compile C code to assembly", iconComp, this));
+
+        addSeparator();
+
+        // 3. Execution controls (Start / Step / Exec / Reset)
+        add(runButton = new ToolButton("RUN", "--", "Start / stop the execution", iconRun, this));
+        add(modeButton = new ToolButton("STEPMODE", "--", "Step by step mode", iconStepOff, this));
+        add(stepButton = new ToolButton("STEP", "--", "Execute one instruction", iconStep, this));
+        add(new ToolButton("RESET", "--", "Reset the system", iconReset, this));
+
+        addSeparator();
+
+        // 4. Peripherals & Devices section
+        add(asciiButton = new ToolButton("DISPLAY", "--", "Show / hide the ASCII display", iconAscii, this));
+        add(keybButton = new ToolButton("KEYBOARD", "--", "Show / hide the keyboard device", iconKey, this));
+        add(lightsButton = new ToolButton("LIGHTS", "--", "Show / hide the traffic lights device", iconLights, this));
+        add(heaterButton = new ToolButton("HEATER", "--", "Show / hide the heater device", iconHeater, this));
+        add(buzzerButton = new ToolButton("BUZZER", "--", "Show / hide the 8-bit buzzer device", iconBuzzer, this));
+        add(ledBarButton = new ToolButton("LEDBAR", "--", "Show / hide the 8-LED bar device", iconLedBar, this));
+        add(matrixButton = new ToolButton("MATRIX", "--", "Show / hide the 8x8 LED matrix device", iconMatrix, this));
+        add(bannerButton = new ToolButton("BANNER", "--", "Show / hide the 64x8 LED banner device", iconBanner, this));
+
+        addSeparator();
+
+        // 5. System views (RAM & CPU/Architecture visualization)
+        add(new ToolButton("RAM", "--", "Show / hide the memory content", iconRam, this));
+        add(new ToolButton("VIZ", "--", "Show / hide the CPU & buses visualization", iconViz, this));
+
         add(Box.createHorizontalGlue());
         add(new SpeedSlider(simulator));
         add(Box.createHorizontalGlue());
@@ -136,6 +164,10 @@ public class ToolBar extends JToolBar {
         asciiButton.setEnabled(!isRunning);
         lightsButton.setEnabled(!isRunning);
         heaterButton.setEnabled(!isRunning);
+        buzzerButton.setEnabled(!isRunning);
+        ledBarButton.setEnabled(!isRunning);
+        matrixButton.setEnabled(!isRunning);
+        bannerButton.setEnabled(!isRunning);
 
         newButton.setEnabled(!isRunning);
         openButton.setEnabled(!isRunning);
@@ -155,12 +187,17 @@ public class ToolBar extends JToolBar {
             case "ASM": action_asm(); break;
             case "COMP": action_comp(); break;
             case "RAM": MemoryFrame.INSTANCE.toggleVisible(); break;
+            case "VIZ": VisualizationFrame.INSTANCE.toggleVisible(); break;
             case "RESET": action_reset(); break;
 
             case "DISPLAY": AsciiFrame.INSTANCE.toggleVisible(); break;
             case "KEYBOARD": KeyboardFrame.INSTANCE.toggleVisible(); break;
             case "LIGHTS": LightsFrame.INSTANCE.toggleVisible(); break;
             case "HEATER": HeaterFrame.INSTANCE.toggleVisible(); break;
+            case "BUZZER": BuzzerFrame.INSTANCE.toggleVisible(); break;
+            case "LEDBAR": LedBarFrame.INSTANCE.toggleVisible(); break;
+            case "MATRIX": MatrixFrame.INSTANCE.toggleVisible(); break;
+            case "BANNER": BannerFrame.INSTANCE.toggleVisible(); break;
 
             case "NEW": editor.newFile(); break;
             case "OPEN": editor.openFile(); break;
@@ -286,6 +323,18 @@ public class ToolBar extends JToolBar {
     private void action_help() {
         try {
             File manFile = new File("man/man.html");
+            if (!manFile.exists()) {
+                manFile = new File("../Resources/man/man.html");
+            }
+            if (!manFile.exists()) {
+                try {
+                    File jarDir = new File(MicroSim.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+                    File candidate = new File(jarDir, "man/man.html");
+                    if (candidate.exists()) {
+                        manFile = candidate;
+                    }
+                } catch (Exception ignored) {}
+            }
             if (manFile.exists()) {
                 java.awt.Desktop.getDesktop().browse(manFile.toURI());
             } else {

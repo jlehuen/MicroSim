@@ -67,23 +67,13 @@ public class EditorTransferHandler extends TransferHandler {
     @SuppressWarnings("unchecked")
     public boolean importData(TransferSupport support) {
         if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-            if (editorPanel.isDirty()) {
-                int result = JOptionPane.showConfirmDialog(editorPanel, "You have unsaved changes. Do you want to save them before loading a new file?", "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
-                if (result == JOptionPane.YES_OPTION) {
-                    editorPanel.saveFile();
-                    if (editorPanel.isDirty()) { // Check if save was cancelled
-                        return false;
-                    }
-                } else if (result == JOptionPane.CANCEL_OPTION) {
-                    return false;
-                }
-            }
-
             Transferable transferable = support.getTransferable();
             try {
                 List<File> files = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                if (files.size() > 0) {
-                    editorPanel.loadFile(files.get(0));
+                if (files != null && !files.isEmpty()) {
+                    for (File file : files) {
+                        editorPanel.loadFile(file);
+                    }
                     return true;
                 }
             } catch (Exception e) {

@@ -10,10 +10,6 @@
 
 package microsim.simulator;
 
-import microsim.devices.HeaterFrame;
-import microsim.devices.KeyboardFrame;
-import microsim.devices.LightsFrame;
-
 /**
  * Represents the Central Processing Unit (CPU) of the 8-bit assembler simulator.
  * It fetches, decodes, and executes instructions from memory. It contains
@@ -30,21 +26,31 @@ public class CPU {
     }
 
     /** Port address for the simulated Keyboard device. */
-    public final int KEYBOARD_PORT = 0x01;
+    public static final int KEYBOARD_PORT = 0x01;
     /** Port address for the simulated Traffic Lights device. */
-    public final int LIGHTS_PORT = 0x02;
+    public static final int LIGHTS_PORT = 0x02;
     /** Port address for the simulated Heater device. */
-    public final int HEATER_PORT = 0x03;
+    public static final int HEATER_PORT = 0x03;
+    /** Port address for the simulated 8-Bit Buzzer note / frequency. */
+    public static final int BUZZER_NOTE_PORT = 0x04;
+    /** Port address for the simulated 8-Bit Buzzer tone duration. */
+    public static final int BUZZER_DURATION_PORT = 0x05;
+    /** Port address for the simulated 8-LED Bar device. */
+    public static final int LEDS_PORT = 0x06;
+    /** Port address for the simulated 8x8 LED Matrix row selection. */
+    public static final int MATRIX_ROW_PORT = 0x07;
+    /** Port address for the simulated 8x8 LED Matrix row data. */
+    public static final int MATRIX_DATA_PORT = 0x08;
+    /** Port address for the simulated 32x8 LED Banner data register. */
+    public static final int BANNER_DATA_PORT = 0x09;
+    /** Port address for the simulated 32x8 LED Banner command register. */
+    public static final int BANNER_CMD_PORT = 0x0A;
 
     private final int maxSP = 191; // Base stack pointer value (0xBF)
     private final int minSP = 128; // Minimum stack pointer value (0x80), defines stack limit
 
     private final RAM memory;
-
-    // Singleton instances of peripheral devices
-    private final HeaterFrame heater = HeaterFrame.INSTANCE;
-    private final KeyboardFrame keyboard = KeyboardFrame.INSTANCE;
-    private final LightsFrame trafficLights = LightsFrame.INSTANCE;
+    private final PeripheralBus peripheralBus;
     
     private final int[] registers = new int[4]; // General purpose registers AL, BL, CL, DL
     private int SP; // Stack Pointer
@@ -64,12 +70,23 @@ public class CPU {
     private BusActivity lastBusActivity = BusActivity.NONE;
 
     /**
-     * Constructs a new CPU and links it to the provided memory unit.
+     * Constructs a new CPU and links it to the provided memory unit using the default Swing peripherals.
      *
      * @param memory The memory unit the CPU will operate on.
      */
     public CPU(RAM memory) {
+        this(memory, new SwingPeripheralBus());
+    }
+
+    /**
+     * Constructs a new CPU with a custom peripheral bus (e.g., for headless execution).
+     *
+     * @param memory The memory unit the CPU will operate on.
+     * @param peripheralBus The peripheral bus handling IN/OUT operations.
+     */
+    public CPU(RAM memory, PeripheralBus peripheralBus) {
         this.memory = memory;
+        this.peripheralBus = peripheralBus;
         reset();
     }
 
@@ -108,6 +125,18 @@ public class CPU {
      */
     public int getIP() {
         return IP;
+    }
+
+    /**
+     * Prepares the CPU to execute a subroutine directly by pushing a return address
+     * onto the stack and setting IP to the subroutine's entry point.
+     *
+     * @param targetAddr Entry address of the subroutine.
+     * @param returnAddr Return address pushed onto the stack.
+     */
+    public void prepareSubroutineCall(int targetAddr, int returnAddr) {
+        push(returnAddr & 0xFF);
+        IP = targetAddr & 0xFF;
     }
 
     /**
@@ -693,6 +722,38 @@ public class CPU {
                         IP++;
                     }
                     break;
+                case Opcodes.JO_REGADDRESS:
+                    regTo = memory.load(++IP);
+                    if (overflow) {
+                        IP = registers[regTo];
+                    } else {
+                        IP++;
+                    }
+                    break;
+                case Opcodes.JO_ADDRESS:
+                    number = memory.load(++IP);
+                    if (overflow) {
+                        IP = number;
+                    } else {
+                        IP++;
+                    }
+                    break;
+                case Opcodes.JNO_REGADDRESS:
+                    regTo = memory.load(++IP);
+                    if (!overflow) {
+                        IP = registers[regTo];
+                    } else {
+                        IP++;
+                    }
+                    break;
+                case Opcodes.JNO_ADDRESS:
+                    number = memory.load(++IP);
+                    if (!overflow) {
+                        IP = number;
+                    } else {
+                        IP++;
+                    }
+                    break;
                 case Opcodes.PUSH_REG:
                     regFrom = memory.load(++IP);
                     push(registers[regFrom]);
@@ -969,32 +1030,12 @@ public class CPU {
                     break;
                 case Opcodes.OUT_IMM8:
                     int outPort = memory.load(++IP);
-                    if (outPort == LIGHTS_PORT) {
-                        // Traffic Lights port
-                        trafficLights.setVisible(true);
-                        trafficLights.updateLights((byte) registers[0]); // AL is always gpr[0]
-                    } else if (outPort == HEATER_PORT) {
-                        // Heater Control port
-                        heater.setVisible(true);
-                        heater.updateBurner((byte) registers[0]); // AL is always gpr[0]
-                    } else {
-                        // Potentially handle other OUT ports here in the future
-                    }
+                    peripheralBus.out(outPort, registers[0]); // AL is always gpr[0]
                     IP++;
                     break;
                 case Opcodes.IN_IMM8:
                     int inPort = memory.load(++IP);
-                    if (inPort == HEATER_PORT) {
-                        // Heater Control port
-                        heater.setVisible(true);
-                        registers[0] = heater.getStatus(); // AL is always gpr[0]
-                    } else if (inPort == KEYBOARD_PORT) {
-                        // Keyboard port
-                        registers[0] = keyboard.getAsciiCode(); // This is a blocking call
-                    } else {
-                        // Potentially handle other IN ports here in the future
-                        registers[0] = 0; // Default to 0 if port not handled
-                    }
+                    registers[0] = peripheralBus.in(inPort) & 0xFF; // AL is always gpr[0]
                     IP++;
                     break;
                 default:

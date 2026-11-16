@@ -38,7 +38,7 @@ to_hex_char:
     cmp AL, 9
     jbe .is_digit
     ; It's a letter (A-F)
-    add AL, 'A' - 10
+    add AL, 55 ; 'A' - 10 = 65 - 10 = 55
     ret
 .is_digit:
     ; It's a digit (0-9)

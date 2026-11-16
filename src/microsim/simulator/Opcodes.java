@@ -66,7 +66,7 @@ public final class Opcodes {
     public static final int JMP_ADDRESS = 26;
     public static final int JMP_REGADDRESS = 27;
 
-    // --- Conditional Jump instructions (28-43) ---
+    // --- Conditional Jump instructions (28-47) ---
     public static final int JC_ADDRESS = 28;
     public static final int JC_REGADDRESS = 29;
     public static final int JNC_ADDRESS = 30;
@@ -83,67 +83,71 @@ public final class Opcodes {
     public static final int JS_REGADDRESS = 41;
     public static final int JNS_ADDRESS = 42;
     public static final int JNS_REGADDRESS = 43;
+    public static final int JO_ADDRESS = 44;
+    public static final int JO_REGADDRESS = 45;
+    public static final int JNO_ADDRESS = 46;
+    public static final int JNO_REGADDRESS = 47;
 
-    // --- Stack operations (44-50) ---
-    public static final int PUSH_NUMBER = 44;       // byte
-    public static final int PUSH_REG = 45;          // reg
-    public static final int PUSH_ADDRESS = 46;      // [addr]
-    public static final int PUSH_REGADDRESS = 47;   // [reg]
-    public static final int POP_REG = 48;
-    public static final int PUSHF = 49;
-    public static final int POPF = 50;
+    // --- Stack operations (48-54) ---
+    public static final int PUSH_NUMBER = 48;       // byte
+    public static final int PUSH_REG = 49;          // reg
+    public static final int PUSH_ADDRESS = 50;      // [addr]
+    public static final int PUSH_REGADDRESS = 51;   // [reg]
+    public static final int POP_REG = 52;
+    public static final int PUSHF = 53;
+    public static final int POPF = 54;
     
-    // --- Subroutine Call/Return (51-53) ---
-    public static final int CALL_ADDRESS = 51;
-    public static final int CALL_REGADDRESS = 52;
-    public static final int RET = 53;
+    // --- Subroutine Call/Return (55-57) ---
+    public static final int CALL_ADDRESS = 55;
+    public static final int CALL_REGADDRESS = 56;
+    public static final int RET = 57;
 
-    // --- Multiplication instructions (54-57) ---
-    public static final int MUL_NUMBER_TO_REG = 54;     // reg, byte
-    public static final int MUL_REG_TO_REG = 55;        // reg, reg
-    public static final int MUL_ADDRESS_TO_REG = 56;    // reg, [addr]
-    public static final int MUL_REGADDRESS_TO_REG = 57; // reg, [reg]
+    // --- Multiplication instructions (58-61) ---
+    public static final int MUL_NUMBER_TO_REG = 58;     // reg, byte
+    public static final int MUL_REG_TO_REG = 59;        // reg, reg
+    public static final int MUL_ADDRESS_TO_REG = 60;    // reg, [addr]
+    public static final int MUL_REGADDRESS_TO_REG = 61; // reg, [reg]
 
-    // --- Division instructions (58-61) ---
-    public static final int DIV_NUMBER_FROM_REG = 58;   // reg, byte
-    public static final int DIV_REG_FROM_REG = 59;      // reg, reg
-    public static final int DIV_ADDRESS_FROM_REG = 60;  // reg, [addr]
-    public static final int DIV_REGADDRESS_FROM_REG = 61; // reg, [reg]
+    // --- Division instructions (62-65) ---
+    public static final int DIV_NUMBER_FROM_REG = 62;   // reg, byte
+    public static final int DIV_REG_FROM_REG = 63;      // reg, reg
+    public static final int DIV_ADDRESS_FROM_REG = 64;  // reg, [addr]
+    public static final int DIV_REGADDRESS_FROM_REG = 65; // reg, [reg]
 
-    // --- Logical AND instructions (62-65) ---
-    public static final int AND_NUMBER_WITH_REG = 62;   // reg, byte
-    public static final int AND_REG_WITH_REG = 63;      // reg, reg
-    public static final int AND_ADDRESS_WITH_REG = 64;  // reg, [addr]
-    public static final int AND_REGADDRESS_WITH_REG = 65; // reg, [reg]
+    // --- Logical AND instructions (66-69) ---
+    public static final int AND_NUMBER_WITH_REG = 66;   // reg, byte
+    public static final int AND_REG_WITH_REG = 67;      // reg, reg
+    public static final int AND_ADDRESS_WITH_REG = 68;  // reg, [addr]
+    public static final int AND_REGADDRESS_WITH_REG = 69; // reg, [reg]
 
-    // --- Logical OR instructions (66-69) ---
-    public static final int OR_NUMBER_WITH_REG = 66;    // reg, byte
-    public static final int OR_REG_WITH_REG = 67;       // reg, reg
-    public static final int OR_ADDRESS_WITH_REG = 68;   // reg, [addr]
-    public static final int OR_REGADDRESS_WITH_REG = 69;  // reg, [reg]
+    // --- Logical OR instructions (70-73) ---
+    public static final int OR_NUMBER_WITH_REG = 70;    // reg, byte
+    public static final int OR_REG_WITH_REG = 71;       // reg, reg
+    public static final int OR_ADDRESS_WITH_REG = 72;   // reg, [addr]
+    public static final int OR_REGADDRESS_WITH_REG = 73;  // reg, [reg]
 
-    // --- Logical XOR instructions (70-73) ---
-    public static final int XOR_NUMBER_WITH_REG = 70;   // reg, byte
-    public static final int XOR_REG_WITH_REG = 71;      // reg, reg
-    public static final int XOR_ADDRESS_WITH_REG = 72;  // reg, [addr]
-    public static final int XOR_REGADDRESS_WITH_REG = 73; // reg, [reg]
+    // --- Logical XOR instructions (74-77) ---
+    public static final int XOR_NUMBER_WITH_REG = 74;   // reg, byte
+    public static final int XOR_REG_WITH_REG = 75;      // reg, reg
+    public static final int XOR_ADDRESS_WITH_REG = 76;  // reg, [addr]
+    public static final int XOR_REGADDRESS_WITH_REG = 77; // reg, [reg]
 
-    // --- Logical NOT instruction (74) ---
-    public static final int NOT_REG = 74;
+    // --- Logical NOT instruction (78) ---
+    public static final int NOT_REG = 78;
 
-    // --- Shift Left instructions (75-78) ---
-    public static final int SHL_NUMBER_WITH_REG = 75;   // reg, byte
-    public static final int SHL_REG_WITH_REG = 76;      // reg, reg
-    public static final int SHL_ADDRESS_WITH_REG = 77;  // reg, [addr]
-    public static final int SHL_REGADDRESS_WITH_REG = 78; // reg, [reg]
+    // --- Shift Left instructions (79-82) ---
+    public static final int SHL_NUMBER_WITH_REG = 79;   // reg, byte
+    public static final int SHL_REG_WITH_REG = 80;      // reg, reg
+    public static final int SHL_ADDRESS_WITH_REG = 81;  // reg, [addr]
+    public static final int SHL_REGADDRESS_WITH_REG = 82; // reg, [reg]
 
-    // --- Shift Right instructions (79-82) ---
-    public static final int SHR_NUMBER_WITH_REG = 79;   // reg, byte
-    public static final int SHR_REG_WITH_REG = 80;      // reg, reg
-    public static final int SHR_ADDRESS_WITH_REG = 81;  // reg, [addr]
-    public static final int SHR_REGADDRESS_WITH_REG = 82; // reg, [reg]
+    // --- Shift Right instructions (83-86) ---
+    public static final int SHR_NUMBER_WITH_REG = 83;   // reg, byte
+    public static final int SHR_REG_WITH_REG = 84;      // reg, reg
+    public static final int SHR_ADDRESS_WITH_REG = 85;  // reg, [addr]
+    public static final int SHR_REGADDRESS_WITH_REG = 86; // reg, [reg]
 
-    // --- I/O instructions (83-84) ---
-    public static final int OUT_IMM8 = 83;
-    public static final int IN_IMM8 = 84;
+    // --- I/O instructions (87-88) ---
+    public static final int OUT_IMM8 = 87;
+    public static final int IN_IMM8 = 88;
 }

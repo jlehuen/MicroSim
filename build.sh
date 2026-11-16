@@ -24,7 +24,7 @@ echo "Main-Class: $MAIN_CLASS" >> $MANIFEST
 
 # Lister les JARs dans le répertoire lib pour le Class-Path
 # Le Class-Path dans le manifeste est relatif au JAR principal
-CLASS_PATH=$(ls lib/*.jar | xargs -n 1 basename | paste -sd ' ' -)
+CLASS_PATH=$(ls lib/*.jar | paste -sd ' ' -)
 echo "Class-Path: $CLASS_PATH" >> $MANIFEST
 
 # Afficher le contenu du manifeste pour vérification

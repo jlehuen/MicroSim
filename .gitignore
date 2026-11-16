@@ -3,7 +3,14 @@
 class/
 build/
 distrib/
+docs/
+scratch/
 *.tar.gz
+
+# Correcteur Python TP4
+grader/.venv/
+grader/__pycache__/
+*.pyc
 
 # Fichiers et dossiers d'IDE
 .vscode/

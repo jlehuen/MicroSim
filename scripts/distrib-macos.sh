@@ -70,7 +70,7 @@ cat > "$APP_DIR/Contents/Info.plist" <<EOF
     <key>LSMinimumSystemVersion</key>
     <string>10.13.0</string>
     <key>NSHumanReadableCopyright</key>
-    <string>© 2025 Jérôme Lehuen</string>
+    <string>© 2025-2026 Jérôme Lehuen</string>
     <key>JVMMainClassName</key>
     <string>$MAIN_CLASS</string>
 </dict>
@@ -88,7 +88,7 @@ BASE=\$(pwd)
 LOG_FILE="\$(dirname \$BASE)/microsim.log"
 JAVA_HOME=\$(dirname \$BASE)/Java/jre/Contents/Home
 JAVA=\$JAVA_HOME/bin/java
-\$JAVA -Xdock:name="$APP_NAME" -Xdock:icon="\$BASE/../Resources/icon.icns" -jar \$BASE/../Resources/Java/microsim.jar >> "\$LOG_FILE" 2>&1
+\$JAVA --enable-native-access=ALL-UNNAMED -Xdock:name="$APP_NAME" -Xdock:icon="\$BASE/../Resources/icon.icns" -jar \$BASE/../Resources/Java/microsim.jar >> "\$LOG_FILE" 2>&1
 EOF
 
 # Rendre le script de lancement exécutable
@@ -108,7 +108,8 @@ fi
 echo "Copie des fichiers JAR (application et librairies)..."
 # -----------------------------------------------------------------------
 
-cp build/$APP_NAME.jar build/lib/*.jar "$APP_DIR/Contents/Resources/Java/"
+cp build/$APP_NAME.jar "$APP_DIR/Contents/Resources/Java/"
+cp -r build/lib "$APP_DIR/Contents/Resources/Java/"
 
 # -----------------------------------------------------------------------
 echo "Copie des ressources (images, manuel, etc.)..."
@@ -116,5 +117,13 @@ echo "Copie des ressources (images, manuel, etc.)..."
 
 cp -r data/ "$APP_DIR/Contents/Resources/data"
 cp -r man/ "$APP_DIR/Contents/MacOS/man"
+cp -r man/ "$APP_DIR/Contents/Resources/man"
 
 mv $APP_DIR $DIST_DIR
+
+# -----------------------------------------------------------------------
+echo "Création de l'archive macOS..."
+# -----------------------------------------------------------------------
+
+(cd "$DIST_DIR" && rm -f "${APP_NAME}-macos.zip" && zip -q -r "${APP_NAME}-macos.zip" "$APP_DIR")
+echo "Distribution macOS générée dans $DIST_DIR/${APP_NAME}-macos.zip"

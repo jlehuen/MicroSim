@@ -35,17 +35,20 @@ public class Assembler {
         public final int[] machineCode;
         public final Map<Integer, Integer> addressToLineMap;
         public final String listing;
+        public final Map<String, Integer> labels;
 
         /**
          * Constructs an AssemblyResult.
          * @param machineCode The generated machine code.
          * @param addressToLineMap A map from memory addresses to line numbers.
          * @param listing The assembly listing.
+         * @param labels A map from label names to memory addresses.
          */
-        AssemblyResult(int[] machineCode, Map<Integer, Integer> addressToLineMap, String listing) {
+        AssemblyResult(int[] machineCode, Map<Integer, Integer> addressToLineMap, String listing, Map<String, Integer> labels) {
             this.machineCode = machineCode;
             this.addressToLineMap = addressToLineMap;
             this.listing = listing;
+            this.labels = labels;
         }
     }
 
@@ -329,11 +332,11 @@ public class Assembler {
                                 opCode = Opcodes.MOV_REG_TO_ADDRESS;
                             } else if (op1.type == Operand.Type.REGADDRESS && op2.type == Operand.Type.REGISTER) {
                                 opCode = Opcodes.MOV_REG_TO_REGADDRESS;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.MOV_NUMBER_TO_REG;
-                            } else if (op1.type == Operand.Type.ADDRESS && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.ADDRESS && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.MOV_NUMBER_TO_ADDRESS;
-                            } else if (op1.type == Operand.Type.REGADDRESS && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGADDRESS && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.MOV_NUMBER_TO_REGADDRESS;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.STACK_OFFSET) {
                                 opCode = Opcodes.MOV_STACK_OFFSET_TO_REG;
@@ -353,7 +356,7 @@ public class Assembler {
                                 opCode = Opcodes.ADD_REGADDRESS_TO_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.ADD_ADDRESS_TO_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.ADD_NUMBER_TO_REG;
                             } else {
                                 throw new IllegalArgumentException("ADD does not support this operands on line " + lineNumber);
@@ -369,7 +372,7 @@ public class Assembler {
                                 opCode = Opcodes.SUB_REGADDRESS_FROM_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.SUB_ADDRESS_FROM_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.SUB_NUMBER_FROM_REG;
                             } else {
                                 throw new IllegalArgumentException("SUB does not support this operands on line " + lineNumber);
@@ -385,7 +388,7 @@ public class Assembler {
                                 opCode = Opcodes.CMP_REGADDRESS_WITH_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.CMP_ADDRESS_WITH_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.CMP_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("CMP does not support this operands on line " + lineNumber);
@@ -433,7 +436,7 @@ public class Assembler {
                                 opCode = Opcodes.MUL_REGADDRESS_TO_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.MUL_ADDRESS_TO_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.MUL_NUMBER_TO_REG;
                             } else {
                                 throw new IllegalArgumentException("MUL does not support this operands on line " + lineNumber);
@@ -449,7 +452,7 @@ public class Assembler {
                                 opCode = Opcodes.DIV_REGADDRESS_FROM_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.DIV_ADDRESS_FROM_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.DIV_NUMBER_FROM_REG;
                             } else {
                                 throw new IllegalArgumentException("DIV does not support this operands on line " + lineNumber);
@@ -465,7 +468,7 @@ public class Assembler {
                                 opCode = Opcodes.AND_REGADDRESS_WITH_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.AND_ADDRESS_WITH_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.AND_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("AND does not support this operands on line " + lineNumber);
@@ -481,7 +484,7 @@ public class Assembler {
                                 opCode = Opcodes.OR_REGADDRESS_WITH_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.OR_ADDRESS_WITH_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.OR_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("OR does not support this operands on line " + lineNumber);
@@ -497,7 +500,7 @@ public class Assembler {
                                 opCode = Opcodes.XOR_REGADDRESS_WITH_REG;
                             } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.ADDRESS) {
                                 opCode = Opcodes.XOR_ADDRESS_WITH_REG;
-                            } else if (op1.type == Operand.Type.REGISTER && op2.type == Operand.Type.NUMBER) {
+                            } else if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
                                 opCode = Opcodes.XOR_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("XOR does not support this operands on line " + lineNumber);
@@ -538,9 +541,11 @@ public class Assembler {
                 case "JC": case "JB":
                 case "JS":
                 case "JNS":
+                case "JO":
+                case "JNO":
                 case "CALL":
                     op1 = getValue(operandsString, lineNumber);
-                    if (op1.type == Operand.Type.REGISTER) {
+                    if (op1.type == Operand.Type.REGISTER || op1.type == Operand.Type.REGADDRESS) {
                         switch (instruction.toUpperCase()) {
                             case "JMP": opCode = Opcodes.JMP_REGADDRESS; break;
                             case "JZ": case "JE": opCode = Opcodes.JZ_REGADDRESS; break;
@@ -551,6 +556,8 @@ public class Assembler {
                             case "JC": case "JB": opCode = Opcodes.JC_REGADDRESS; break;
                             case "JS": opCode = Opcodes.JS_REGADDRESS; break;
                             case "JNS": opCode = Opcodes.JNS_REGADDRESS; break;
+                            case "JO": opCode = Opcodes.JO_REGADDRESS; break;
+                            case "JNO": opCode = Opcodes.JNO_REGADDRESS; break;
                             case "CALL": opCode = Opcodes.CALL_REGADDRESS; break;
                             default: throw new IllegalStateException("Unexpected instruction");
                         }
@@ -565,6 +572,8 @@ public class Assembler {
                             case "JC": case "JB": opCode = Opcodes.JC_ADDRESS; break;
                             case "JS": opCode = Opcodes.JS_ADDRESS; break;
                             case "JNS": opCode = Opcodes.JNS_ADDRESS; break;
+                            case "JO": opCode = Opcodes.JO_ADDRESS; break;
+                            case "JNO": opCode = Opcodes.JNO_ADDRESS; break;
                             case "CALL": opCode = Opcodes.CALL_ADDRESS; break;
                             default: throw new IllegalStateException("Unexpected instruction");
                         }
@@ -642,7 +651,7 @@ public class Assembler {
         
         String listing = buildListing(source, finalCode, addressToLineMap);
 
-        return new AssemblyResult(finalCode, addressToLineMap, listing);
+        return new AssemblyResult(finalCode, addressToLineMap, listing, labels);
     }
 
     /**
