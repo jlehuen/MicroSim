@@ -20,11 +20,20 @@ grader/__pycache__/
 # Fichiers système macOS
 .DS_Store
 
-# Autres scripts
+# Autres scripts et packaging
 run-build.sh
 run-dev.sh
 javadoc.sh
 gemini.sh
+run-grader.sh
+run-doc.sh
+distrib.sh
+scripts/
+
+# TP4 & Autograder
+grader/
+TP4/
+
 
 # Configuration de Gemini
 GEMINI.md
