@@ -34,6 +34,9 @@ scripts/
 grader/
 TP4/
 
+# Spécifications OpenSpec locales
+openspec/
+
 
 # Configuration de Gemini
 GEMINI.md

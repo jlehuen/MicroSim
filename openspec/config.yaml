@@ -1,8 +1,0 @@
-schema: spec-driven
-context: |
-  MicroSim 8-bit x86 educational microprocessor simulator (Java 25 + Swing)
-  with an automated non-binary TP4 grading module (Java headless runner + Python evaluator).
-rules:
-  - All documentation and specifications in French.
-  - Keep Java CPU behavior 100% identical between GUI and headless modes.
-  - Non-binary grading: assembly, dynamic execution, and static "good ideas" heuristics.
