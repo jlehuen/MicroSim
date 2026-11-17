@@ -81,6 +81,22 @@ public class Simulator {
     }
 
     /**
+     * Returns the execution speed delay in milliseconds.
+     * @return The delay in milliseconds.
+     */
+    public int getExecutionSpeedDelay() {
+        return executionSpeedDelay;
+    }
+
+    /**
+     * Returns the execution batch size.
+     * @return The batch size.
+     */
+    public int getExecutionBatchSize() {
+        return executionBatchSize;
+    }
+
+    /**
      * Sets both the tick delay and the instruction batch size to control the simulation speed.
      * @param delayMs Delay in milliseconds between execution cycles (always >= 1 ms).
      * @param batchSize Number of instructions executed per cycle.
@@ -146,7 +162,9 @@ public class Simulator {
                             if (lineToHighlight != null) {
                                 highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
                             }
-                            memoryFrame.updateMemoryView();
+                            if (memoryFrame.isVisible()) {
+                                memoryFrame.updateMemoryView();
+                            }
                             mainFrame.getRegisters().update();
                             mainFrame.getVisualizationPanel().updateAndAnimate(null);
                         });
@@ -211,7 +229,9 @@ public class Simulator {
                 if (isVisuOpen) {
                     try {
                         SwingUtilities.invokeAndWait(() -> {
-                            memoryFrame.updateMemoryView();
+                            if (memoryFrame.isVisible()) {
+                                memoryFrame.updateMemoryView();
+                            }
                             mainFrame.getRegisters().update();
                             mainFrame.getVisualizationPanel().updateAndAnimate(() -> {
                                 synchronized (animationLock) {
@@ -223,7 +243,7 @@ public class Simulator {
                         if (mainFrame.getVisualizationPanel().isAnimating()) {
                             synchronized (animationLock) {
                                 if (mainFrame.getVisualizationPanel().isAnimating()) {
-                                    animationLock.wait();
+                                    animationLock.wait(1500);
                                 }
                             }
                         }
@@ -244,14 +264,17 @@ public class Simulator {
                         lastHighlightedLine = -1;
                     }
                     SwingUtilities.invokeLater(() -> {
-                        memoryFrame.updateMemoryView();
+                        if (memoryFrame.isVisible()) {
+                            memoryFrame.updateMemoryView();
+                        }
                         mainFrame.getRegisters().update();
                     });
                 }
 
                 // Sleep to maintain controlled cadence and keep Swing/OS completely fluid
                 try {
-                    Thread.sleep(Math.max(1, currentDelay));
+                    int sleepDelay = isVisuOpen ? Math.min(20, currentDelay) : Math.max(1, currentDelay);
+                    Thread.sleep(sleepDelay);
                 } catch (InterruptedException e) {
                     running = false;
                     break;
@@ -267,7 +290,9 @@ public class Simulator {
                 mainFrame.getEditor().getTextArea().setHighlightCurrentLine(true);
                 mainFrame.getEditor().getTextArea().setEnabled(true);
                 mainFrame.getToolBar().update();
-                memoryFrame.updateMemoryView();
+                if (memoryFrame.isVisible()) {
+                    memoryFrame.updateMemoryView();
+                }
                 mainFrame.getRegisters().update();
                 if (mainFrame.getVisualizationPanel().isShowing()) {
                     mainFrame.getVisualizationPanel().repaint();
@@ -284,6 +309,9 @@ public class Simulator {
         if (!running) return;
         mainFrame.getConsole().println("Program stopped", Color.GREEN);
         running = false;
+        if (mainFrame.getVisualizationPanel() != null) {
+            mainFrame.getVisualizationPanel().stopAnimation();
+        }
         if (cpuThread != null) {
             cpuThread.interrupt();
         }

@@ -32,7 +32,6 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private static final int BUS_THICKNESS = 20;
     private static final int BUS_TOP_MARGIN = 145; // Espace pour les bus et le bandeau de statut
     private static final int ANIMATION_DELAY = 16; // approx 60fps
-    private static final double ANIMATION_STEP = 0.0065; // vitesse d'animation plus posée et pédagogique
 
     // Typographies modernes
     private final Font monacoFont = new Font("Monaco", Font.PLAIN, 12);
@@ -64,6 +63,8 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private Timer animationTimer;
     private boolean animationRunning = false;
     private double animationProgress = 0.0;
+    private long animationStartTime = 0;
+    private int targetDurationMs = 0;
     private int animatedValue;
     private int animatedAddress;
     private CPU.BusActivity animatedActivity;
@@ -87,6 +88,35 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     public boolean isAnimating() {
         return animationTimer.isRunning();
+    }
+
+    /**
+     * Calcule la durée optimale de l'animation en millisecondes en fonction de la vitesse de simulation.
+     */
+    private int computeAnimationDuration(boolean isRead) {
+        if (simulator == null) {
+            return isRead ? 350 : 220;
+        }
+        if (simulator.stepmode) {
+            // Mode pas-à-pas : durée fluide et lisible sans attente inutile
+            return isRead ? 400 : 280;
+        }
+
+        int delay = simulator.getExecutionSpeedDelay();
+        int batch = simulator.getExecutionBatchSize();
+
+        int baseDuration;
+        if (batch > 10) {
+            baseDuration = 80;
+        } else if (batch > 1) {
+            baseDuration = 120;
+        } else if (delay <= 25) {
+            baseDuration = 160 + delay * 2;
+        } else {
+            baseDuration = Math.min(500, 210 + (int) (delay * 0.7));
+        }
+
+        return isRead ? (int) (baseDuration * 1.4) : baseDuration;
     }
 
     private void startAnimation(CPU.BusActivity activity, int value, int address, boolean aluActive, String aluOp, Runnable onComplete) {
@@ -116,21 +146,48 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         this.animationRunning = true;
         this.addressAnimationFinished = false;
         this.onAnimationComplete = onComplete;
+
+        boolean isRead = (activity == CPU.BusActivity.READ || activity == CPU.BusActivity.IO_READ);
+        this.targetDurationMs = computeAnimationDuration(isRead);
+        this.animationStartTime = System.currentTimeMillis();
+
         animationTimer.start();
+    }
+
+    /**
+     * Stoppe immédiatement toute animation en cours et libère les verrous en attente.
+     */
+    public void stopAnimation() {
+        if (animationTimer != null && animationTimer.isRunning()) {
+            animationTimer.stop();
+        }
+        animationRunning = false;
+        if (onAnimationComplete != null) {
+            Runnable prev = onAnimationComplete;
+            onAnimationComplete = null;
+            prev.run();
+        }
+        repaint();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        animationProgress += ANIMATION_STEP;
-
+        long elapsed = System.currentTimeMillis() - animationStartTime;
         boolean isRead = (animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.IO_READ);
         double totalDuration = isRead ? 2.0 : 1.0;
+
+        if (targetDurationMs <= 0) {
+            animationProgress = totalDuration;
+        } else {
+            double fraction = Math.min(1.0, (double) elapsed / targetDurationMs);
+            animationProgress = fraction * totalDuration;
+        }
 
         if (animationProgress >= 1.0 && isRead && !addressAnimationFinished) {
             addressAnimationFinished = true;
         }
 
-        if (animationProgress >= totalDuration) {
+        if (elapsed >= targetDurationMs || animationProgress >= totalDuration) {
             animationProgress = totalDuration;
             animationTimer.stop();
             animationRunning = false;
@@ -142,8 +199,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
             // Notify completion
             if (onAnimationComplete != null) {
-                onAnimationComplete.run();
+                Runnable prev = onAnimationComplete;
                 onAnimationComplete = null;
+                prev.run();
             }
         }
         repaint();
