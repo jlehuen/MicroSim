@@ -26,7 +26,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     private static final int PADDING = 20;
     private static final int CPU_WIDTH = 200;
-    private static final int RAM_WIDTH = 155;
+    private static final int RAM_WIDTH = 165;
     private static final int DEV_WIDTH = 150;
     private static final int RECT_HEIGHT = 205;
     private static final int BUS_THICKNESS = 20;
@@ -303,7 +303,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(titleFont);
-        g2d.drawString(title, x + 12, y + 29);
+        g2d.drawString(title, x + 12, y + 28);
     }
 
     private void drawStaticComponents(Graphics2D g2d, int cpuX, int cpuY, int aluX, int aluY, int aluHeight, int ramX, int ramY, int devX, int devY) {
@@ -343,8 +343,8 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         }
 
         // Cartes des composants
-        drawCard(g2d, cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT, "CPU", CPU_HEADER);
-        drawCard(g2d, ramX, ramY, RAM_WIDTH, ramHeight, "RAM", RAM_HEADER);
+        drawCard(g2d, cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT, "CPU 8 bits", CPU_HEADER);
+        drawCard(g2d, ramX, ramY, RAM_WIDTH, ramHeight, "RAM 256 bytes", RAM_HEADER);
         drawCard(g2d, devX, devY, DEV_WIDTH, RECT_HEIGHT, "PERIPHERALS", DEV_HEADER);
 
         // 3. Boîte ALU vivante

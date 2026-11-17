@@ -203,7 +203,9 @@ public class EditorTab extends JPanel {
 
     public Object highlightLine(int line) {
         try {
-            return textArea.addLineHighlight(line, HIGHLIGHT_COLOR);
+            Object tag = textArea.addLineHighlight(line, HIGHLIGHT_COLOR);
+            textArea.repaint();
+            return tag;
         } catch (BadLocationException e) {
             e.printStackTrace();
             return null;
@@ -225,6 +227,7 @@ public class EditorTab extends JPanel {
     public void removeLineHighlight(Object tag) {
         if (tag != null) {
             textArea.removeLineHighlight(tag);
+            textArea.repaint();
         }
     }
 

@@ -135,29 +135,24 @@ public class Simulator {
         mainFrame.getEditor().getTextArea().setEnabled(false);
 
         cpuThread = new Thread(() -> {
-            if (lastHighlightedLine != -1) {
-                mainFrame.getEditor().removeLineHighlight(highlightTag);
-                lastHighlightedLine = -1;
-                highlightTag = null;
-            }
+            SwingUtilities.invokeLater(() -> {
+                if (highlightTag != null) {
+                    mainFrame.getEditor().removeLineHighlight(highlightTag);
+                    highlightTag = null;
+                }
+            });
+            lastHighlightedLine = -1;
 
             while (running && !cpu.isFault()) {
                 // Step-by-step mode
                 if (stepmode) {
+                    int currentIp = cpu.getIP();
+                    final Integer lineToHighlight = addressToLineMap != null ? addressToLineMap.get(currentIp) : null;
                     try {
-                        synchronized (this) {
-                            mainFrame.getToolBar().setStepButtonVisible(true);
-                            while (!stepRequested && running && stepmode) wait();
-                            stepRequested = false;
-                            mainFrame.getToolBar().setStepButtonVisible(false);
-                        }
-                        if (running) cpu.step();
-
-                        int currentIp = cpu.getIP();
-                        final Integer lineToHighlight = addressToLineMap.get(currentIp);
                         SwingUtilities.invokeAndWait(() -> {
                             if (highlightTag != null) {
                                 mainFrame.getEditor().removeLineHighlight(highlightTag);
+                                highlightTag = null;
                             }
                             if (lineToHighlight != null) {
                                 highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
@@ -169,6 +164,22 @@ public class Simulator {
                             mainFrame.getVisualizationPanel().updateAndAnimate(null);
                         });
                     } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
+                        running = false;
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                    lastHighlightedLine = (lineToHighlight != null) ? lineToHighlight : -1;
+
+                    try {
+                        synchronized (this) {
+                            mainFrame.getToolBar().setStepButtonVisible(true);
+                            while (!stepRequested && running && stepmode) wait();
+                            stepRequested = false;
+                            mainFrame.getToolBar().setStepButtonVisible(false);
+                        }
+                        if (!running) break;
+                        cpu.step();
+                    } catch (InterruptedException e) {
                         running = false;
                         Thread.currentThread().interrupt();
                         break;
@@ -185,22 +196,26 @@ public class Simulator {
                 boolean isVisuOpen = (mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isShowing());
                 int currentBatch = isVisuOpen ? 1 : executionBatchSize;
                 int currentDelay = executionSpeedDelay;
+                boolean shouldHighlight = isVisuOpen || (currentBatch == 1 && currentDelay >= MIN_HIGHLIGHT_DELAY);
                 boolean halted = false;
 
                 for (int i = 0; i < currentBatch; i++) {
                     if (!running || cpu.isFault()) break;
 
                     // Highlight line only in visualization mode or slow mode
-                    if (isVisuOpen || (currentBatch == 1 && currentDelay >= 40)) {
+                    if (shouldHighlight) {
                         int currentIp = cpu.getIP();
-                        final Integer lineToHighlight = addressToLineMap.get(currentIp);
+                        final Integer lineToHighlight = addressToLineMap != null ? addressToLineMap.get(currentIp) : null;
                         if (lineToHighlight != null && lineToHighlight != lastHighlightedLine) {
-                            SwingUtilities.invokeLater(() -> {
-                                if (highlightTag != null) {
-                                    mainFrame.getEditor().removeLineHighlight(highlightTag);
-                                }
-                                highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
-                            });
+                            try {
+                                SwingUtilities.invokeAndWait(() -> {
+                                    if (highlightTag != null) {
+                                        mainFrame.getEditor().removeLineHighlight(highlightTag);
+                                        highlightTag = null;
+                                    }
+                                    highlightTag = mainFrame.getEditor().highlightLine(lineToHighlight);
+                                });
+                            } catch (Exception ignored) {}
                             lastHighlightedLine = lineToHighlight;
                         }
                     }
@@ -223,7 +238,14 @@ public class Simulator {
                     }
                 }
 
-                if (!running || cpu.isFault() || halted) break;
+                if (!running || cpu.isFault() || halted) {
+                    if (halted && shouldHighlight) {
+                        try {
+                            Thread.sleep(Math.min(300, Math.max(50, currentDelay)));
+                        } catch (InterruptedException ignored) {}
+                    }
+                    break;
+                }
 
                 // Update UI: animation obligatoire si la fenêtre de visualisation est ouverte, sinon pas d'animation
                 if (isVisuOpen) {
@@ -253,8 +275,8 @@ public class Simulator {
                         break;
                     }
                 } else {
-                    // Fast mode sans animation : cadence régulée par le slider
-                    if (highlightTag != null) {
+                    // Fast mode sans animation : si on ne surligne pas, s'assurer que le surlignage précédent est retiré
+                    if (!shouldHighlight && highlightTag != null) {
                         SwingUtilities.invokeLater(() -> {
                             if (highlightTag != null) {
                                 mainFrame.getEditor().removeLineHighlight(highlightTag);
