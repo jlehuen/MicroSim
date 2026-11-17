@@ -243,7 +243,7 @@ public class Simulator {
                         if (mainFrame.getVisualizationPanel().isAnimating()) {
                             synchronized (animationLock) {
                                 if (mainFrame.getVisualizationPanel().isAnimating()) {
-                                    animationLock.wait(3500);
+                                    animationLock.wait(6000);
                                 }
                             }
                         }

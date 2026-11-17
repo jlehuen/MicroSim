@@ -34,9 +34,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private static final int ANIMATION_DELAY = 16; // approx 60fps
 
     // Cadence fixe pédagogique : la fenêtre de visualisation est l'horloge maîtresse (clock)
-    public static final int TRANSFER_DURATION_MS = 1200;       // Transfert écriture (WRITE, IO_WRITE) ou calcul ALU
-    public static final int READ_TRANSFER_DURATION_MS = 2200;  // Transfert lecture (READ, IO_READ) en 2 phases (aller-retour)
-    public static final int IDLE_CLOCK_CYCLE_MS = 600;        // Cadence pour les instructions simples sans bus/ALU
+    public static final int TRANSFER_DURATION_MS = 2500;       // Transfert écriture (WRITE, IO_WRITE) ou calcul ALU
+    public static final int READ_TRANSFER_DURATION_MS = 4500;  // Transfert lecture (READ, IO_READ) en 2 phases (aller-retour)
+    public static final int IDLE_CLOCK_CYCLE_MS = 1200;       // Cadence pour les instructions simples sans bus/ALU
 
     // Typographies modernes
     private final Font monacoFont = new Font("Monaco", Font.PLAIN, 12);
