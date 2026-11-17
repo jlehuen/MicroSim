@@ -163,16 +163,17 @@ public class Simulator {
                     continue;
                 }
 
-                // Continuous execution: execute a batch of instructions
-                int currentBatch = executionBatchSize;
+                // Continuous execution: execute instructions
+                boolean isVisuOpen = (mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isShowing());
+                int currentBatch = isVisuOpen ? 1 : executionBatchSize;
                 int currentDelay = executionSpeedDelay;
                 boolean halted = false;
 
                 for (int i = 0; i < currentBatch; i++) {
                     if (!running || cpu.isFault()) break;
 
-                    // Highlight line only in slow mode (batch == 1 and delay >= 40 ms)
-                    if (currentBatch == 1 && currentDelay >= 40) {
+                    // Highlight line only in visualization mode or slow mode
+                    if (isVisuOpen || (currentBatch == 1 && currentDelay >= 40)) {
                         int currentIp = cpu.getIP();
                         final Integer lineToHighlight = addressToLineMap.get(currentIp);
                         if (lineToHighlight != null && lineToHighlight != lastHighlightedLine) {
@@ -206,8 +207,8 @@ public class Simulator {
 
                 if (!running || cpu.isFault() || halted) break;
 
-                // Update UI once per batch/tick
-                if (currentBatch == 1 && currentDelay >= 40) {
+                // Update UI: animation obligatoire si la fenêtre de visualisation est ouverte, sinon pas d'animation
+                if (isVisuOpen) {
                     try {
                         SwingUtilities.invokeAndWait(() -> {
                             memoryFrame.updateMemoryView();
@@ -232,7 +233,7 @@ public class Simulator {
                         break;
                     }
                 } else {
-                    // Fast mode: remove line highlight to avoid editor overhead, update asynchronously
+                    // Fast mode sans animation
                     if (highlightTag != null) {
                         SwingUtilities.invokeLater(() -> {
                             if (highlightTag != null) {
@@ -245,9 +246,6 @@ public class Simulator {
                     SwingUtilities.invokeLater(() -> {
                         memoryFrame.updateMemoryView();
                         mainFrame.getRegisters().update();
-                        if (mainFrame.getVisualizationPanel().isShowing()) {
-                            mainFrame.getVisualizationPanel().repaint();
-                        }
                     });
                 }
 
