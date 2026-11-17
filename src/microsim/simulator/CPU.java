@@ -271,6 +271,8 @@ public class CPU {
             }
 
             lastExecutedIP = IP;
+            resetBusActivity();
+            resetAluActive();
             int instr = memory.load(IP);
             int regTo, regFrom, number, memFrom;
 

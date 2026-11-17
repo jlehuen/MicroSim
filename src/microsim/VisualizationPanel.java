@@ -91,10 +91,12 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     private void startAnimation(CPU.BusActivity activity, int value, int address, boolean aluActive, String aluOp, Runnable onComplete) {
         if (animationTimer.isRunning()) {
-            if (onComplete != null) {
-                onComplete.run();
+            animationTimer.stop();
+            if (this.onAnimationComplete != null) {
+                Runnable prev = this.onAnimationComplete;
+                this.onAnimationComplete = null;
+                prev.run();
             }
-            return;
         }
 
         // Adjust RAM view to center the animated address (seulement pour accès mémoire RAM)
@@ -151,7 +153,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         CPU cpu = simulator.getCPU();
         boolean hasBus = cpu != null && cpu.getLastBusActivity() != CPU.BusActivity.NONE;
         boolean hasAlu = cpu != null && cpu.isAluActive();
-        boolean shouldAnimate = this.isShowing() && (hasBus || hasAlu) && !animationTimer.isRunning();
+        boolean shouldAnimate = this.isShowing() && (hasBus || hasAlu);
         
         if (shouldAnimate) {
             startAnimation(
