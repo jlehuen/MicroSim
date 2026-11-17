@@ -26,10 +26,10 @@ Draw:
         mov BL, 0           ; Ligne 0
 DrawLoop:
         mov AL, BL
-        out 0x07            ; Port 0x07 -> sélection de la ligne BL
+        out AL, 0x07        ; Port 0x07 -> sélection de la ligne BL
 
         mov AL, [CL]        ; Lecture du motif
-        out 0x08            ; Port 0x08 -> écriture des 8 LED de la ligne
+        out AL, 0x08        ; Port 0x08 -> écriture des 8 LED de la ligne
 
         inc CL              ; Pointeur de motif suivant
         inc BL              ; Ligne suivante

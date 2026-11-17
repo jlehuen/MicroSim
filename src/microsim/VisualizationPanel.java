@@ -32,12 +32,13 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private static final int BUS_THICKNESS = 20;
     private static final int BUS_TOP_MARGIN = 145; // Espace pour les bus et le bandeau de statut
     private static final int ANIMATION_DELAY = 16; // approx 60fps
-    private static final double ANIMATION_STEP = 0.010; // vitesse d'animation confortable
+    private static final double ANIMATION_STEP = 0.0065; // vitesse d'animation plus posée et pédagogique
 
     // Typographies modernes
     private final Font monacoFont = new Font("Monaco", Font.PLAIN, 12);
-    private final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-    private final Font boldCodeFont = new Font("Monaco", Font.BOLD, 12);
+    private final Font titleFont = new Font("SansSerif", Font.BOLD, 15);
+    private final Font boldCodeFont = new Font("Menlo", Font.BOLD, 12);
+    private final Font packetFont = new Font("Menlo", Font.BOLD, 13);
     private final Font statusFont = new Font("SansSerif", Font.BOLD, 11);
     private final Font busLabelFont = new Font("SansSerif", Font.BOLD, 11);
     private final Font badgeFont = new Font("SansSerif", Font.BOLD, 9);
@@ -81,7 +82,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(780, 515);
+        return new Dimension(700, 515);
     }
 
     public boolean isAnimating() {
@@ -241,7 +242,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(titleFont);
-        g2d.drawString(title, x + 12, y + 28);
+        g2d.drawString(title, x + 12, y + 29);
     }
 
     private void drawStaticComponents(Graphics2D g2d, int cpuX, int cpuY, int aluX, int aluY, int aluHeight, int ramX, int ramY, int devX, int devY) {
@@ -303,20 +304,28 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             g2d.drawString("Logic: AND, OR, XOR, NOT, SHL", aluX + 10, aluY + 85);
         }
 
-        // Ports d'E/S dans le bloc Périphériques avec surbrillance du port ciblé
-        int[][] ports = {
-            {0x01, 65}, {0x02, 85}, {0x03, 105}, {0x06, 125}, {0x07, 145}, {0x09, 165}
+        // Ports d'E/S dans le bloc Périphériques avec surbrillance du périphérique ciblé
+        int[][] periphPorts = {
+            {0x01}, {0x02}, {0x03}, {0x04, 0x05}, {0x06}, {0x07, 0x08}, {0x09, 0x0A}
         };
+        int[] periphY = {65, 85, 105, 125, 145, 165, 185};
         String[] portNames = {
-            "0x01: Keyboard", "0x02: Lights", "0x03: Heater", "0x06: LED Bar", "0x07: 8x8 Matrix", "0x09: Banner"
+            "0x01: Keyboard", "0x02: Lights", "0x03: Heater", "0x04: Buzzer", "0x06: LED Bar", "0x07: LED Matrix", "0x09: LED Banner"
         };
 
         boolean isIOAnimated = animationRunning && (animatedActivity == CPU.BusActivity.IO_WRITE || animatedActivity == CPU.BusActivity.IO_READ);
 
-        for (int p = 0; p < ports.length; p++) {
-            int portNum = ports[p][0];
-            int pY = devY + ports[p][1];
-            boolean isTargetPort = (isIOAnimated && animatedAddress == portNum);
+        for (int p = 0; p < periphPorts.length; p++) {
+            int pY = devY + periphY[p];
+            boolean isTargetPort = false;
+            if (isIOAnimated) {
+                for (int port : periphPorts[p]) {
+                    if (animatedAddress == port) {
+                        isTargetPort = true;
+                        break;
+                    }
+                }
+            }
 
             if (isTargetPort) {
                 g2d.setColor(animatedActivity == CPU.BusActivity.IO_WRITE ? new Color(120, 53, 15) : new Color(12, 74, 96));
@@ -348,7 +357,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             g2d.setColor(new Color(51, 65, 85)); // Slate 700
             g2d.drawRoundRect(cpuX + 12, regY - 14, 80, 22, 6, 6);
 
-            g2d.setColor(new Color(241, 245, 249)); // Blanc ardoise
+            g2d.setColor(new Color(203, 213, 225));
             g2d.drawString(regNames[i] + ": " + Utils.toHexString0x(gpr[i]), cpuX + 18, regY + 2);
             regY += 28;
         }
@@ -363,7 +372,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             g2d.setColor(new Color(51, 65, 85));
             g2d.drawRoundRect(cpuX + 105, regY - 14, 82, 22, 6, 6);
 
-            g2d.setColor(i == 0 ? new Color(251, 146, 60) : new Color(241, 245, 249));
+            g2d.setColor(i == 0 ? new Color(251, 146, 60) : new Color(203, 213, 225));
             g2d.drawString(ptrNames[i] + ": " + Utils.toHexString0x(ptrValues[i]), cpuX + 111, regY + 2);
             regY += 28;
         }
@@ -409,7 +418,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
         String instrText = simulator.getCurrentInstructionText();
         g2d.setFont(boldCodeFont);
-        g2d.setColor(new Color(241, 245, 249));
+        g2d.setColor(new Color(203, 213, 225));
         g2d.drawString("IR: ", irX + 6, irY + 16);
 
         FontMetrics fm = g2d.getFontMetrics();
@@ -442,21 +451,46 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 g2d.setColor(animatedActivity == CPU.BusActivity.WRITE ? new Color(254, 202, 202) : new Color(186, 230, 253));
                 g2d.setFont(boldCodeFont);
             } else {
-                g2d.setColor(new Color(226, 232, 240));
+                g2d.setColor(new Color(203, 213, 225));
                 g2d.setFont(monacoFont);
             }
 
             g2d.drawString(line, ramX + 12, memY);
 
             // Badges IP / SP dans la RAM
-            int badgeX = ramX + 104;
+            int badgeX = ramX + 102;
             if (addr == currentIP) {
+                int bY = memY - 11;
+                int bH = 13;
+                int arrowW = 5;
+                int bW = 22;
+
+                int[] xPoints = {
+                    badgeX, 
+                    badgeX + arrowW, 
+                    badgeX + bW, 
+                    badgeX + bW, 
+                    badgeX + arrowW
+                };
+                int[] yPoints = {
+                    bY + bH / 2, 
+                    bY, 
+                    bY, 
+                    bY + bH, 
+                    bY + bH
+                };
+
                 g2d.setColor(new Color(154, 52, 18));
-                g2d.fillRoundRect(badgeX, memY - 11, 20, 13, 4, 4);
+                g2d.fillPolygon(xPoints, yPoints, 5);
+
+                g2d.setColor(new Color(254, 215, 170, 140));
+                g2d.setStroke(new BasicStroke(1.0f));
+                g2d.drawPolygon(xPoints, yPoints, 5);
+
                 g2d.setColor(new Color(254, 215, 170));
                 g2d.setFont(badgeFont);
-                g2d.drawString("IP", badgeX + 4, memY - 1);
-                badgeX += 23;
+                g2d.drawString("IP", badgeX + arrowW + 3, memY - 1);
+                badgeX += bW + 3;
             }
             if (addr == currentSP) {
                 g2d.setColor(new Color(91, 33, 182));
@@ -471,26 +505,42 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     }
 
     /**
-     * Dessine un paquet circulant sur les bus avec ombre douce, bordure nette et texte centré
+     * Dessine un paquet circulant sur les bus :
+     * Option 3 : badge noir profond avec halo lumineux diffus (glow doré/blanc) et texte blanc éclatant.
      */
-    private void drawPacket(Graphics2D g2d, int x, int y, String text, Color bgColor, Color textColor) {
-        g2d.setFont(boldCodeFont);
+    private void drawPacket(Graphics2D g2d, int x, int y, String text, Color busColor) {
+        g2d.setFont(packetFont);
         FontMetrics fm = g2d.getFontMetrics();
         int textWidth = fm.stringWidth(text);
-        int packetWidth = Math.max(48, textWidth + 14);
-        int packetHeight = 20;
+        int packetWidth = Math.max(54, textWidth + 20);
+        int packetHeight = 26; // Déborde de 3px au-dessus et en-dessous du bus de 20px
 
-        g2d.setColor(new Color(15, 23, 42, 45));
-        g2d.fillRoundRect(x - packetWidth / 2 + 1, y - packetHeight / 2 + 2, packetWidth, packetHeight, 8, 8);
+        int px = x - packetWidth / 2;
+        int py = y - packetHeight / 2;
 
-        g2d.setColor(bgColor);
-        g2d.fillRoundRect(x - packetWidth / 2, y - packetHeight / 2, packetWidth, packetHeight, 8, 8);
+        // 1. Halo lumineux diffus externe (glow doux)
+        g2d.setColor(new Color(254, 240, 138, 35));
+        g2d.fillRoundRect(px - 5, py - 5, packetWidth + 10, packetHeight + 10, 14, 14);
 
+        // 2. Halo lumineux intermédiaire
+        g2d.setColor(new Color(254, 240, 138, 80));
+        g2d.fillRoundRect(px - 3, py - 3, packetWidth + 6, packetHeight + 6, 10, 10);
+
+        // 3. Halo lumineux proche
+        g2d.setColor(new Color(254, 240, 138, 140));
+        g2d.fillRoundRect(px - 1, py - 1, packetWidth + 2, packetHeight + 2, 8, 8);
+
+        // 4. Cœur du badge noir profond
+        g2d.setColor(new Color(3, 7, 18)); // Noir profond
+        g2d.fillRoundRect(px, py, packetWidth, packetHeight, 6, 6);
+
+        // 5. Liseré intérieur lumineux doré
+        g2d.setColor(new Color(254, 240, 138, 220));
+        g2d.setStroke(new BasicStroke(1.2f));
+        g2d.drawRoundRect(px, py, packetWidth, packetHeight, 6, 6);
+
+        // 6. Texte blanc pur éclatant
         g2d.setColor(Color.WHITE);
-        g2d.setStroke(new BasicStroke(1.5f));
-        g2d.drawRoundRect(x - packetWidth / 2, y - packetHeight / 2, packetWidth, packetHeight, 8, 8);
-
-        g2d.setColor(textColor);
         int textX = x - textWidth / 2;
         int textY = y + (fm.getAscent() - fm.getDescent()) / 2;
         g2d.drawString(text, textX, textY);
@@ -548,11 +598,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
             String addressStr = Utils.toHexString0x(animatedAddress);
             String dataStr = Utils.toHexString0x(animatedValue);
-            String ctrlStr;
-            if (animatedActivity == CPU.BusActivity.WRITE) ctrlStr = "MEM_WR";
-            else if (animatedActivity == CPU.BusActivity.READ) ctrlStr = "MEM_RD";
-            else if (animatedActivity == CPU.BusActivity.IO_WRITE) ctrlStr = "IO_WR";
-            else ctrlStr = "IO_RD";
+            String ctrlStr = isWrite ? "WRITE" : "READ";
 
             if (isWrite) {
                 // ÉCRITURE (WRITE ou IO_WRITE) : Adresse/Port, Donnée et Contrôle partent du CPU vers la cible
@@ -562,37 +608,37 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                     double verticalProgress = progress / 0.25;
                     
                     int addrY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
-                    drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+                    drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS);
 
                     int dataY = cpuY - (int)((cpuY - dataBusY) * verticalProgress);
-                    drawPacket(g2d, cpuConnectionX, dataY, dataStr, BUS_DATA, Color.WHITE);
+                    drawPacket(g2d, cpuConnectionX, dataY, dataStr, BUS_DATA);
 
                     int ctrlY = cpuY - (int)((cpuY - ctrlBusY) * verticalProgress);
-                    drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+                    drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL);
 
                 } else if (progress < 0.75) {
                     double horizontalProgress = (progress - 0.25) / 0.5;
 
                     int addrX = (cpuConnectionX - connectionOffset) + (int)(((targetX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress);
-                    drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS, Color.WHITE);
+                    drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS);
 
                     int dataX = cpuConnectionX + (int)((targetX - cpuConnectionX) * horizontalProgress);
-                    drawPacket(g2d, dataX, dataBusY, dataStr, BUS_DATA, Color.WHITE);
+                    drawPacket(g2d, dataX, dataBusY, dataStr, BUS_DATA);
 
                     int ctrlX = (cpuConnectionX + connectionOffset) + (int)(((targetX + connectionOffset) - (cpuConnectionX + connectionOffset)) * horizontalProgress);
-                    drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL, Color.WHITE);
+                    drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL);
 
                 } else {
                     double verticalProgress = (progress - 0.75) / 0.25;
 
                     int addrY = addressBusY + (int)((targetY - addressBusY) * verticalProgress);
-                    drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+                    drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS);
 
                     int dataY = dataBusY + (int)((targetY - dataBusY) * verticalProgress);
-                    drawPacket(g2d, targetX, dataY, dataStr, BUS_DATA, Color.WHITE);
+                    drawPacket(g2d, targetX, dataY, dataStr, BUS_DATA);
 
                     int ctrlY = ctrlBusY + (int)((targetY - ctrlBusY) * verticalProgress);
-                    drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+                    drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL);
                 }
 
             } else {
@@ -605,28 +651,28 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                         double verticalProgress = progress / 0.25;
                         
                         int addrY = cpuY - (int)((cpuY - addressBusY) * verticalProgress);
-                        drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+                        drawPacket(g2d, cpuConnectionX - connectionOffset, addrY, addressStr, BUS_ADDRESS);
 
                         int ctrlY = cpuY - (int)((cpuY - ctrlBusY) * verticalProgress);
-                        drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+                        drawPacket(g2d, cpuConnectionX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL);
 
                     } else if (progress < 0.75) {
                         double horizontalProgress = (progress - 0.25) / 0.5;
 
                         int addrX = (cpuConnectionX - connectionOffset) + (int)(((targetX - connectionOffset) - (cpuConnectionX - connectionOffset)) * horizontalProgress);
-                        drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS, Color.WHITE);
+                        drawPacket(g2d, addrX, addressBusY, addressStr, BUS_ADDRESS);
 
                         int ctrlX = (cpuConnectionX + connectionOffset) + (int)(((targetX + connectionOffset) - (cpuConnectionX + connectionOffset)) * horizontalProgress);
-                        drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL, Color.WHITE);
+                        drawPacket(g2d, ctrlX, ctrlBusY, ctrlStr, BUS_CTRL);
 
                     } else {
                         double verticalProgress = (progress - 0.75) / 0.25;
 
                         int addrY = addressBusY + (int)((targetY - addressBusY) * verticalProgress);
-                        drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS, Color.WHITE);
+                        drawPacket(g2d, targetX - connectionOffset, addrY, addressStr, BUS_ADDRESS);
 
                         int ctrlY = ctrlBusY + (int)((targetY - ctrlBusY) * verticalProgress);
-                        drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL, Color.WHITE);
+                        drawPacket(g2d, targetX + connectionOffset, ctrlY, ctrlStr, BUS_CTRL);
                     }
 
                 } else {
@@ -636,17 +682,17 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                     if (dataProgress < 0.25) {
                         double verticalProgress = dataProgress / 0.25;
                         int currentY = targetY - (int)((targetY - dataBusY) * verticalProgress);
-                        drawPacket(g2d, targetX, currentY, dataStr, BUS_DATA, Color.WHITE);
+                        drawPacket(g2d, targetX, currentY, dataStr, BUS_DATA);
 
                     } else if (dataProgress < 0.75) {
                         double horizontalProgress = (dataProgress - 0.25) / 0.5;
                         int currentX = targetX - (int)((targetX - cpuConnectionX) * horizontalProgress);
-                        drawPacket(g2d, currentX, dataBusY, dataStr, BUS_DATA, Color.WHITE);
+                        drawPacket(g2d, currentX, dataBusY, dataStr, BUS_DATA);
 
                     } else {
                         double verticalProgress = (dataProgress - 0.75) / 0.25;
                         int currentY = dataBusY + (int)((cpuY - dataBusY) * verticalProgress);
-                        drawPacket(g2d, cpuConnectionX, currentY, dataStr, BUS_DATA, Color.WHITE);
+                        drawPacket(g2d, cpuConnectionX, currentY, dataStr, BUS_DATA);
                     }
                 }
             }
@@ -745,10 +791,10 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             case 0x04: return "Buzzer Note";
             case 0x05: return "Buzzer Duration";
             case 0x06: return "LED Bar";
-            case 0x07: return "8x8 Matrix Row";
-            case 0x08: return "8x8 Matrix Data";
-            case 0x09: return "Banner Data";
-            case 0x0A: return "Banner Cmd";
+            case 0x07: return "LED Matrix Row";
+            case 0x08: return "LED Matrix Data";
+            case 0x09: return "LED Banner Data";
+            case 0x0A: return "LED Banner Cmd";
             default: return "Port " + Utils.toHexString0x(port);
         }
     }
@@ -780,11 +826,11 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 textColor = new Color(254, 243, 199);
 
                 if (animationProgress < 0.25) {
-                    statusText = "RAM Write: CPU outputs address " + addrHex + ", data " + valHex + " and MEM_WR signal...";
+                    statusText = "RAM Write: CPU outputs address " + addrHex + ", data " + valHex + " and WRITE command...";
                 } else if (animationProgress < 0.75) {
                     statusText = "RAM Write: Synchronized transfer across Address, Data and Control buses...";
                 } else {
-                    statusText = "RAM Write: RAM receives MEM_WR and stores value " + valHex + " at address " + addrHex + ".";
+                    statusText = "RAM Write: RAM receives WRITE command and stores value " + valHex + " at address " + addrHex + ".";
                 }
             } else if (animatedActivity == CPU.BusActivity.READ) {
                 bannerBg = new Color(8, 47, 73);
@@ -793,9 +839,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 textColor = new Color(224, 242, 254);
 
                 if (animationProgress < 0.25) {
-                    statusText = "RAM Read (1/2): CPU asserts address " + addrHex + " and MEM_RD read command...";
+                    statusText = "RAM Read (1/2): CPU asserts address " + addrHex + " and READ command...";
                 } else if (animationProgress < 0.75) {
-                    statusText = "RAM Read (1/2): Address and MEM_RD signal propagating to RAM...";
+                    statusText = "RAM Read (1/2): Address and READ command propagating to RAM...";
                 } else if (animationProgress < 1.0) {
                     statusText = "RAM Read (1/2): RAM decodes address " + addrHex + " and extracts content...";
                 } else if (animationProgress < 1.25) {
@@ -813,7 +859,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 String pName = getPortName(animatedAddress);
 
                 if (animationProgress < 0.25) {
-                    statusText = "I/O Output (OUT): CPU outputs value " + valHex + " to port " + addrHex + " (" + pName + ") with IO_WR...";
+                    statusText = "I/O Output (OUT): CPU outputs value " + valHex + " to port " + addrHex + " (" + pName + ") with WRITE command...";
                 } else if (animationProgress < 0.75) {
                     statusText = "I/O Output (OUT): Routing across buses to PERIPHERALS unit...";
                 } else {
@@ -827,9 +873,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 String pName = getPortName(animatedAddress);
 
                 if (animationProgress < 0.25) {
-                    statusText = "I/O Input (IN - 1/2): CPU polls port " + addrHex + " (" + pName + ") with IO_RD command...";
+                    statusText = "I/O Input (IN - 1/2): CPU polls port " + addrHex + " (" + pName + ") with READ command...";
                 } else if (animationProgress < 0.75) {
-                    statusText = "I/O Input (IN - 1/2): Port address and IO_RD signal propagating to peripheral...";
+                    statusText = "I/O Input (IN - 1/2): Port address and READ command propagating to peripheral...";
                 } else if (animationProgress < 1.0) {
                     statusText = "I/O Input (IN - 1/2): Peripheral " + pName + " prepares data...";
                 } else if (animationProgress < 1.25) {

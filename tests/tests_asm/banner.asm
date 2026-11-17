@@ -20,7 +20,7 @@
 Start:
         ; 1. Efface tout le bandeau
         mov AL, 0
-        out 0x0A
+        out AL, 0x0A
 
 MainLoop:
         mov BL, 0x40        ; Pointeur vers les motifs de colonnes en 0x40
@@ -30,9 +30,9 @@ ColLoop:
         cmp AL, 0xFF        ; Marqueur de fin de message ?
         jz MainLoop         ; Reboucle à l'infini
 
-        out 0x09            ; Envoie l'octet de colonne sur le port 0x09
+        out AL, 0x09        ; Envoie l'octet de colonne sur le port 0x09
         mov AL, 5           ; Commande 5 : Décalage gauche + injection à droite
-        out 0x0A            ; Port 0x0A -> Exécute PUSH_RIGHT
+        out AL, 0x0A        ; Port 0x0A -> Exécute PUSH_RIGHT
 
         inc BL
         call Delay          ; Temporisation pour la fluidité visuelle

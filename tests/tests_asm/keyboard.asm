@@ -7,7 +7,7 @@
 	mov	BL, 0xC0
 
 Start:
-	in	0x01
+	in	AL, 0x01
 
 	cmp	AL, 0x0D
 	jz	Stop

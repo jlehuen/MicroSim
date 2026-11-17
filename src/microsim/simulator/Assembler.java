@@ -312,6 +312,8 @@ public class Assembler {
                 case "SHR":
                 case "MUL":
                 case "DIV":
+                case "IN":
+                case "OUT":
                     String[] parts = operandsString.split(",", 2);
                     if (parts.length != 2) {
                         throw new IllegalArgumentException(instruction.toUpperCase() + " requires two operands separated by a comma on line " + lineNumber);
@@ -509,6 +511,26 @@ public class Assembler {
                             addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
                             addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
                             break;
+                        case "IN":
+                            if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
+                                opCode = Opcodes.IN_REG_NUMBER;
+                            } else {
+                                throw new IllegalArgumentException("IN requires a register and a device number (e.g. IN AL, 0x01) on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
+                        case "OUT":
+                            if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
+                                opCode = Opcodes.OUT_REG_NUMBER;
+                            } else {
+                                throw new IllegalArgumentException("OUT requires a register and a device number (e.g. OUT AL, 0x02) on line " + lineNumber);
+                            }
+                            code[addressCounter++] = opCode;
+                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
+                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
+                            break;
                         // ... other cases
                     }
                     break;
@@ -607,26 +629,6 @@ public class Assembler {
                     break;
                 case "POPF":
                     code[addressCounter++] = Opcodes.POPF;
-                    break;
-                case "IN":
-                    op1 = getValue(operandsString.trim(), lineNumber);
-                    if (op1.type == Operand.Type.NUMBER) {
-                        opCode = Opcodes.IN_IMM8;
-                        code[addressCounter++] = opCode;
-                        addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
-                    } else {
-                        throw new IllegalArgumentException("IN only supports `IN imm8` format on line " + lineNumber);
-                    }
-                    break;
-                case "OUT":
-                    op1 = getValue(operandsString.trim(), lineNumber);
-                    if (op1.type == Operand.Type.NUMBER) {
-                        opCode = Opcodes.OUT_IMM8;
-                        code[addressCounter++] = opCode;
-                        addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
-                    } else {
-                        throw new IllegalArgumentException("OUT only supports `OUT imm8` format on line " + lineNumber);
-                    }
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid instruction: " + instruction + " on line " + lineNumber);

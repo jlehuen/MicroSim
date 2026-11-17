@@ -711,43 +711,43 @@ code {
 <td>Clavier</td>
 <td>Port</td>
 <td><code>0x01</code></td>
-<td><code>IN 0x01</code></td>
+<td><code>IN reg, 0x01</code></td>
 </tr>
 <tr>
 <td>Feux tricolores</td>
 <td>Port</td>
 <td><code>0x02</code></td>
-<td><code>OUT 0x02</code></td>
+<td><code>OUT reg, 0x02</code></td>
 </tr>
 <tr>
 <td>Chauffage</td>
 <td>Port</td>
 <td><code>0x03</code></td>
-<td><code>IN 0x03</code> / <code>OUT 0x03</code></td>
+<td><code>IN reg, 0x03</code> / <code>OUT reg, 0x03</code></td>
 </tr>
 <tr>
 <td>Buzzer 8-bit</td>
 <td>Ports</td>
 <td><code>0x04</code> (Note), <code>0x05</code> (Durée)</td>
-<td><code>OUT 0x04</code> / <code>OUT 0x05</code></td>
+<td><code>OUT reg, 0x04</code> / <code>OUT reg, 0x05</code></td>
 </tr>
 <tr>
 <td>Barre de 8 LED</td>
 <td>Port</td>
 <td><code>0x06</code></td>
-<td><code>OUT 0x06</code> / <code>IN 0x06</code></td>
+<td><code>OUT reg, 0x06</code> / <code>IN reg, 0x06</code></td>
 </tr>
 <tr>
 <td>Matrice 8x8 LED</td>
 <td>Ports</td>
 <td><code>0x07</code> (Ligne), <code>0x08</code> (Données)</td>
-<td><code>OUT 0x07</code> / <code>OUT 0x08</code></td>
+<td><code>OUT reg, 0x07</code> / <code>OUT reg, 0x08</code></td>
 </tr>
 <tr>
 <td>Bandeau 64x8 LED</td>
 <td>Ports</td>
 <td><code>0x09</code> (Donnée), <code>0x0A</code> (Commande)</td>
-<td><code>OUT 0x09</code> / <code>OUT 0x0A</code></td>
+<td><code>OUT reg, 0x09</code> / <code>OUT reg, 0x0A</code></td>
 </tr>
 </tbody>
 </table>
@@ -760,13 +760,13 @@ code {
 
 <h3 id="le-clavier-via-le-port-01">Le clavier (via le port 01) :</h3>
 
-<p>Le clavier permet d&#39;entrer des caractères via l&#39;instruction <code>IN 0x01</code> qui déclenche une attente d&#39;une action sur le clavier physique de l&#39;ordinateur. Le code ASCII de la touche actionnée sera placé dans le registre <code>AL</code> :</p>
+<p>Le clavier permet d&#39;entrer des caractères via l&#39;instruction <code>IN AL, 0x01</code> (ou avec tout autre registre <code>BL</code>, <code>CL</code>, <code>DL</code>) qui déclenche une attente d&#39;une action sur le clavier physique de l&#39;ordinateur. Le code ASCII de la touche actionnée sera placé dans le registre cible :</p>
 
 <p><img src="img/keyboard.png" alt="center"></p>
 
 <h3 id="les-feux-tricolores-via-le-port-02">Les feux tricolores (via le port 02) :</h3>
 
-<p>Ce périphérique simule deux feux de circulation. L&#39;instruction <code>OUT 0x02</code> envoie la valeur du registre <code>AL</code> au périphérique pour contrôler les lumières. Chaque bit de l&#39;octet dans <code>AL</code> correspond à une couleur d&#39;un des deux feux :</p>
+<p>Ce périphérique simule deux feux de circulation. L&#39;instruction <code>OUT AL, 0x02</code> envoie la valeur du registre au périphérique pour contrôler les lumières. Chaque bit de l&#39;octet dans le registre correspond à une couleur d&#39;un des deux feux :</p>
 
 <p><img src="img/lights.png" alt="center"></p>
 
@@ -775,8 +775,8 @@ code {
 <p>Ce périphérique représente un système de chauffage simple.</p>
 
 <ul>
-<li>L&#39;instruction <code>OUT 0x03</code> contrôle la chaudière selon la valeur du bit 7 (MSB) du registre <code>AL</code>.</li>
-<li>L&#39;instruction <code>IN 0x03</code> modifie le registre <code>AL</code> selon l&#39;état du système (bits 0, 1 et 7).</li>
+<li>L&#39;instruction <code>OUT AL, 0x03</code> contrôle la chaudière selon la valeur du bit 7 (MSB) du registre source.</li>
+<li>L&#39;instruction <code>IN AL, 0x03</code> lit l&#39;état du système (bits 0, 1 et 7) et le place dans le registre destination.</li>
 </ul>
 
 <p><img src="img/heater.png" alt="center"></p>
@@ -789,14 +789,14 @@ code {
 <li><strong>Port <code>0x04</code> (Note MIDI / Fréquence)</strong> :
 
 <ul>
-<li><code>OUT 0x04</code> : déclenche une note MIDI (voir tableau). La valeur <code>0</code> coupe le son immédiatement.</li>
-<li><code>IN 0x04</code> : lit le numéro de note en cours de lecture.</li>
+<li><code>OUT AL, 0x04</code> : déclenche une note MIDI (voir tableau). La valeur <code>0</code> coupe le son immédiatement.</li>
+<li><code>IN AL, 0x04</code> : lit le numéro de note en cours de lecture.</li>
 </ul></li>
 <li><strong>Port <code>0x05</code> (Durée du son)</strong> :
 
 <ul>
-<li><code>OUT 0x05</code> : programme une durée en dizaines de millisecondes (ex: 20 = 200 ms). À la fin de cette durée, le son s&#39;arrête automatiquement en tâche de fond.</li>
-<li><code>IN 0x05</code> : renvoie <code>1</code> si un son est en cours d&#39;émission, <code>0</code> sinon.</li>
+<li><code>OUT AL, 0x05</code> : programme une durée en dizaines de millisecondes (ex: 20 = 200 ms). À la fin de cette durée, le son s&#39;arrête automatiquement en tâche de fond.</li>
+<li><code>IN AL, 0x05</code> : renvoie <code>1</code> si un son est en cours d&#39;émission, <code>0</code> sinon.</li>
 </ul></li>
 </ul>
 
@@ -849,13 +849,13 @@ code {
 <p>Ce périphérique affiche une rampe horizontale de 8 LED rouges.</p>
 
 <ul>
-<li>L&#39;instruction <code>OUT 0x06</code> envoie la valeur du registre <code>AL</code> à la barre de LED. Chaque bit contrôle une LED (1 = allumée, 0 = éteinte) :
+<li>L&#39;instruction <code>OUT AL, 0x06</code> envoie la valeur du registre à la barre de LED. Chaque bit contrôle une LED (1 = allumée, 0 = éteinte) :
 
 <ul>
 <li>Bit 7 (MSB) : LED à l&#39;extrême gauche (<code>b7</code>).</li>
 <li>Bit 0 (LSB) : LED à l&#39;extrême droite (<code>b0</code>).</li>
 </ul></li>
-<li>L&#39;instruction <code>IN 0x06</code> lit l&#39;état actuel de la barre de LED et le place dans le registre <code>AL</code>.</li>
+<li>L&#39;instruction <code>IN AL, 0x06</code> lit l&#39;état actuel de la barre de LED et le place dans le registre destination.</li>
 </ul>
 
 <p><img src="img/bar.png" alt="center"></p>
@@ -868,14 +868,14 @@ code {
 <li><strong>Port <code>0x07</code> (Index de ligne)</strong> :
 
 <ul>
-<li><code>OUT 0x07</code> : sélectionne la ligne active (valeur de 0 à 7).</li>
-<li><code>IN 0x07</code> : renvoie l&#39;index de la ligne active.</li>
+<li><code>OUT AL, 0x07</code> : sélectionne la ligne active (valeur de 0 à 7).</li>
+<li><code>IN AL, 0x07</code> : renvoie l&#39;index de la ligne active.</li>
 </ul></li>
 <li><strong>Port <code>0x08</code> (Données de la ligne)</strong> :
 
 <ul>
-<li><code>OUT 0x08</code> : met à jour les 8 LED de la ligne sélectionnée (bit 7 = gauche <code>b7</code>, bit 0 = droite <code>b0</code>).</li>
-<li><code>IN 0x08</code> : lit l&#39;octet de motif mémorisé pour la ligne sélectionnée.</li>
+<li><code>OUT AL, 0x08</code> : met à jour les 8 LED de la ligne sélectionnée (bit 7 = gauche <code>b7</code>, bit 0 = droite <code>b0</code>).</li>
+<li><code>IN AL, 0x08</code> : lit l&#39;octet de motif mémorisé pour la ligne sélectionnée.</li>
 </ul></li>
 </ul>
 
@@ -889,10 +889,10 @@ code {
 <li><strong>Port <code>0x09</code> (Données de colonne)</strong> :
 
 <ul>
-<li><code>OUT 0x09</code> : charge un motif de colonne de 8 bits dans le registre de données interne (bit 7 = LED du haut, bit 0 = LED du bas).</li>
-<li><code>IN 0x09</code> : relit la dernière donnée écrite.</li>
+<li><code>OUT AL, 0x09</code> : charge un motif de colonne de 8 bits dans le registre de données interne (bit 7 = LED du haut, bit 0 = LED du bas).</li>
+<li><code>IN AL, 0x09</code> : relit la dernière donnée écrite.</li>
 </ul></li>
-<li><strong>Port <code>0x0A</code> (Commande)</strong> : l&#39;instruction <code>OUT 0x0A</code> exécute la commande définie par la valeur du registre <code>AL</code> :
+<li><strong>Port <code>0x0A</code> (Commande)</strong> : l&#39;instruction <code>OUT AL, 0x0A</code> exécute la commande définie par la valeur du registre :
 
 <ul>
 <li><code>0</code> : Efface l&#39;ensemble de la matrice (CLEAR).</li>
@@ -902,10 +902,7 @@ code {
 <li><code>4</code> : Écrit la donnée du port <code>0x09</code> dans la colonne 63 (tout à droite).</li>
 <li><code>5</code> : Défilement vers la gauche avec injection de la donnée en colonne 63 (PUSH RIGHT).</li>
 <li><code>6</code> : Défilement vers la droite avec injection de la donnée en colonne 0 (PUSH LEFT).</li>
-<li><code>IN 0x0A</code> : lit le dernier code de commande exécuté.</li>
-<li><code>OUT 0x0A, 5</code> : Décale vers la gauche et injecte la donnée en colonne 63 (PUSH RIGHT, idéal pour le défilement de texte).</li>
-<li><code>OUT 0x0A, 6</code> : Décale vers la droite et injecte la donnée en colonne 0 (PUSH LEFT).</li>
-<li><code>IN 0x0A</code> : relit le dernier code de commande exécuté.</li>
+<li><code>IN AL, 0x0A</code> : lit le dernier code de commande exécuté.</li>
 </ul></li>
 </ul>
 
@@ -1053,7 +1050,7 @@ code {
 
 <h3 id="les-opérandes-et-les-modes-dadressage">Les opérandes et les modes d&#39;adressage :</h3>
 
-<p>Une instruction est composée d&#39;un <strong>code d&#39;opération</strong> (opcode) et éventuellement de plusieurs <strong>opérandes</strong>. Certaines instructions (comme <code>HLT</code>) n&#39;ont pas d&#39;opérande, d&#39;autres (comme <code>OUT</code>) en ont une seule, d&#39;autre encore (comme <code>MOV</code>) en ont deux. Les notations des opérandes sont données dans le tableau suivant :</p>
+<p>Une instruction est composée d&#39;un <strong>code d&#39;opération</strong> (opcode) et éventuellement de plusieurs <strong>opérandes</strong>. Certaines instructions (comme <code>HLT</code>) n&#39;ont pas d&#39;opérande, d&#39;autres (comme <code>INC</code> ou <code>NOT</code>) en ont une seule, d&#39;autres encore (comme <code>MOV</code>, <code>IN</code>, <code>OUT</code>) en ont deux. Les notations des opérandes sont données dans le tableau suivant :</p>
 
 <table>
 <thead>
@@ -2628,10 +2625,10 @@ Une étiquette symbolise une adresse mémoire (ex: <code>data: DB 0x42</code>). 
 
 <h3 id="instructions-dentrées-sorties">Instructions d&#39;entrées / sorties :</h3>
 
-<h3 id="out"><code>OUT</code></h3>
+<h3 id="in"><code>IN</code></h3>
 
 <ul>
-<li><strong>Description :</strong> Écrit la valeur du registre <code>AL</code> sur un port d&#39;entrée/sortie.</li>
+<li><strong>Description :</strong> Lit un octet depuis un port d&#39;entrée/sortie et le stocke dans le registre spécifié (<code>AL</code>, <code>BL</code>, <code>CL</code> ou <code>DL</code>).</li>
 </ul>
 
 <table>
@@ -2647,19 +2644,19 @@ Une étiquette symbolise une adresse mémoire (ex: <code>data: DB 0x42</code>). 
 
 <tbody>
 <tr>
-<td style="text-align: center"><code>OUT byte</code></td>
+<td style="text-align: center"><code>IN reg, byte</code></td>
 <td style="text-align: center"><code>0x57</code></td>
-<td style="text-align: center">Immédiat</td>
-<td style="text-align: center"><code>57 byte</code></td>
-<td style="text-align: center"><code>OUT 0x02</code></td>
+<td style="text-align: center">Registre / Immédiat</td>
+<td style="text-align: center"><code>57 reg byte</code></td>
+<td style="text-align: center"><code>IN AL, 0x01</code></td>
 </tr>
 </tbody>
 </table>
 
-<h3 id="in"><code>IN</code></h3>
+<h3 id="out"><code>OUT</code></h3>
 
 <ul>
-<li><strong>Description :</strong> Lit une valeur depuis un port d&#39;entrée/sortie et la stocke dans le registre <code>AL</code>.</li>
+<li><strong>Description :</strong> Écrit la valeur du registre spécifié (<code>AL</code>, <code>BL</code>, <code>CL</code> ou <code>DL</code>) sur un port d&#39;entrée/sortie.</li>
 </ul>
 
 <table>
@@ -2675,11 +2672,11 @@ Une étiquette symbolise une adresse mémoire (ex: <code>data: DB 0x42</code>). 
 
 <tbody>
 <tr>
-<td style="text-align: center"><code>IN byte</code></td>
+<td style="text-align: center"><code>OUT reg, byte</code></td>
 <td style="text-align: center"><code>0x58</code></td>
-<td style="text-align: center">Immédiat</td>
-<td style="text-align: center"><code>58 byte</code></td>
-<td style="text-align: center"><code>IN 0x01</code></td>
+<td style="text-align: center">Registre / Immédiat</td>
+<td style="text-align: center"><code>58 reg byte</code></td>
+<td style="text-align: center"><code>OUT AL, 0x02</code></td>
 </tr>
 </tbody>
 </table>

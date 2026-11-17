@@ -148,6 +148,8 @@ public final class Opcodes {
     public static final int SHR_REGADDRESS_WITH_REG = 86; // reg, [reg]
 
     // --- I/O instructions (87-88) ---
-    public static final int OUT_IMM8 = 87;
-    public static final int IN_IMM8 = 88;
+    public static final int IN_REG_NUMBER = 87;         // reg, byte
+    public static final int IN_IMM8 = 87;
+    public static final int OUT_REG_NUMBER = 88;        // reg, byte
+    public static final int OUT_IMM8 = 88;
 }

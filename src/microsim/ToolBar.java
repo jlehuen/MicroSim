@@ -134,7 +134,7 @@ public class ToolBar extends JToolBar {
 
         // 5. System views (RAM & CPU/Architecture visualization)
         add(new ToolButton("RAM", "--", "Show / hide the memory content", iconRam, this));
-        add(new ToolButton("VIZ", "--", "Show / hide the CPU & buses visualization", iconViz, this));
+        add(new ToolButton("VIZ", "--", "Show / hide the buses visualization", iconViz, this));
 
         add(Box.createHorizontalGlue());
         add(new SpeedSlider(simulator));

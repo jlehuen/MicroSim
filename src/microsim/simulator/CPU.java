@@ -1052,20 +1052,22 @@ public class CPU {
                     registers[regTo] = result_shr_num & 0xFF;
                     IP++;
                     break;
-                case Opcodes.OUT_IMM8:
-                    int outPort = memory.load(++IP);
-                    lastMemoryAddress = outPort;
-                    lastDataValue = registers[0]; // AL is always gpr[0]
-                    lastBusActivity = BusActivity.IO_WRITE;
-                    peripheralBus.out(outPort, registers[0]);
-                    IP++;
-                    break;
                 case Opcodes.IN_IMM8:
+                    regTo = memory.load(++IP);
                     int inPort = memory.load(++IP);
                     lastMemoryAddress = inPort;
                     lastBusActivity = BusActivity.IO_READ;
-                    registers[0] = peripheralBus.in(inPort) & 0xFF; // AL is always gpr[0]
-                    lastDataValue = registers[0];
+                    registers[regTo] = peripheralBus.in(inPort) & 0xFF;
+                    lastDataValue = registers[regTo];
+                    IP++;
+                    break;
+                case Opcodes.OUT_IMM8:
+                    regFrom = memory.load(++IP);
+                    int outPort = memory.load(++IP);
+                    lastMemoryAddress = outPort;
+                    lastDataValue = registers[regFrom];
+                    lastBusActivity = BusActivity.IO_WRITE;
+                    peripheralBus.out(outPort, registers[regFrom]);
                     IP++;
                     break;
                 default:

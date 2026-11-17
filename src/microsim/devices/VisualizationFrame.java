@@ -11,7 +11,6 @@
 package microsim.devices;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import javax.swing.JFrame;
 
 import microsim.VisualizationPanel;
@@ -26,7 +25,7 @@ public class VisualizationFrame extends AbstractDevice {
     /** The singleton instance of the VisualizationFrame. */
     public static VisualizationFrame INSTANCE = null;
 
-    private static final String TITLE_STRING = "CPU, RAM & Buses Visualization";
+    private static final String TITLE_STRING = "Buses Visualisation";
     private final VisualizationPanel visualizationPanel;
 
     /**
@@ -40,13 +39,12 @@ public class VisualizationFrame extends AbstractDevice {
         setTitle(TITLE_STRING);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setAlwaysOnTop(true);
-        setResizable(true);
+        setResizable(false);
 
         setLayout(new BorderLayout());
         add(visualizationPanel, BorderLayout.CENTER);
         pack();
 
-        setMinimumSize(new Dimension(680, 515));
         setLocation(240, 260);
         setVisible(false);
     }
