@@ -243,7 +243,7 @@ public class Simulator {
                         if (mainFrame.getVisualizationPanel().isAnimating()) {
                             synchronized (animationLock) {
                                 if (mainFrame.getVisualizationPanel().isAnimating()) {
-                                    animationLock.wait(1500);
+                                    animationLock.wait(3500);
                                 }
                             }
                         }
@@ -253,7 +253,7 @@ public class Simulator {
                         break;
                     }
                 } else {
-                    // Fast mode sans animation
+                    // Fast mode sans animation : cadence régulée par le slider
                     if (highlightTag != null) {
                         SwingUtilities.invokeLater(() -> {
                             if (highlightTag != null) {
@@ -269,15 +269,14 @@ public class Simulator {
                         }
                         mainFrame.getRegisters().update();
                     });
-                }
 
-                // Sleep to maintain controlled cadence and keep Swing/OS completely fluid
-                try {
-                    int sleepDelay = isVisuOpen ? Math.min(20, currentDelay) : Math.max(1, currentDelay);
-                    Thread.sleep(sleepDelay);
-                } catch (InterruptedException e) {
-                    running = false;
-                    break;
+                    // Sleep to maintain controlled cadence and keep Swing/OS completely fluid
+                    try {
+                        Thread.sleep(Math.max(1, currentDelay));
+                    } catch (InterruptedException e) {
+                        running = false;
+                        break;
+                    }
                 }
             }
             running = false;

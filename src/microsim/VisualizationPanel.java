@@ -33,6 +33,11 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private static final int BUS_TOP_MARGIN = 145; // Espace pour les bus et le bandeau de statut
     private static final int ANIMATION_DELAY = 16; // approx 60fps
 
+    // Cadence fixe pédagogique : la fenêtre de visualisation est l'horloge maîtresse (clock)
+    public static final int TRANSFER_DURATION_MS = 1200;       // Transfert écriture (WRITE, IO_WRITE) ou calcul ALU
+    public static final int READ_TRANSFER_DURATION_MS = 2200;  // Transfert lecture (READ, IO_READ) en 2 phases (aller-retour)
+    public static final int IDLE_CLOCK_CYCLE_MS = 600;        // Cadence pour les instructions simples sans bus/ALU
+
     // Typographies modernes
     private final Font monacoFont = new Font("Monaco", Font.PLAIN, 12);
     private final Font titleFont = new Font("SansSerif", Font.BOLD, 15);
@@ -61,6 +66,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     // Animation fields
     private Timer animationTimer;
+    private Timer idleTimer;
     private boolean animationRunning = false;
     private double animationProgress = 0.0;
     private long animationStartTime = 0;
@@ -87,36 +93,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     }
 
     public boolean isAnimating() {
-        return animationTimer.isRunning();
-    }
-
-    /**
-     * Calcule la durée optimale de l'animation en millisecondes en fonction de la vitesse de simulation.
-     */
-    private int computeAnimationDuration(boolean isRead) {
-        if (simulator == null) {
-            return isRead ? 350 : 220;
-        }
-        if (simulator.stepmode) {
-            // Mode pas-à-pas : durée fluide et lisible sans attente inutile
-            return isRead ? 400 : 280;
-        }
-
-        int delay = simulator.getExecutionSpeedDelay();
-        int batch = simulator.getExecutionBatchSize();
-
-        int baseDuration;
-        if (batch > 10) {
-            baseDuration = 80;
-        } else if (batch > 1) {
-            baseDuration = 120;
-        } else if (delay <= 25) {
-            baseDuration = 160 + delay * 2;
-        } else {
-            baseDuration = Math.min(500, 210 + (int) (delay * 0.7));
-        }
-
-        return isRead ? (int) (baseDuration * 1.4) : baseDuration;
+        return (animationTimer != null && animationTimer.isRunning()) || (idleTimer != null && idleTimer.isRunning());
     }
 
     private void startAnimation(CPU.BusActivity activity, int value, int address, boolean aluActive, String aluOp, Runnable onComplete) {
@@ -127,6 +104,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 this.onAnimationComplete = null;
                 prev.run();
             }
+        }
+        if (idleTimer != null && idleTimer.isRunning()) {
+            idleTimer.stop();
         }
 
         // Adjust RAM view to center the animated address (seulement pour accès mémoire RAM)
@@ -148,18 +128,22 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         this.onAnimationComplete = onComplete;
 
         boolean isRead = (activity == CPU.BusActivity.READ || activity == CPU.BusActivity.IO_READ);
-        this.targetDurationMs = computeAnimationDuration(isRead);
+        // Durée fixe pédagogique de référence : la visualisation est l'horloge maîtresse
+        this.targetDurationMs = isRead ? READ_TRANSFER_DURATION_MS : TRANSFER_DURATION_MS;
         this.animationStartTime = System.currentTimeMillis();
 
         animationTimer.start();
     }
 
     /**
-     * Stoppe immédiatement toute animation en cours et libère les verrous en attente.
+     * Stoppe immédiatement toute animation ou temporisation en cours et libère les verrous en attente.
      */
     public void stopAnimation() {
         if (animationTimer != null && animationTimer.isRunning()) {
             animationTimer.stop();
+        }
+        if (idleTimer != null && idleTimer.isRunning()) {
+            idleTimer.stop();
         }
         animationRunning = false;
         if (onAnimationComplete != null) {
@@ -208,6 +192,10 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     }
     
     public void updateAndAnimate(Runnable onComplete) {
+        if (idleTimer != null && idleTimer.isRunning()) {
+            idleTimer.stop();
+        }
+
         CPU cpu = simulator.getCPU();
         boolean hasBus = cpu != null && cpu.getLastBusActivity() != CPU.BusActivity.NONE;
         boolean hasAlu = cpu != null && cpu.isAluActive();
@@ -228,7 +216,20 @@ public class VisualizationPanel extends JPanel implements ActionListener {
                 if (cpu.getLastBusActivity() != CPU.BusActivity.NONE) cpu.resetBusActivity();
                 if (cpu.isAluActive()) cpu.resetAluActive();
             }
-            if (onComplete != null) {
+            if (this.isShowing() && onComplete != null) {
+                // La fenêtre de visualisation est l'horloge : pause d'un cycle fixe pour les instructions sans bus/ALU
+                this.onAnimationComplete = onComplete;
+                idleTimer = new Timer(IDLE_CLOCK_CYCLE_MS, ev -> {
+                    ((Timer) ev.getSource()).stop();
+                    if (this.onAnimationComplete != null) {
+                        Runnable prev = this.onAnimationComplete;
+                        this.onAnimationComplete = null;
+                        prev.run();
+                    }
+                });
+                idleTimer.setRepeats(false);
+                idleTimer.start();
+            } else if (onComplete != null) {
                 onComplete.run();
             }
         }
