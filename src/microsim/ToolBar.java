@@ -322,26 +322,52 @@ public class ToolBar extends JToolBar {
      */
     private void action_help() {
         try {
-            File manFile = new File("man/man.html");
-            if (!manFile.exists()) {
-                manFile = new File("../Resources/man/man.html");
-            }
-            if (!manFile.exists()) {
-                try {
-                    File jarDir = new File(MicroSim.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
-                    File candidate = new File(jarDir, "man/man.html");
-                    if (candidate.exists()) {
-                        manFile = candidate;
+            File manFile = null;
+
+            // 1. Try from JAR location (robust across all platforms and app bundles)
+            try {
+                File codeSource = new File(MicroSim.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+                File jarDir = codeSource.isDirectory() ? codeSource : codeSource.getParentFile();
+                
+                File[] candidates = {
+                    new File(jarDir, "man/man.html"),
+                    new File(jarDir, "Resources/man/man.html"),
+                    new File(jarDir.getParentFile(), "man/man.html"),
+                    new File(jarDir.getParentFile(), "Resources/man/man.html"),
+                    new File(jarDir.getParentFile().getParentFile(), "Resources/man/man.html"),
+                    new File(jarDir.getParentFile().getParentFile(), "MacOS/man/man.html")
+                };
+                for (File c : candidates) {
+                    if (c != null && c.exists()) {
+                        manFile = c;
+                        break;
                     }
-                } catch (Exception ignored) {}
+                }
+            } catch (Exception ignored) {}
+
+            // 2. Try relative paths from current working directory
+            if (manFile == null || !manFile.exists()) {
+                File[] cwdCandidates = {
+                    new File("man/man.html"),
+                    new File("../Resources/man/man.html"),
+                    new File("Contents/Resources/man/man.html")
+                };
+                for (File c : cwdCandidates) {
+                    if (c != null && c.exists()) {
+                        manFile = c;
+                        break;
+                    }
+                }
             }
-            if (manFile.exists()) {
+
+            if (manFile != null && manFile.exists()) {
                 java.awt.Desktop.getDesktop().browse(manFile.toURI());
             } else {
-                JOptionPane.showMessageDialog(MicroSim.self, "Help file not found: " + manFile.getAbsolutePath(), "Help Error", JOptionPane.ERROR_MESSAGE);
+                // Online fallback if local file is missing
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://jlehuen.github.io/MicroSim/man/man.html"));
             }
-        } catch (java.io.IOException e) {
-            JOptionPane.showMessageDialog(MicroSim.self, "Could not open help file: " + e.getMessage(), "Help Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(MicroSim.self, "Could not open help: " + e.getMessage(), "Help Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
