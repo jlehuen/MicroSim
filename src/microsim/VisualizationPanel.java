@@ -576,7 +576,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         drawSingleBus(g2d, busStartX, ctrlBusY, busLength, BUS_CTRL, "Control");
 
         // 3. Animation dynamique des paquets et flux de bus (RAM et Périphériques unifiés)
-        if (animationRunning) {
+        if (animationRunning && animatedActivity != CPU.BusActivity.NONE) {
             boolean isIO = (animatedActivity == CPU.BusActivity.IO_WRITE || animatedActivity == CPU.BusActivity.IO_READ);
             int targetX = isIO ? devConnectionX : ramConnectionX;
             int targetY = isIO ? devY : ramY;
