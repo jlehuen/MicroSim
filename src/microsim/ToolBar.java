@@ -269,6 +269,17 @@ public class ToolBar extends JToolBar {
     }
 
     /**
+     * Activates step mode automatically when a breakpoint is reached.
+     * @param lineNumber 1-based source line number.
+     * @param ip Current instruction pointer.
+     */
+    public void enterStepModeFromBreakpoint(int lineNumber, int ip) {
+        simulator.stepmode = true;
+        modeButton.setIcon(iconStepOn);
+        MicroSim.self.getConsole().println("Breakpoint hit on line " + lineNumber + " (IP = " + Utils.toHexString0x(ip) + ")", Color.ORANGE);
+    }
+
+    /**
      * Assembles the code from the editor.
      * If the file is not saved, it will be saved before assembly.
      */

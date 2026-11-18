@@ -12,13 +12,19 @@ package microsim.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
@@ -27,9 +33,13 @@ import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.Gutter;
+import org.fife.ui.rtextarea.GutterIconInfo;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import microsim.MicroSim;
+import microsim.simulator.CPU;
+import microsim.simulator.RAM;
 import microsim.simulator.Simulator;
 import microsim.simulator.Utils;
 
@@ -104,11 +114,145 @@ public class EditorTab extends JPanel {
             }
         });
 
+        textArea.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateHoverTooltip(e);
+            }
+        });
+
         scrollPane = new RTextScrollPane(textArea);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setIconRowHeaderEnabled(true);
+        Gutter gutter = scrollPane.getGutter();
+        gutter.setBookmarkingEnabled(true);
+        gutter.setBookmarkIcon(createBreakpointIcon());
         add(scrollPane, BorderLayout.CENTER);
 
         updateSyntaxStyle();
+    }
+
+    private static Icon createBreakpointIcon() {
+        int size = 12;
+        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = img.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setColor(new Color(220, 38, 38));
+        g2.fillOval(1, 1, size - 2, size - 2);
+        g2.setColor(new Color(153, 27, 27));
+        g2.drawOval(1, 1, size - 2, size - 2);
+        g2.setColor(new Color(254, 202, 202));
+        g2.fillOval(3, 3, 3, 3);
+        g2.dispose();
+        return new ImageIcon(img);
+    }
+
+    public boolean hasBreakpointAtLine(int line) {
+        Gutter gutter = scrollPane.getGutter();
+        if (gutter == null) return false;
+        GutterIconInfo[] bookmarks = gutter.getBookmarks();
+        if (bookmarks == null) return false;
+        for (GutterIconInfo info : bookmarks) {
+            try {
+                int bLine = textArea.getLineOfOffset(info.getMarkedOffset());
+                if (bLine == line) return true;
+            } catch (BadLocationException ignored) {}
+        }
+        return false;
+    }
+
+    private void updateHoverTooltip(MouseEvent e) {
+        Simulator sim = mainframe.getSimulator();
+        if (sim == null || sim.getCPU() == null || sim.getRAM() == null) {
+            textArea.setToolTipText(null);
+            return;
+        }
+        int offset = textArea.viewToModel2D(e.getPoint());
+        if (offset < 0) {
+            textArea.setToolTipText(null);
+            return;
+        }
+        try {
+            String text = textArea.getText();
+            if (offset >= text.length()) {
+                textArea.setToolTipText(null);
+                return;
+            }
+            int line = textArea.getLineOfOffset(offset);
+            int lineStart = textArea.getLineStartOffset(line);
+            int lineEnd = textArea.getLineEndOffset(line);
+            String lineText = text.substring(lineStart, lineEnd);
+            int semi = lineText.indexOf(';');
+            if (semi != -1 && (offset - lineStart) >= semi) {
+                textArea.setToolTipText(null);
+                return;
+            }
+
+            int start = offset;
+            int end = offset;
+            while (start > lineStart && isTokenChar(text.charAt(start - 1))) start--;
+            while (end < lineEnd && isTokenChar(text.charAt(end))) end++;
+            if (start >= end) {
+                textArea.setToolTipText(null);
+                return;
+            }
+
+            String token = text.substring(start, end).trim();
+            boolean bracketed = (start > lineStart && text.charAt(start - 1) == '[')
+                    || (end < lineEnd && text.charAt(end) == ']');
+
+            CPU cpu = sim.getCPU();
+            RAM ram = sim.getRAM();
+            int[] gpr = cpu.getRegisters();
+            String upper = token.toUpperCase();
+
+            int regVal = -1;
+            String regName = null;
+            switch (upper) {
+                case "AL": regName = "AL"; regVal = gpr[0]; break;
+                case "BL": regName = "BL"; regVal = gpr[1]; break;
+                case "CL": regName = "CL"; regVal = gpr[2]; break;
+                case "DL": regName = "DL"; regVal = gpr[3]; break;
+                case "IP": regName = "IP"; regVal = cpu.getIP(); break;
+                case "SP": regName = "SP"; regVal = cpu.getSP(); break;
+                case "SR": regName = "SR"; regVal = cpu.getSR(); break;
+            }
+
+            if (regName != null) {
+                String tip = regName + " = " + Utils.toHexString0x(regVal)
+                        + " (dec: " + Utils.toSignedDecimalString(regVal)
+                        + ", bin: " + Utils.toBinaryString(regVal) + ")";
+                if (bracketed && regVal >= 0 && regVal < ram.getSize()) {
+                    int memVal = ram.load(regVal);
+                    tip += "  ->  RAM[" + Utils.toHexString0x(regVal) + "] = " + Utils.toHexString0x(memVal);
+                }
+                textArea.setToolTipText(tip);
+                return;
+            }
+
+            if (bracketed || upper.startsWith("0X")) {
+                int addr = -1;
+                try {
+                    addr = upper.startsWith("0X")
+                            ? Integer.parseInt(upper.substring(2), 16)
+                            : Integer.parseInt(upper);
+                } catch (NumberFormatException ignored) {}
+                if (addr >= 0 && addr < ram.getSize()) {
+                    int memVal = ram.load(addr);
+                    String ascii = (memVal >= 32 && memVal <= 126) ? " '" + (char) memVal + "'" : "";
+                    textArea.setToolTipText("RAM[" + Utils.toHexString0x(addr) + "] = "
+                            + Utils.toHexString0x(memVal) + " (dec: " + Utils.toSignedDecimalString(memVal) + ")" + ascii);
+                    return;
+                }
+            }
+            textArea.setToolTipText(null);
+        } catch (BadLocationException ex) {
+            textArea.setToolTipText(null);
+        }
+    }
+
+    private static boolean isTokenChar(char c) {
+        return Character.isLetterOrDigit(c) || c == '_';
     }
 
     public RSyntaxTextArea getTextArea() {

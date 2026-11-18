@@ -73,12 +73,17 @@ public class RegistersPanel extends JPanel {
             public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 java.awt.Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 String registerName = (String) table.getModel().getValueAt(row, 0);
+                CPU cpu = simulator.getCPU();
+                boolean isModifiedGpr = (cpu != null && row >= 0 && row < 4 && row == cpu.getLastModifiedRegister());
+
                 if (registerName.equals("IP")) c.setForeground(Color.RED); // Instruction pointer
                 else if (registerName.equals("SP")) c.setForeground(Color.BLUE); // Stack pointer
                 else if (registerName.equals("SR")) c.setForeground(Color.ORANGE.darker()); // Status register
                 else if (registerName.equals("")) c.setForeground(Color.ORANGE.darker()); // Flags labels
+                else if (isModifiedGpr) c.setForeground(new Color(21, 128, 61)); // Modified register
                 else c.setForeground(Color.BLACK); // Color for other registers
-                c.setBackground(LIGHT_GRAY); // Consistent background
+
+                c.setBackground(isModifiedGpr ? new Color(220, 252, 231) : LIGHT_GRAY);
                 setHorizontalAlignment(DefaultTableCellRenderer.CENTER);
                 return c;
             }

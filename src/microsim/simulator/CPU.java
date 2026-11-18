@@ -21,6 +21,7 @@ public class CPU {
 
     public enum BusActivity {
         NONE,
+        FETCH,
         READ,
         WRITE,
         IO_READ,
@@ -68,6 +69,8 @@ public class CPU {
 
     // Bus activity tracking
     private int lastMemoryAddress = -1;
+    private int lastAccessedRamAddress = -1;
+    private int lastModifiedRegister = -1;
     private int lastDataValue = -1;
     private BusActivity lastBusActivity = BusActivity.NONE;
     private String lastAluOperation = null;
@@ -96,6 +99,8 @@ public class CPU {
     }
 
     public int getLastMemoryAddress() { return lastMemoryAddress; }
+    public int getLastAccessedRamAddress() { return lastAccessedRamAddress; }
+    public int getLastModifiedRegister() { return lastModifiedRegister; }
     public int getLastDataValue() { return lastDataValue; }
     public BusActivity getLastBusActivity() { return lastBusActivity; }
     public String getLastAluOperation() { return lastAluOperation; }
@@ -245,6 +250,8 @@ public class CPU {
         SP = maxSP;
         IP = 0;
         lastExecutedIP = 0;
+        lastAccessedRamAddress = -1;
+        lastModifiedRegister = -1;
         resetBusActivity();
         resetAluOperation();
         resetAluActive();
@@ -271,10 +278,13 @@ public class CPU {
             }
 
             lastExecutedIP = IP;
+            lastAccessedRamAddress = -1;
+            lastModifiedRegister = -1;
+            int[] prevRegs = registers.clone();
             resetBusActivity();
             resetAluActive();
             int instr = memory.load(IP);
-            int regTo, regFrom, number, memFrom;
+            int regTo = -1, regFrom, number, memFrom;
 
             switch (instr) {
             
@@ -1074,6 +1084,16 @@ public class CPU {
                     break;
                 default:
                     throw new UnsupportedOperationException("Opcode " + instr + " is not yet implemented");
+            }
+
+            for (int i = 0; i < registers.length; i++) {
+                if (registers[i] != prevRegs[i]) {
+                    lastModifiedRegister = i;
+                    break;
+                }
+            }
+            if (lastBusActivity == BusActivity.READ || lastBusActivity == BusActivity.WRITE) {
+                lastAccessedRamAddress = lastMemoryAddress;
             }
 
         } catch (Exception e) {

@@ -15,8 +15,10 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 
+import microsim.MicroSim;
 import microsim.simulator.RAM;
 import microsim.simulator.CPU;
+import microsim.simulator.Utils;
 
 /**
  * The MemoryFrame class provides a graphical representation of the RAM content.
@@ -47,7 +49,14 @@ public class MemoryFrame extends AbstractDevice {
     private RamTableModel model;
     private CPU cpu;
     private int headerRowHeight;
+    private int programCodeSize = 0;
     private DisplayMode currentDisplayMode = DisplayMode.HEX;
+
+    // Semantic RAM zone colors
+    private static final Color COLOR_LAST_ACCESS = new Color(253, 224, 71); // Amber/Yellow highlight
+    private static final Color COLOR_CODE_ZONE   = new Color(209, 250, 229); // Soft green (assembled code)
+    private static final Color COLOR_STACK_ZONE  = new Color(219, 234, 254); // Soft blue (active stack)
+    private static final Color COLOR_VRAM_ZONE   = new Color(254, 243, 199); // Soft warm tint (ASCII display 0xC0..0xFF)
 
     /**
      * Constructs the MemoryFrame.
@@ -86,7 +95,7 @@ public class MemoryFrame extends AbstractDevice {
         viewGroup.add(hexButton);
         viewGroup.add(asciiButton);
 
-        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 4));
         radioPanel.add(hexButton);
         radioPanel.add(asciiButton);
         radioPanel.setBackground(Color.DARK_GRAY);
@@ -94,6 +103,20 @@ public class MemoryFrame extends AbstractDevice {
         hexButton.setForeground(Color.WHITE);
         asciiButton.setBackground(Color.DARK_GRAY);
         asciiButton.setForeground(Color.WHITE);
+
+        JPanel legendPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 2));
+        legendPanel.setBackground(Color.DARK_GRAY);
+        legendPanel.add(createLegendItem("IP", Color.RED, Color.WHITE));
+        legendPanel.add(createLegendItem("SP", Color.BLUE, Color.WHITE));
+        legendPanel.add(createLegendItem("R/W", COLOR_LAST_ACCESS, Color.BLACK));
+        legendPanel.add(createLegendItem("Code", COLOR_CODE_ZONE, Color.BLACK));
+        legendPanel.add(createLegendItem("Stack", COLOR_STACK_ZONE, Color.BLACK));
+        legendPanel.add(createLegendItem("VRAM", COLOR_VRAM_ZONE, Color.BLACK));
+
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.setBackground(Color.DARK_GRAY);
+        southPanel.add(legendPanel, BorderLayout.NORTH);
+        southPanel.add(radioPanel, BorderLayout.SOUTH);
 
 
         hexButton.addActionListener(e -> {
@@ -115,7 +138,7 @@ public class MemoryFrame extends AbstractDevice {
         contentPane.setLayout(new BorderLayout());
         contentPane.setBackground(Color.DARK_GRAY);
         contentPane.add(table, BorderLayout.CENTER);
-        contentPane.add(radioPanel, BorderLayout.SOUTH);
+        contentPane.add(southPanel, BorderLayout.SOUTH);
 
         // Add a margin
         ((JComponent) contentPane).setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20));
@@ -126,6 +149,20 @@ public class MemoryFrame extends AbstractDevice {
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         setResizable(false);
         setAlwaysOnTop(true);
+    }
+
+    private JLabel createLegendItem(String text, Color bg, Color fg) {
+        JLabel lbl = new JLabel(" " + text + " ");
+        lbl.setOpaque(true);
+        lbl.setBackground(bg);
+        lbl.setForeground(fg);
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 10));
+        lbl.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        return lbl;
+    }
+
+    public void setProgramCodeSize(int size) {
+        this.programCodeSize = Math.max(0, size);
     }
 
     /**
@@ -227,13 +264,43 @@ public class MemoryFrame extends AbstractDevice {
                 } else if (address == cpu.getSP()) {
                     c.setBackground(Color.BLUE);
                     c.setForeground(Color.WHITE);
+                } else if (address == cpu.getLastAccessedRamAddress()) {
+                    c.setBackground(COLOR_LAST_ACCESS);
+                    c.setForeground(Color.BLACK);
+                } else if (address >= 0xC0) {
+                    c.setBackground(COLOR_VRAM_ZONE);
+                    c.setForeground(Color.BLACK);
+                } else if (address > cpu.getSP() && address <= 0xBF) {
+                    c.setBackground(COLOR_STACK_ZONE);
+                    c.setForeground(Color.BLACK);
+                } else if (address < programCodeSize) {
+                    c.setBackground(COLOR_CODE_ZONE);
+                    c.setForeground(Color.BLACK);
                 } else {
                     c.setBackground(table.getBackground());
                     c.setForeground(table.getForeground());
                 }
+
+                int cellVal = model.memory.load(address) & 0xFF;
+                String asciiStr = (cellVal >= 32 && cellVal <= 126) ? "'" + (char) cellVal + "'" : "non-printable";
+                StringBuilder tip = new StringBuilder();
+                tip.append("[").append(Utils.toHexString0x(address)).append(" / ").append(address).append("] = ")
+                   .append(Utils.toHexString0x(cellVal))
+                   .append(" | Unsigned: ").append(cellVal)
+                   .append(" | Signed: ").append(Utils.toSignedDecimalString(cellVal))
+                   .append(" | Bin: ").append(Utils.toBinaryString(cellVal))
+                   .append(" | ASCII: ").append(asciiStr);
+                if (address < programCodeSize && MicroSim.self != null && MicroSim.self.getSimulator() != null) {
+                    String instr = MicroSim.self.getSimulator().getInstructionTextAt(address);
+                    if (instr != null) {
+                        tip.append(" | Code: ").append(instr);
+                    }
+                }
+                setToolTipText(tip.toString());
             } else {
                 c.setBackground(Color.DARK_GRAY);
                 c.setForeground(Color.LIGHT_GRAY);
+                setToolTipText(null);
             }
             return c;
         }

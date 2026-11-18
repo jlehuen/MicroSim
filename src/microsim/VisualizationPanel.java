@@ -5,14 +5,20 @@ import javax.swing.Timer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
 
 import microsim.simulator.CPU;
 import microsim.simulator.RAM;
@@ -64,6 +70,16 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     private Simulator simulator;
 
+    // Bouton à 2 états : gauche (false) = vitesse normale, droite (true) = vitesse lente (x2)
+    private boolean slowMode = false;
+    private final BufferedImage iconSwitchOff = Utils.loadBufferedImage("icons/icon_off.png");
+    private final BufferedImage iconSwitchOn = Utils.loadBufferedImage("icons/icon_on.png");
+    private final Rectangle speedToggleBounds = new Rectangle();
+    private final Rectangle ramCardBounds = new Rectangle();
+    private boolean ramDragging = false;
+    private int ramDragStartY = 0;
+    private int ramDragStartAddr = 0;
+
     // Animation fields
     private Timer animationTimer;
     private Timer idleTimer;
@@ -74,6 +90,8 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     private int animatedValue;
     private int animatedAddress;
     private CPU.BusActivity animatedActivity;
+    private String animatedInstructionText = null;
+    private String currentIrText = null;
     private boolean isAluAnimated = false;
     private String animatedAluOp = null;
     private boolean addressAnimationFinished = false;
@@ -85,6 +103,107 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         this.simulator = simulator;
         setBackground(BG_PANEL);
         animationTimer = new Timer(ANIMATION_DELAY, this);
+
+        MouseAdapter mouseHandler = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (speedToggleBounds.contains(e.getPoint())) {
+                    toggleSlowMode();
+                } else if (canDragRam() && ramCardBounds.contains(e.getPoint())) {
+                    ramDragging = true;
+                    ramDragStartY = e.getY();
+                    ramDragStartAddr = ramViewStartAddr;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (ramDragging) {
+                    ramDragging = false;
+                    updateHoverState(e);
+                }
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (ramDragging && canDragRam()) {
+                    int deltaY = e.getY() - ramDragStartY;
+                    int deltaLines = -deltaY / 10;
+                    setRamViewStartAddr(ramDragStartAddr + deltaLines);
+                } else if (!canDragRam()) {
+                    ramDragging = false;
+                }
+            }
+
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                if (canDragRam() && ramCardBounds.contains(e.getPoint())) {
+                    int rotation = e.getWheelRotation();
+                    setRamViewStartAddr(ramViewStartAddr + rotation * 2);
+                }
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                updateHoverState(e);
+            }
+        };
+        addMouseListener(mouseHandler);
+        addMouseMotionListener(mouseHandler);
+        addMouseWheelListener(mouseHandler);
+    }
+
+    private boolean canDragRam() {
+        return simulator != null && (!simulator.isRunning() || (simulator.stepmode && !animationRunning));
+    }
+
+    private void setRamViewStartAddr(int newAddr) {
+        int totalSize = (simulator != null && simulator.getRAM() != null) ? simulator.getRAM().getSize() : 256;
+        int numLines = Math.max(1, (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 65) / 16);
+        int maxStart = Math.max(0, totalSize - numLines);
+        int clamped = Math.max(0, Math.min(maxStart, newAddr));
+        if (clamped != this.ramViewStartAddr) {
+            this.ramViewStartAddr = clamped;
+            repaint();
+        }
+    }
+
+    private void updateHoverState(MouseEvent e) {
+        if (speedToggleBounds.contains(e.getPoint())) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setToolTipText(slowMode ? "Slow speed active (click for normal speed)" : "Normal speed active (click for slow speed)");
+        } else if (canDragRam() && ramCardBounds.contains(e.getPoint())) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+            setToolTipText("Drag vertically or scroll to slide RAM content");
+        } else {
+            setCursor(Cursor.getDefaultCursor());
+            setToolTipText(null);
+        }
+    }
+
+    private int getEffectiveDurationMs(boolean isRead) {
+        int base = isRead ? READ_TRANSFER_DURATION_MS : TRANSFER_DURATION_MS;
+        return slowMode ? base * 2 : base;
+    }
+
+    private int getEffectiveIdleMs() {
+        return slowMode ? IDLE_CLOCK_CYCLE_MS * 2 : IDLE_CLOCK_CYCLE_MS;
+    }
+
+    private void toggleSlowMode() {
+        slowMode = !slowMode;
+        if (animationRunning && targetDurationMs > 0) {
+            long now = System.currentTimeMillis();
+            double fraction = Math.min(1.0, Math.max(0.0, (double) (now - animationStartTime) / targetDurationMs));
+            boolean isRead = (animatedActivity == CPU.BusActivity.FETCH
+                    || animatedActivity == CPU.BusActivity.READ
+                    || animatedActivity == CPU.BusActivity.IO_READ);
+            int newDuration = getEffectiveDurationMs(isRead);
+            animationStartTime = now - (long) (fraction * newDuration);
+            targetDurationMs = newDuration;
+        }
+        repaint();
     }
 
     @Override
@@ -94,6 +213,26 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
     public boolean isAnimating() {
         return (animationTimer != null && animationTimer.isRunning()) || (idleTimer != null && idleTimer.isRunning());
+    }
+
+    public void resetState() {
+        stopAnimation();
+        this.currentIrText = null;
+        this.animatedInstructionText = null;
+        this.ramViewStartAddr = 0;
+        repaint();
+    }
+
+    public void animateFetch(int ipAddress, String instrText, Runnable onComplete) {
+        if (!this.isShowing()) {
+            this.currentIrText = instrText;
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+        this.animatedInstructionText = (instrText != null && !instrText.isEmpty())
+                ? instrText
+                : Utils.toHexString0x(simulator.getRAM().load(ipAddress));
+        startAnimation(CPU.BusActivity.FETCH, 0, ipAddress, false, null, onComplete);
     }
 
     private void startAnimation(CPU.BusActivity activity, int value, int address, boolean aluActive, String aluOp, Runnable onComplete) {
@@ -110,7 +249,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         }
 
         // Adjust RAM view to center the animated address (seulement pour accès mémoire RAM)
-        if (activity == CPU.BusActivity.READ || activity == CPU.BusActivity.WRITE) {
+        if (activity == CPU.BusActivity.FETCH || activity == CPU.BusActivity.READ || activity == CPU.BusActivity.WRITE) {
             int numLines = Math.max(1, (getHeight() - BUS_TOP_MARGIN - 2 * PADDING - 55) / 16);
             if (address < this.ramViewStartAddr || address >= this.ramViewStartAddr + numLines) {
                 this.ramViewStartAddr = Math.max(0, address - (numLines / 2));
@@ -127,9 +266,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         this.addressAnimationFinished = false;
         this.onAnimationComplete = onComplete;
 
-        boolean isRead = (activity == CPU.BusActivity.READ || activity == CPU.BusActivity.IO_READ);
-        // Durée fixe pédagogique de référence : la visualisation est l'horloge maîtresse
-        this.targetDurationMs = isRead ? READ_TRANSFER_DURATION_MS : TRANSFER_DURATION_MS;
+        boolean isRead = (activity == CPU.BusActivity.FETCH || activity == CPU.BusActivity.READ || activity == CPU.BusActivity.IO_READ);
+        // Durée fixe pédagogique de référence (normale ou ralentie x2)
+        this.targetDurationMs = getEffectiveDurationMs(isRead);
         this.animationStartTime = System.currentTimeMillis();
 
         animationTimer.start();
@@ -157,7 +296,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         long elapsed = System.currentTimeMillis() - animationStartTime;
-        boolean isRead = (animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.IO_READ);
+        boolean isRead = (animatedActivity == CPU.BusActivity.FETCH || animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.IO_READ);
         double totalDuration = isRead ? 2.0 : 1.0;
 
         if (targetDurationMs <= 0) {
@@ -171,12 +310,19 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             addressAnimationFinished = true;
         }
 
+        if (animatedActivity == CPU.BusActivity.FETCH && animationProgress >= 1.85 && animatedInstructionText != null) {
+            currentIrText = animatedInstructionText;
+        }
+
         if (elapsed >= targetDurationMs || animationProgress >= totalDuration) {
             animationProgress = totalDuration;
             animationTimer.stop();
+            if (animatedActivity == CPU.BusActivity.FETCH && animatedInstructionText != null) {
+                currentIrText = animatedInstructionText;
+            }
             animationRunning = false;
             CPU cpu = simulator.getCPU();
-            if (cpu != null) {
+            if (cpu != null && animatedActivity != CPU.BusActivity.FETCH) {
                 cpu.resetBusActivity();
                 cpu.resetAluActive();
             }
@@ -219,7 +365,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             if (this.isShowing() && onComplete != null) {
                 // La fenêtre de visualisation est l'horloge : pause d'un cycle fixe pour les instructions sans bus/ALU
                 this.onAnimationComplete = onComplete;
-                idleTimer = new Timer(IDLE_CLOCK_CYCLE_MS, ev -> {
+                idleTimer = new Timer(getEffectiveIdleMs(), ev -> {
                     ((Timer) ev.getSource()).stop();
                     if (this.onAnimationComplete != null) {
                         Runnable prev = this.onAnimationComplete;
@@ -303,7 +449,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
         g2d.setColor(Color.WHITE);
         g2d.setFont(titleFont);
-        g2d.drawString(title, x + 12, y + 28);
+        FontMetrics fm = g2d.getFontMetrics();
+        int titleX = x + (width - fm.stringWidth(title)) / 2;
+        g2d.drawString(title, titleX, y + 28);
     }
 
     private void drawStaticComponents(Graphics2D g2d, int cpuX, int cpuY, int aluX, int aluY, int aluHeight, int ramX, int ramY, int devX, int devY) {
@@ -345,6 +493,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         // Cartes des composants
         drawCard(g2d, cpuX, cpuY, CPU_WIDTH, RECT_HEIGHT, "CPU 8 bits", CPU_HEADER);
         drawCard(g2d, ramX, ramY, RAM_WIDTH, ramHeight, "RAM 256 bytes", RAM_HEADER);
+        ramCardBounds.setBounds(ramX, ramY + 36, RAM_WIDTH, ramHeight - 36);
         drawCard(g2d, devX, devY, DEV_WIDTH, RECT_HEIGHT, "PERIPHERALS", DEV_HEADER);
 
         // 3. Boîte ALU vivante
@@ -399,6 +548,55 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             }
             g2d.drawString(portNames[p], devX + 14, pY);
         }
+
+        // Bouton bascule à 2 états en bas à droite sous le bloc PERIPHERALS (aligné avec l'ALU)
+        drawSpeedToggle(g2d, devX, aluY, DEV_WIDTH, aluHeight);
+    }
+
+    /**
+     * Dessine le bouton à 2 états (gauche = vitesse normale, droite = vitesse lente) sous le bloc PERIPHERALS
+     */
+    private void drawSpeedToggle(Graphics2D g2d, int x, int y, int width, int height) {
+        int boxH = 58;
+        int boxY = y + (height - boxH) / 2;
+
+        g2d.setColor(CARD_BG);
+        g2d.fillRoundRect(x, boxY, width, boxH, 10, 10);
+        g2d.setColor(CARD_BORDER);
+        g2d.setStroke(new BasicStroke(1.2f));
+        g2d.drawRoundRect(x, boxY, width, boxH, 10, 10);
+
+        g2d.setFont(new Font("SansSerif", Font.BOLD, 10));
+        FontMetrics fmTitle = g2d.getFontMetrics();
+        String title = "ANIMATION SPEED";
+        int titleW = fmTitle.stringWidth(title);
+        g2d.setColor(new Color(148, 163, 184));
+        g2d.drawString(title, x + (width - titleW) / 2, boxY + 16);
+
+        BufferedImage switchImg = slowMode ? iconSwitchOn : iconSwitchOff;
+        int iconW = (switchImg != null) ? switchImg.getWidth() : 28;
+        int iconH = (switchImg != null) ? switchImg.getHeight() : 28;
+        int iconX = x + (width - iconW) / 2;
+        int iconY = boxY + 23;
+
+        if (switchImg != null) {
+            g2d.drawImage(switchImg, iconX, iconY, this);
+        }
+
+        g2d.setFont(new Font("SansSerif", Font.BOLD, 11));
+        FontMetrics fm = g2d.getFontMetrics();
+        int textBaselineY = iconY + iconH / 2 + (fm.getAscent() - fm.getDescent()) / 2;
+
+        String leftLabel = "Normal";
+        int leftW = fm.stringWidth(leftLabel);
+        g2d.setColor(!slowMode ? new Color(241, 245, 249) : new Color(100, 116, 139));
+        g2d.drawString(leftLabel, iconX - leftW - 8, textBaselineY);
+
+        String rightLabel = "Slow";
+        g2d.setColor(slowMode ? new Color(254, 202, 202) : new Color(100, 116, 139));
+        g2d.drawString(rightLabel, iconX + iconW + 8, textBaselineY);
+
+        speedToggleBounds.setBounds(x, boxY, width, boxH);
     }
 
     private void drawDynamicValues(Graphics2D g2d, int cpuX, int cpuY, int ramX, int ramY) {
@@ -412,13 +610,15 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         
         // Colonne 1 : registres généraux AL, BL, CL, DL
         String[] regNames = {"AL", "BL", "CL", "DL"};
+        int modReg = (animationRunning && animatedActivity == CPU.BusActivity.FETCH) ? -1 : cpu.getLastModifiedRegister();
         for (int i = 0; i < 4; i++) {
-            g2d.setColor(new Color(15, 23, 42)); // Slate 900
+            boolean isMod = (i == modReg);
+            g2d.setColor(isMod ? new Color(22, 101, 52) : new Color(15, 23, 42));
             g2d.fillRoundRect(cpuX + 12, regY - 14, 80, 22, 6, 6);
-            g2d.setColor(new Color(51, 65, 85)); // Slate 700
+            g2d.setColor(isMod ? new Color(34, 197, 94) : new Color(51, 65, 85));
             g2d.drawRoundRect(cpuX + 12, regY - 14, 80, 22, 6, 6);
 
-            g2d.setColor(new Color(203, 213, 225));
+            g2d.setColor(isMod ? new Color(240, 253, 244) : new Color(203, 213, 225));
             g2d.drawString(regNames[i] + ": " + Utils.toHexString0x(gpr[i]), cpuX + 18, regY + 2);
             regY += 28;
         }
@@ -433,7 +633,7 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             g2d.setColor(new Color(51, 65, 85));
             g2d.drawRoundRect(cpuX + 105, regY - 14, 82, 22, 6, 6);
 
-            g2d.setColor(i == 0 ? new Color(251, 146, 60) : new Color(203, 213, 225));
+            g2d.setColor(i == 0 ? new Color(251, 146, 60) : (i == 1 ? new Color(192, 132, 252) : new Color(203, 213, 225)));
             g2d.drawString(ptrNames[i] + ": " + Utils.toHexString0x(ptrValues[i]), cpuX + 111, regY + 2);
             regY += 28;
         }
@@ -472,14 +672,20 @@ public class VisualizationPanel extends JPanel implements ActionListener {
         int irW = CPU_WIDTH - 24;
         int irH = 22;
 
-        g2d.setColor(new Color(15, 23, 42));
+        boolean isIrLatching = (animationRunning && animatedActivity == CPU.BusActivity.FETCH && animationProgress >= 1.75);
+        g2d.setColor(isIrLatching ? new Color(12, 74, 96) : new Color(15, 23, 42));
         g2d.fillRoundRect(irX, irY, irW, irH, 6, 6);
-        g2d.setColor(new Color(51, 65, 85));
+        g2d.setColor(isIrLatching ? BUS_DATA : new Color(51, 65, 85));
         g2d.drawRoundRect(irX, irY, irW, irH, 6, 6);
 
-        String instrText = simulator.getCurrentInstructionText();
+        String instrText;
+        if (animationRunning && animatedActivity == CPU.BusActivity.FETCH) {
+            instrText = (animationProgress >= 1.85) ? animatedInstructionText : currentIrText;
+        } else {
+            instrText = (currentIrText != null) ? currentIrText : simulator.getCurrentInstructionText();
+        }
         g2d.setFont(boldCodeFont);
-        g2d.setColor(new Color(203, 213, 225));
+        g2d.setColor(isIrLatching ? new Color(224, 242, 254) : new Color(203, 213, 225));
         g2d.drawString("IR: ", irX + 6, irY + 16);
 
         FontMetrics fm = g2d.getFontMetrics();
@@ -504,13 +710,18 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
         for (int addr = startAddress; addr <= endAddress; addr++) {
             String line = Utils.toHexString0x(addr) + ": " + Utils.toHexString0x(ram.load(addr));
-            boolean isTarget = (animationRunning && (animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.WRITE) && addr == animatedAddress);
+            boolean isTarget = (animationRunning && (animatedActivity == CPU.BusActivity.FETCH || animatedActivity == CPU.BusActivity.READ || animatedActivity == CPU.BusActivity.WRITE) && addr == animatedAddress);
 
             if (isTarget) {
                 g2d.setColor(animatedActivity == CPU.BusActivity.WRITE ? new Color(127, 29, 29) : new Color(12, 74, 96));
                 g2d.fillRoundRect(ramX + 8, memY - 12, RAM_WIDTH - 16, 15, 4, 4);
                 g2d.setColor(animatedActivity == CPU.BusActivity.WRITE ? new Color(254, 202, 202) : new Color(186, 230, 253));
                 g2d.setFont(boldCodeFont);
+            } else if (addr >= 0xC0) {
+                g2d.setColor(new Color(120, 53, 15, 95));
+                g2d.fillRoundRect(ramX + 8, memY - 12, RAM_WIDTH - 18, 15, 4, 4);
+                g2d.setColor(new Color(253, 230, 138));
+                g2d.setFont(monacoFont);
             } else {
                 g2d.setColor(new Color(203, 213, 225));
                 g2d.setFont(monacoFont);
@@ -518,51 +729,74 @@ public class VisualizationPanel extends JPanel implements ActionListener {
 
             g2d.drawString(line, ramX + 12, memY);
 
-            // Badges IP / SP dans la RAM
+            // Badges IP / SP dans la RAM (forme flèche pentagonale strictement identique)
             int badgeX = ramX + 102;
             if (addr == currentIP) {
-                int bY = memY - 11;
-                int bH = 13;
-                int arrowW = 5;
-                int bW = 22;
-
-                int[] xPoints = {
-                    badgeX, 
-                    badgeX + arrowW, 
-                    badgeX + bW, 
-                    badgeX + bW, 
-                    badgeX + arrowW
-                };
-                int[] yPoints = {
-                    bY + bH / 2, 
-                    bY, 
-                    bY, 
-                    bY + bH, 
-                    bY + bH
-                };
-
-                g2d.setColor(new Color(154, 52, 18));
-                g2d.fillPolygon(xPoints, yPoints, 5);
-
-                g2d.setColor(new Color(254, 215, 170, 140));
-                g2d.setStroke(new BasicStroke(1.0f));
-                g2d.drawPolygon(xPoints, yPoints, 5);
-
-                g2d.setColor(new Color(254, 215, 170));
-                g2d.setFont(badgeFont);
-                g2d.drawString("IP", badgeX + arrowW + 3, memY - 1);
-                badgeX += bW + 3;
+                badgeX = drawRamPointerBadge(g2d, badgeX, memY, "IP",
+                        new Color(154, 52, 18),
+                        new Color(254, 215, 170, 140),
+                        new Color(254, 215, 170));
             }
             if (addr == currentSP) {
-                g2d.setColor(new Color(91, 33, 182));
-                g2d.fillRoundRect(badgeX, memY - 11, 20, 13, 4, 4);
-                g2d.setColor(new Color(237, 233, 254));
-                g2d.setFont(badgeFont);
-                g2d.drawString("SP", badgeX + 3, memY - 1);
+                drawRamPointerBadge(g2d, badgeX, memY, "SP",
+                        new Color(91, 33, 182),
+                        new Color(221, 214, 254, 140),
+                        new Color(237, 233, 254));
             }
 
             memY += 16;
         }
+
+        // Mini-scrollbar verticale discrète sur le bord droit de la carte RAM
+        int totalRam = ram.getSize();
+        if (totalRam > numLines) {
+            int trackX = ramX + RAM_WIDTH - 6;
+            int trackY = ramY + 46;
+            int trackH = Math.max(20, (getHeight() - BUS_TOP_MARGIN - 2 * PADDING) - 56);
+            g2d.setColor(new Color(15, 23, 42, 160));
+            g2d.fillRoundRect(trackX, trackY, 3, trackH, 3, 3);
+
+            int thumbH = Math.max(14, (int) ((double) numLines / totalRam * trackH));
+            int maxStart = Math.max(1, totalRam - numLines);
+            int thumbY = trackY + (int) ((double) startAddress / maxStart * (trackH - thumbH));
+            g2d.setColor(canDragRam() ? new Color(45, 212, 191, 210) : new Color(100, 116, 139, 160));
+            g2d.fillRoundRect(trackX, thumbY, 3, thumbH, 3, 3);
+        }
+    }
+
+    private int drawRamPointerBadge(Graphics2D g2d, int badgeX, int memY, String label,
+                                    Color fillColor, Color borderColor, Color textColor) {
+        int bY = memY - 11;
+        int bH = 13;
+        int arrowW = 5;
+        int bW = 22;
+
+        int[] xPoints = {
+            badgeX,
+            badgeX + arrowW,
+            badgeX + bW,
+            badgeX + bW,
+            badgeX + arrowW
+        };
+        int[] yPoints = {
+            bY + bH / 2,
+            bY,
+            bY,
+            bY + bH,
+            bY + bH
+        };
+
+        g2d.setColor(fillColor);
+        g2d.fillPolygon(xPoints, yPoints, 5);
+
+        g2d.setColor(borderColor);
+        g2d.setStroke(new BasicStroke(1.0f));
+        g2d.drawPolygon(xPoints, yPoints, 5);
+
+        g2d.setColor(textColor);
+        g2d.setFont(badgeFont);
+        g2d.drawString(label, badgeX + arrowW + 3, memY - 1);
+        return badgeX + bW + 3;
     }
 
     /**
@@ -658,7 +892,9 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             }
 
             String addressStr = Utils.toHexString0x(animatedAddress);
-            String dataStr = Utils.toHexString0x(animatedValue);
+            String dataStr = (animatedActivity == CPU.BusActivity.FETCH && animatedInstructionText != null)
+                    ? animatedInstructionText
+                    : Utils.toHexString0x(animatedValue);
             String ctrlStr = isWrite ? "WRITE" : "READ";
 
             if (isWrite) {
@@ -880,7 +1116,27 @@ public class VisualizationPanel extends JPanel implements ActionListener {
             String addrHex = Utils.toHexString0x(animatedAddress);
             String valHex = Utils.toHexString0x(animatedValue);
 
-            if (animatedActivity == CPU.BusActivity.WRITE) {
+            if (animatedActivity == CPU.BusActivity.FETCH) {
+                bannerBg = new Color(8, 47, 73);
+                bannerBorder = new Color(14, 165, 233);
+                dotColor = BUS_DATA;
+                textColor = new Color(224, 242, 254);
+                String instrStr = (animatedInstructionText != null) ? animatedInstructionText : valHex;
+
+                if (animationProgress < 0.25) {
+                    statusText = "Instruction Fetch (1/2): CPU outputs IP address " + addrHex + " and READ command...";
+                } else if (animationProgress < 0.75) {
+                    statusText = "Instruction Fetch (1/2): IP address " + addrHex + " and READ command propagating to RAM...";
+                } else if (animationProgress < 1.0) {
+                    statusText = "Instruction Fetch (1/2): RAM decodes address " + addrHex + " and reads instruction...";
+                } else if (animationProgress < 1.25) {
+                    statusText = "Instruction Fetch (2/2): RAM places [" + instrStr + "] onto Data bus...";
+                } else if (animationProgress < 1.75) {
+                    statusText = "Instruction Fetch (2/2): Routing instruction [" + instrStr + "] along Data bus to CPU...";
+                } else {
+                    statusText = "Instruction Fetch (2/2): CPU latches instruction [" + instrStr + "] into IR register.";
+                }
+            } else if (animatedActivity == CPU.BusActivity.WRITE) {
                 bannerBg = new Color(69, 26, 3);
                 bannerBorder = new Color(245, 158, 11);
                 dotColor = BUS_ADDRESS;

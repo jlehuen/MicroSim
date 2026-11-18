@@ -471,6 +471,16 @@ public class EditorPanel extends JPanel {
     }
 
     /**
+     * Checks if the active tab has a breakpoint on the specified 0-based line.
+     * @param line 0-based line index.
+     * @return true if a breakpoint is set on that line.
+     */
+    public boolean hasBreakpointAtLine(int line) {
+        EditorTab tab = getCurrentTab();
+        return tab != null && tab.hasBreakpointAtLine(line);
+    }
+
+    /**
      * Reformats code in the active tab.
      */
     public void reformat() {

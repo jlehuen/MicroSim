@@ -142,10 +142,12 @@ public class Simulator {
                 }
             });
             lastHighlightedLine = -1;
+            int skipBreakpointAtIp = -1;
 
             while (running && !cpu.isFault()) {
                 // Step-by-step mode
                 if (stepmode) {
+                    skipBreakpointAtIp = cpu.getIP();
                     int currentIp = cpu.getIP();
                     final Integer lineToHighlight = addressToLineMap != null ? addressToLineMap.get(currentIp) : null;
                     try {
@@ -161,7 +163,9 @@ public class Simulator {
                                 memoryFrame.updateMemoryView();
                             }
                             mainFrame.getRegisters().update();
-                            mainFrame.getVisualizationPanel().updateAndAnimate(null);
+                            if (mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isShowing()) {
+                                mainFrame.getVisualizationPanel().repaint();
+                            }
                         });
                     } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
                         running = false;
@@ -178,8 +182,68 @@ public class Simulator {
                             mainFrame.getToolBar().setStepButtonVisible(false);
                         }
                         if (!running) break;
-                        cpu.step();
-                    } catch (InterruptedException e) {
+                        if (!stepmode) continue;
+
+                        // Phase 1: Instruction Fetch animation if VisualizationPanel is open
+                        if (mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isShowing()) {
+                            final int fetchIp = cpu.getIP();
+                            final String fetchInstr = getInstructionTextAt(fetchIp);
+                            SwingUtilities.invokeAndWait(() -> {
+                                mainFrame.getVisualizationPanel().animateFetch(fetchIp, fetchInstr, () -> {
+                                    synchronized (animationLock) {
+                                        animationLock.notifyAll();
+                                    }
+                                });
+                            });
+                            if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                synchronized (animationLock) {
+                                    if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                        animationLock.wait(15000);
+                                    }
+                                }
+                            }
+                            if (!running) break;
+                        }
+
+                        // Phase 2: Decode & Execute instruction
+                        try {
+                            cpu.step();
+                        } catch (Exception e) {
+                            final String errorMessage = e.getMessage();
+                            SwingUtilities.invokeLater(() ->
+                                JOptionPane.showMessageDialog(mainFrame, "Runtime Error: " + errorMessage, "Execution Error", JOptionPane.ERROR_MESSAGE)
+                            );
+                            running = false;
+                            break;
+                        }
+
+                        // Phase 3: Execute bus/ALU animation if VisualizationPanel is open
+                        if (mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isShowing()) {
+                            boolean hasExecAnim = cpu.getLastBusActivity() != CPU.BusActivity.NONE || cpu.isAluActive();
+                            SwingUtilities.invokeAndWait(() -> {
+                                if (memoryFrame.isVisible()) {
+                                    memoryFrame.updateMemoryView();
+                                }
+                                mainFrame.getRegisters().update();
+                                if (hasExecAnim) {
+                                    mainFrame.getVisualizationPanel().updateAndAnimate(() -> {
+                                        synchronized (animationLock) {
+                                            animationLock.notifyAll();
+                                        }
+                                    });
+                                } else {
+                                    mainFrame.getVisualizationPanel().repaint();
+                                }
+                            });
+                            if (hasExecAnim && mainFrame.getVisualizationPanel().isAnimating()) {
+                                synchronized (animationLock) {
+                                    if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                        animationLock.wait(15000);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
                         running = false;
                         Thread.currentThread().interrupt();
                         break;
@@ -198,14 +262,31 @@ public class Simulator {
                 int currentDelay = executionSpeedDelay;
                 boolean shouldHighlight = isVisuOpen || (currentBatch == 1 && currentDelay >= MIN_HIGHLIGHT_DELAY);
                 boolean halted = false;
+                boolean breakpointTriggered = false;
 
                 for (int i = 0; i < currentBatch; i++) {
                     if (!running || cpu.isFault()) break;
 
+                    int currentIp = cpu.getIP();
+                    final Integer lineToHighlight = addressToLineMap != null ? addressToLineMap.get(currentIp) : null;
+
+                    // Check breakpoint in editor gutter
+                    if (lineToHighlight != null && currentIp != skipBreakpointAtIp
+                            && mainFrame.getEditor().hasBreakpointAtLine(lineToHighlight)) {
+                        final int bpLine = lineToHighlight + 1;
+                        final int bpIp = currentIp;
+                        try {
+                            SwingUtilities.invokeAndWait(() -> mainFrame.getToolBar().enterStepModeFromBreakpoint(bpLine, bpIp));
+                        } catch (Exception ignored) {
+                            stepmode = true;
+                        }
+                        breakpointTriggered = true;
+                        break;
+                    }
+                    skipBreakpointAtIp = -1;
+
                     // Highlight line only in visualization mode or slow mode
                     if (shouldHighlight) {
-                        int currentIp = cpu.getIP();
-                        final Integer lineToHighlight = addressToLineMap != null ? addressToLineMap.get(currentIp) : null;
                         if (lineToHighlight != null && lineToHighlight != lastHighlightedLine) {
                             try {
                                 SwingUtilities.invokeAndWait(() -> {
@@ -218,6 +299,33 @@ public class Simulator {
                             } catch (Exception ignored) {}
                             lastHighlightedLine = lineToHighlight;
                         }
+                    }
+
+                    // Phase 1: Instruction Fetch animation when VisualizationPanel is open
+                    if (isVisuOpen && mainFrame.getVisualizationPanel().isShowing()) {
+                        final int fetchIp = cpu.getIP();
+                        final String fetchInstr = getInstructionTextAt(fetchIp);
+                        try {
+                            SwingUtilities.invokeAndWait(() -> {
+                                mainFrame.getVisualizationPanel().animateFetch(fetchIp, fetchInstr, () -> {
+                                    synchronized (animationLock) {
+                                        animationLock.notifyAll();
+                                    }
+                                });
+                            });
+                            if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                synchronized (animationLock) {
+                                    if (mainFrame.getVisualizationPanel().isAnimating()) {
+                                        animationLock.wait(15000);
+                                    }
+                                }
+                            }
+                        } catch (InterruptedException | java.lang.reflect.InvocationTargetException e) {
+                            running = false;
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                        if (!running || cpu.isFault()) break;
                     }
 
                     try {
@@ -236,6 +344,10 @@ public class Simulator {
                         halted = true;
                         break;
                     }
+                }
+
+                if (breakpointTriggered) {
+                    continue;
                 }
 
                 if (!running || cpu.isFault() || halted) {
@@ -265,7 +377,7 @@ public class Simulator {
                         if (mainFrame.getVisualizationPanel().isAnimating()) {
                             synchronized (animationLock) {
                                 if (mainFrame.getVisualizationPanel().isAnimating()) {
-                                    animationLock.wait(6000);
+                                    animationLock.wait(15000);
                                 }
                             }
                         }
@@ -386,12 +498,13 @@ public class Simulator {
             sourceLines = program.split("\\r?\\n");
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
+            memoryFrame.setProgramCodeSize(result.machineCode.length);
             addressToLineMap = result.addressToLineMap;
             cpu.reset();
             SwingUtilities.invokeLater(() -> {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
-                mainFrame.getVisualizationPanel().updateAndAnimate(null);
+                mainFrame.getVisualizationPanel().resetState();
             });
             mainFrame.getConsole().println("Assembly listing:", Color.GREEN);
             mainFrame.getConsole().println(result.listing, Color.ORANGE);
@@ -416,6 +529,7 @@ public class Simulator {
         stop();
         cpu.reset();
         ram.reset();
+        memoryFrame.setProgramCodeSize(0);
         SwingUtilities.invokeLater(() -> {
             if (highlightTag != null) {
                 mainFrame.getEditor().removeLineHighlight(highlightTag);
@@ -424,7 +538,7 @@ public class Simulator {
             mainFrame.getEditor().getTextArea().setHighlightCurrentLine(true);
             memoryFrame.updateMemoryView();
             mainFrame.getRegisters().update();
-            mainFrame.getVisualizationPanel().updateAndAnimate(null);
+            mainFrame.getVisualizationPanel().resetState();
         });
         lastHighlightedLine = -1;
     }
@@ -442,12 +556,13 @@ public class Simulator {
             sourceLines = program.split("\\r?\\n");
             AssemblyResult result = assembler.assemble(program);
             ram.loadProgram(result.machineCode);
+            memoryFrame.setProgramCodeSize(result.machineCode.length);
             addressToLineMap = result.addressToLineMap;
             cpu.reset();
             SwingUtilities.invokeLater(() -> {
                 memoryFrame.updateMemoryView();
                 mainFrame.getRegisters().update();
-                mainFrame.getVisualizationPanel().updateAndAnimate(null);
+                mainFrame.getVisualizationPanel().resetState();
             });
             mainFrame.getConsole().println("File loaded and assembled successfully", Color.GREEN);
             return true;
@@ -474,6 +589,25 @@ public class Simulator {
     }
 
     /**
+     * Returns the clean assembly instruction text located at the given instruction pointer address.
+     * @param ip The instruction pointer address.
+     * @return The cleaned instruction string, or null if unavailable.
+     */
+    public String getInstructionTextAt(int ip) {
+        if (cpu == null || addressToLineMap == null || sourceLines == null) return null;
+        Integer line = addressToLineMap.get(ip);
+        if (line != null && line >= 0 && line < sourceLines.length) {
+            String text = sourceLines[line].trim();
+            int semi = text.indexOf(';');
+            if (semi != -1) text = text.substring(0, semi).trim();
+            text = text.replaceFirst("^[A-Za-z_][A-Za-z0-9_]*:\\s*", "");
+            text = text.replaceAll("\\s+", " ").trim();
+            return text.isEmpty() ? null : text;
+        }
+        return null;
+    }
+
+    /**
      * Returns the textual representation of the current instruction being executed or about to be executed.
      * @return The assembly instruction string, or null if unavailable.
      */
@@ -481,16 +615,10 @@ public class Simulator {
         if (cpu == null || addressToLineMap == null || sourceLines == null) return null;
         int ip = (mainFrame != null && mainFrame.getVisualizationPanel() != null && mainFrame.getVisualizationPanel().isAnimating())
                  ? cpu.getLastExecutedIP() : cpu.getIP();
-        Integer line = addressToLineMap.get(ip);
-        if (line == null && ip != cpu.getIP()) {
-            line = addressToLineMap.get(cpu.getIP());
+        String text = getInstructionTextAt(ip);
+        if (text == null && ip != cpu.getIP()) {
+            text = getInstructionTextAt(cpu.getIP());
         }
-        if (line != null && line >= 0 && line < sourceLines.length) {
-            String text = sourceLines[line].trim();
-            int semi = text.indexOf(';');
-            if (semi != -1) text = text.substring(0, semi).trim();
-            return text.isEmpty() ? null : text;
-        }
-        return null;
+        return text;
     }
 }
