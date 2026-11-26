@@ -287,10 +287,10 @@ public class BannerFrame extends AbstractDevice {
                 }
             }
 
-            // Port numbers "09/0A" in bottom left
+            // Port numbers "0A/0B" in bottom left
             g2.setFont(portFont);
             g2.setColor(new Color(210, 220, 20));
-            g2.drawString("09/0A", 16, PANEL_HEIGHT - 13);
+            g2.drawString("0A/0B", 16, PANEL_HEIGHT - 13);
 
             // Bottom status info: DATA and LAST COMMAND
             Font statusFont = new Font(Font.MONOSPACED, Font.BOLD, 11);

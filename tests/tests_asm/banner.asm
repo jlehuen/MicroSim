@@ -1,11 +1,11 @@
 ;
 ; ====================================================
-; Programme de test pour le Bandeau de LED 64x8 (Ports 0x09 / 0x0A)
+; Programme de test pour le Bandeau de LED 64x8 (Ports 0x0A / 0x0B)
 ; Démonstration : Défilement fluide de texte (Ticker)
 ;
 ; Contrôle :
-;   - Port 0x09 : Registre de donnée (motif de colonne 8 bits, bit 0 en haut, bit 7 en bas)
-;   - Port 0x0A : Registre de commande
+;   - Port 0x0A : Registre de donnée (motif de colonne 8 bits, bit 0 en haut, bit 7 en bas)
+;   - Port 0x0B : Registre de commande
 ;       0 = CLEAR      (Efface tout le bandeau)
 ;       1 = SHL        (Décalage d'une colonne vers la gauche)
 ;       2 = SHR        (Décalage d'une colonne vers la droite)
@@ -20,7 +20,7 @@
 Start:
         ; 1. Efface tout le bandeau
         mov AL, 0
-        out AL, 0x0A
+        out AL, 0x0B
 
 MainLoop:
         mov BL, 0x40        ; Pointeur vers les motifs de colonnes en 0x40
@@ -30,9 +30,9 @@ ColLoop:
         cmp AL, 0xFF        ; Marqueur de fin de message ?
         jz MainLoop         ; Reboucle à l'infini
 
-        out AL, 0x09        ; Envoie l'octet de colonne sur le port 0x09
+        out AL, 0x0A        ; Envoie l'octet de colonne sur le port 0x0A
         mov AL, 5           ; Commande 5 : Décalage gauche + injection à droite
-        out AL, 0x0A        ; Port 0x0A -> Exécute PUSH_RIGHT
+        out AL, 0x0B        ; Port 0x0B -> Exécute PUSH_RIGHT
 
         inc BL
         call Delay          ; Temporisation pour la fluidité visuelle

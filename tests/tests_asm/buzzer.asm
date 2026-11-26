@@ -1,12 +1,12 @@
 ;
 ; ====================================================
-; Programme de test pour le Buzzer 8-bit (Ports 0x04 / 0x05)
+; Programme de test pour le Buzzer 8-bit (Ports 0x05 / 0x06)
 ; Démonstration : Thème de Super Mario Bros
 ;
 ; Contrôle :
-;   - Port 0x04 : Note MIDI (1 à 127, 0 = silence)
-;   - Port 0x05 : Durée automatique en x10 ms
-;   - IN AL, 0x05 : 1 si le son/durée est actif, 0 si terminé
+;   - Port 0x05 : Note MIDI (1 à 127, 0 = silence)
+;   - Port 0x06 : Durée automatique en x10 ms
+;   - IN AL, 0x06 : 1 si le son/durée est actif, 0 si terminé
 ; ====================================================
 
         org 0x00
@@ -19,15 +19,15 @@ PlayLoop:
         cmp AL, 0xFF        ; Fin de la partition ?
         jz SongEnd
 
-        out AL, 0x04        ; Port 0x04 -> Note MIDI
+        out AL, 0x05        ; Port 0x05 -> Note MIDI
         inc BL
 
         mov AL, [BL]        ; Lecture de la durée
-        out AL, 0x05        ; Port 0x05 -> Durée (x10 ms)
+        out AL, 0x06        ; Port 0x06 -> Durée (x10 ms)
         inc BL
 
 WaitNote:
-        in AL, 0x05         ; Attend la fin de la durée matérielle
+        in AL, 0x06         ; Attend la fin de la durée matérielle
         cmp AL, 1
         jz WaitNote
 
@@ -35,7 +35,7 @@ WaitNote:
 
 SongEnd:
         mov AL, 0
-        out AL, 0x04        ; Coupe le son
+        out AL, 0x05        ; Coupe le son
         jmp Start           ; Rejoue la mélodie en boucle
 
 ; ====================================================

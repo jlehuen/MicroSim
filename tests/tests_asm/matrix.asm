@@ -1,8 +1,8 @@
 ;
 ; Programme de test pour la matrice de LED 8x8
 ; Contrôle :
-;   - Port 0x07 : index de ligne (0 à 7)
-;   - Port 0x08 : données de la ligne (8 LED)
+;   - Port 0x08 : index de ligne (0 à 7)
+;   - Port 0x09 : données de la ligne (8 LED)
 ; Démonstration : Animation cœur battant
 ;
 
@@ -26,10 +26,10 @@ Draw:
         mov BL, 0           ; Ligne 0
 DrawLoop:
         mov AL, BL
-        out AL, 0x07        ; Port 0x07 -> sélection de la ligne BL
+        out AL, 0x08        ; Port 0x08 -> sélection de la ligne BL
 
         mov AL, [CL]        ; Lecture du motif
-        out AL, 0x08        ; Port 0x08 -> écriture des 8 LED de la ligne
+        out AL, 0x09        ; Port 0x09 -> écriture des 8 LED de la ligne
 
         inc CL              ; Pointeur de motif suivant
         inc BL              ; Ligne suivante

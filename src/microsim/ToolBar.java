@@ -21,6 +21,7 @@ import javax.swing.JToolBar;
 import microsim.devices.AsciiFrame;
 import microsim.devices.BannerFrame;
 import microsim.devices.BuzzerFrame;
+import microsim.devices.ClockFrame;
 import microsim.devices.HeaterFrame;
 import microsim.devices.KeyboardFrame;
 import microsim.devices.LedBarFrame;
@@ -64,6 +65,7 @@ public class ToolBar extends JToolBar {
     private ImageIcon iconLedBar = Utils.loadImageIcon("/icons/icon_ledbar.png");
     private ImageIcon iconMatrix = Utils.loadImageIcon("/icons/icon_matrix.png");
     private ImageIcon iconBanner = Utils.loadImageIcon("/icons/icon_banner.png");
+    private ImageIcon iconClock = Utils.loadImageIcon("/icons/icon_clock.png");
 
     // Icons for file and editor operations
     private ImageIcon iconNew = Utils.loadImageIcon("/icons/icon_new.png");
@@ -82,7 +84,7 @@ public class ToolBar extends JToolBar {
 
     // Toolbar buttons
     private ToolButton runButton, compButton, asmButton;
-    private ToolButton asciiButton, keybButton, lightsButton, heaterButton, ledBarButton, matrixButton, buzzerButton, bannerButton;
+    private ToolButton asciiButton, keybButton, lightsButton, heaterButton, ledBarButton, matrixButton, buzzerButton, bannerButton, clockButton;
     private ToolButton newButton, openButton, saveButton,undoButton, redoButton, magicButton;
     private ToolButton modeButton, stepButton;
 
@@ -125,6 +127,7 @@ public class ToolBar extends JToolBar {
         add(keybButton = new ToolButton("KEYBOARD", "--", "Show / hide the keyboard device", iconKey, this));
         add(lightsButton = new ToolButton("LIGHTS", "--", "Show / hide the traffic lights device", iconLights, this));
         add(heaterButton = new ToolButton("HEATER", "--", "Show / hide the heater device", iconHeater, this));
+        add(clockButton = new ToolButton("CLOCK", "--", "Show / hide the clock (day/night) device", iconClock, this));
         add(buzzerButton = new ToolButton("BUZZER", "--", "Show / hide the 8-bit buzzer device", iconBuzzer, this));
         add(ledBarButton = new ToolButton("LEDBAR", "--", "Show / hide the 8-LED bar device", iconLedBar, this));
         add(matrixButton = new ToolButton("MATRIX", "--", "Show / hide the 8x8 LED matrix device", iconMatrix, this));
@@ -168,6 +171,7 @@ public class ToolBar extends JToolBar {
         ledBarButton.setEnabled(!isRunning);
         matrixButton.setEnabled(!isRunning);
         bannerButton.setEnabled(!isRunning);
+        clockButton.setEnabled(!isRunning);
 
         newButton.setEnabled(!isRunning);
         openButton.setEnabled(!isRunning);
@@ -198,6 +202,7 @@ public class ToolBar extends JToolBar {
             case "LEDBAR": LedBarFrame.INSTANCE.toggleVisible(); break;
             case "MATRIX": MatrixFrame.INSTANCE.toggleVisible(); break;
             case "BANNER": BannerFrame.INSTANCE.toggleVisible(); break;
+            case "CLOCK": ClockFrame.INSTANCE.toggleVisible(); break;
 
             case "NEW": editor.newFile(); break;
             case "OPEN": editor.openFile(); break;

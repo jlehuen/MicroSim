@@ -25,6 +25,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import microsim.devices.AsciiFrame;
 import microsim.devices.BannerFrame;
 import microsim.devices.BuzzerFrame;
+import microsim.devices.ClockFrame;
 import microsim.devices.HeaterFrame;
 import microsim.devices.KeyboardFrame;
 import microsim.devices.LedBarFrame;
@@ -93,6 +94,7 @@ public class MicroSim extends JFrame {
         AsciiFrame.INSTANCE.setLocation(555, 0);
         MatrixFrame.INSTANCE.setLocation(555, 150);
         BannerFrame.INSTANCE.setLocation(220, 230);
+        ClockFrame.INSTANCE.setLocation(555, 420);
         VisualizationFrame.INSTANCE.setLocation(240, 240);
 
         editor = new EditorPanel(this);

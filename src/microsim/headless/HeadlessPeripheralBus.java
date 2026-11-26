@@ -39,6 +39,7 @@ public class HeadlessPeripheralBus implements PeripheralBus {
     private int bannerData = 0;
     private int bannerLastCommand = 0;
     private final int[] bannerColumns = new int[64];
+    private int clockStatus = 1; // Default: Day (1)
     private int currentCycle = 0;
     private boolean keyboardExhausted = false;
 
@@ -52,6 +53,10 @@ public class HeadlessPeripheralBus implements PeripheralBus {
 
     public void setHeaterStatus(int statusByte) {
         this.heaterStatus = statusByte & 0xFF;
+    }
+
+    public void setClockStatus(int statusByte) {
+        this.clockStatus = statusByte & 0xFF;
     }
 
     public boolean isKeyboardExhausted() {
@@ -90,6 +95,8 @@ public class HeadlessPeripheralBus implements PeripheralBus {
             return bannerData;
         } else if (port == CPU.BANNER_CMD_PORT) {
             return bannerLastCommand;
+        } else if (port == CPU.CLOCK_PORT) {
+            return clockStatus;
         }
         return 0;
     }

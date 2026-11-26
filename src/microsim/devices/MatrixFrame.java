@@ -270,10 +270,10 @@ public class MatrixFrame extends AbstractDevice {
                 }
             }
 
-            // Port numbers "07/08" in bottom left
+            // Port numbers "08/09" in bottom left
             g2.setFont(portFont);
             g2.setColor(new Color(210, 220, 20));
-            g2.drawString("07/08", 14, PANEL_HEIGHT - 13);
+            g2.drawString("08/09", 14, PANEL_HEIGHT - 13);
 
             // Bottom status line: Selected Row + Hex value
             Font statusFont = new Font(Font.MONOSPACED, Font.BOLD, 11);

@@ -34,20 +34,22 @@ public class CPU {
     public static final int LIGHTS_PORT = 0x02;
     /** Port address for the simulated Heater device. */
     public static final int HEATER_PORT = 0x03;
+    /** Port address for the simulated Clock (Day/Night) device. */
+    public static final int CLOCK_PORT = 0x04;
     /** Port address for the simulated 8-Bit Buzzer note / frequency. */
-    public static final int BUZZER_NOTE_PORT = 0x04;
+    public static final int BUZZER_NOTE_PORT = 0x05;
     /** Port address for the simulated 8-Bit Buzzer tone duration. */
-    public static final int BUZZER_DURATION_PORT = 0x05;
+    public static final int BUZZER_DURATION_PORT = 0x06;
     /** Port address for the simulated 8-LED Bar device. */
-    public static final int LEDS_PORT = 0x06;
+    public static final int LEDS_PORT = 0x07;
     /** Port address for the simulated 8x8 LED Matrix row selection. */
-    public static final int MATRIX_ROW_PORT = 0x07;
+    public static final int MATRIX_ROW_PORT = 0x08;
     /** Port address for the simulated 8x8 LED Matrix row data. */
-    public static final int MATRIX_DATA_PORT = 0x08;
+    public static final int MATRIX_DATA_PORT = 0x09;
     /** Port address for the simulated 32x8 LED Banner data register. */
-    public static final int BANNER_DATA_PORT = 0x09;
+    public static final int BANNER_DATA_PORT = 0x0A;
     /** Port address for the simulated 32x8 LED Banner command register. */
-    public static final int BANNER_CMD_PORT = 0x0A;
+    public static final int BANNER_CMD_PORT = 0x0B;
 
     private final int maxSP = 191; // Base stack pointer value (0xBF)
     private final int minSP = 128; // Minimum stack pointer value (0x80), defines stack limit

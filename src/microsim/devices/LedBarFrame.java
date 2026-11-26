@@ -26,7 +26,7 @@ import microsim.simulator.Utils;
 /**
  * The LedBarFrame class simulates an 8-LED horizontal bar device.
  * It provides a graphical interface displaying 8 red LEDs arranged horizontally.
- * The LEDs are mapped to an 8-bit value written by the CPU to port 0x06:
+ * The LEDs are mapped to an 8-bit value written by the CPU to port 0x07:
  * bit 7 corresponds to the leftmost LED and bit 0 to the rightmost LED.
  * This class is implemented as a singleton.
  */
@@ -207,10 +207,10 @@ public class LedBarFrame extends AbstractDevice {
                 }
             }
 
-            // Port number "06" in bottom left
+            // Port number "07" in bottom left
             g2.setFont(portFont);
             g2.setColor(new Color(210, 220, 20));
-            g2.drawString("06", 16, PANEL_HEIGHT - 13);
+            g2.drawString("07", 16, PANEL_HEIGHT - 13);
 
             // Bottom status line: Binary & Hex values
             Font valueFont = new Font(Font.MONOSPACED, Font.BOLD, 12);

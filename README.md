@@ -23,7 +23,7 @@ This project is inspired by two other similar open-source projects:
 - **CPU Visualization:** Real-time display of all CPU registers, flags, and internal bus activity.
 - **RAM Inspector:** View the entire 256-byte memory in hexadecimal or ASCII. The `IP` (Instruction Pointer) and `SP` (Stack Pointer) locations are highlighted.
 - **Execution Control:** Run the code continuously with adjustable speeds up to 10,000 instructions/second with batch execution (zero UI freeze), or step by step.
-- **Virtual Devices:** Interact with your programs through 8 dedicated I/O devices.
+- **Virtual Devices:** Interact with your programs through 9 dedicated I/O devices.
 - **Mini-C compiler:** Compiles a subset of C language, including pointer operations.
 - **Headless Runner & Autograder:** CLI execution engine with JSON trace output and automated lab assessment.
 - **Cross-Platform:** Built with Java, MicroSim runs natively on macOS (Apple Silicon / Intel), Linux, and Windows.
@@ -38,10 +38,11 @@ MicroSim includes several input/output devices that can be controlled by your pr
 | **Keyboard** | Allows character input using the `IN reg, 0x01` instruction (e.g. `IN AL, 0x01`). The ASCII code of the pressed key is placed in the destination register. | ![Keyboard](man/img/keyboard.png) |
 | **Traffic Lights** | Simulates two traffic lights controlled via the `OUT reg, 0x02` instruction (e.g. `OUT AL, 0x02`), based on the byte in the source register. | ![Traffic Lights](man/img/lights.png) |
 | **Heating System** | A heater controlled with `OUT reg, 0x03` and a thermostat read with `IN reg, 0x03`. The goal is to regulate the temperature. | ![Heating System](man/img/heater.png) |
-| **8-Bit Buzzer** | Chiptune sound synthesizer playing MIDI notes (1–127, 0=stop) on port `0x04` (`OUT reg, 0x04`) with automated duration on port `0x05` (`OUT reg, 0x05`, polled with `IN reg, 0x05`). | ![8-Bit Buzzer](man/img/buzzer.png) |
-| **8-LED Bar** | 8 red status LEDs with 3D relief and hexadecimal display, controlled via `OUT reg, 0x06` and read via `IN reg, 0x06`. | ![8-LED Bar](man/img/bar.png) |
-| **8x8 LED Matrix** | Dot matrix display refreshed line by line via port `0x07` (row selection, `OUT reg, 0x07`) and port `0x08` (row byte, `OUT reg, 0x08`). | ![8x8 LED Matrix](man/img/matrix.png) |
-| **64x8 LED Banner** | 64-column LED banner with hardware ticker scrolling commands on port `0x0A` (`OUT reg, 0x0A`) and column data on port `0x09` (`OUT reg, 0x09`). | ![64x8 LED Banner](man/img/banner.png) |
+| **Clock** | Analog clock simulating a day/night cycle (`07:00–22:00` day, `22:00–07:00` night). Reading port `0x04` (`IN reg, 0x04`) returns bit 0 = `1` for day and `0` for night. Click the clock to toggle immediately. | ![Clock](man/img/clock.png) |
+| **8-Bit Buzzer** | Chiptune sound synthesizer playing MIDI notes (1–127, 0=stop) on port `0x05` (`OUT reg, 0x05`) with automated duration on port `0x06` (`OUT reg, 0x06`, polled with `IN reg, 0x06`). | ![8-Bit Buzzer](man/img/buzzer.png) |
+| **8-LED Bar** | 8 red status LEDs with 3D relief and hexadecimal display, controlled via `OUT reg, 0x07` and read via `IN reg, 0x07`. | ![8-LED Bar](man/img/bar.png) |
+| **8x8 LED Matrix** | Dot matrix display refreshed line by line via port `0x08` (row selection, `OUT reg, 0x08`) and port `0x09` (row byte, `OUT reg, 0x09`). | ![8x8 LED Matrix](man/img/matrix.png) |
+| **64x8 LED Banner** | 64-column LED banner with hardware ticker scrolling commands on port `0x0B` (`OUT reg, 0x0B`) and column data on port `0x0A` (`OUT reg, 0x0A`). | ![64x8 LED Banner](man/img/banner.png) |
 
 ## Quick Start Guide
 
@@ -63,7 +64,7 @@ MicroSim includes several input/output devices that can be controlled by your pr
 
 Here is the classic "Hello World" implemented in MicroSim:
 
-```asm
+```nasm
 ; ----- Program Section ------------
 
     mov CL, 0xC0  ; Display address

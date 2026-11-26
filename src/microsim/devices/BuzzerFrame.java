@@ -327,11 +327,11 @@ public class BuzzerFrame extends AbstractDevice {
             }
             g2.drawString(noteText, infoX, 58);
 
-            // Port numbers "04/05" (calés en bas à droite)
+            // Port numbers "05/06" (calés en bas à droite)
             g2.setFont(portFont);
             g2.setColor(new Color(210, 220, 20));
-            int portX = getWidth() - g2.getFontMetrics().stringWidth("04/05") - 10;
-            g2.drawString("04/05", portX, getHeight() - 13);
+            int portX = getWidth() - g2.getFontMetrics().stringWidth("05/06") - 10;
+            g2.drawString("05/06", portX, getHeight() - 13);
 
             g2.dispose();
         }

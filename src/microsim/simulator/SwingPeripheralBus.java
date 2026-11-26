@@ -2,6 +2,7 @@ package microsim.simulator;
 
 import microsim.devices.BannerFrame;
 import microsim.devices.BuzzerFrame;
+import microsim.devices.ClockFrame;
 import microsim.devices.HeaterFrame;
 import microsim.devices.KeyboardFrame;
 import microsim.devices.LedBarFrame;
@@ -20,6 +21,7 @@ public class SwingPeripheralBus implements PeripheralBus {
     private final MatrixFrame matrix = MatrixFrame.INSTANCE;
     private final BuzzerFrame buzzer = BuzzerFrame.INSTANCE;
     private final BannerFrame banner = BannerFrame.INSTANCE;
+    private final ClockFrame clock = ClockFrame.INSTANCE;
 
     @Override
     public int in(int port) {
@@ -49,6 +51,9 @@ public class SwingPeripheralBus implements PeripheralBus {
         } else if (port == CPU.BANNER_CMD_PORT) {
             if (!banner.isVisible()) banner.setVisible(true);
             return banner.getLastCommand() & 0xFF;
+        } else if (port == CPU.CLOCK_PORT) {
+            if (!clock.isVisible()) clock.setVisible(true);
+            return clock.getStatus() & 0xFF;
         }
         return 0;
     }
