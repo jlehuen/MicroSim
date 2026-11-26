@@ -43,6 +43,8 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.GutterIconInfo;
+import org.fife.ui.rtextarea.IconRowEvent;
+import org.fife.ui.rtextarea.IconRowListener;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import microsim.MicroSim;
@@ -135,6 +137,21 @@ public class EditorTab extends JPanel {
         Gutter gutter = scrollPane.getGutter();
         gutter.setBookmarkingEnabled(true);
         gutter.setBookmarkIcon(createBreakpointIcon());
+        gutter.addIconRowListener(new IconRowListener() {
+            @Override
+            public void bookmarkAdded(IconRowEvent e) {
+                if (mainframe.getConsole() != null) {
+                    mainframe.getConsole().println("Breakpoint added on line " + (e.getLine() + 1), Color.GREEN);
+                }
+            }
+
+            @Override
+            public void bookmarkRemoved(IconRowEvent e) {
+                if (mainframe.getConsole() != null) {
+                    mainframe.getConsole().println("Breakpoint removed on line " + (e.getLine() + 1), Color.GREEN);
+                }
+            }
+        });
         add(scrollPane, BorderLayout.CENTER);
 
         applyFontSize(parentPanel.getEditorFontSize());
