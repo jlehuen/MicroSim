@@ -40,6 +40,12 @@ public class EditorPanel extends JPanel {
     private static File lastDirectory = null;
     private int untitledCounter = 1;
 
+    private static final float DEFAULT_FONT_SIZE = RSyntaxTextArea.getDefaultFont().getSize2D();
+    private static final float MIN_FONT_SIZE = 8f;
+    private static final float MAX_FONT_SIZE = 36f;
+    private static final float FONT_SIZE_STEP = 2f;
+    private float fontSize = DEFAULT_FONT_SIZE;
+
     /**
      * Constructs the multi-tab EditorPanel.
      * @param mainframe The main application frame.
@@ -486,5 +492,58 @@ public class EditorPanel extends JPanel {
     public void reformat() {
         EditorTab tab = getCurrentTab();
         if (tab != null) tab.reformat();
+    }
+
+    /**
+     * Returns the default editor font size.
+     * @return The default font size in points.
+     */
+    public float getDefaultFontSize() {
+        return DEFAULT_FONT_SIZE;
+    }
+
+    /**
+     * Returns the current editor font size shared across all tabs.
+     * @return The current font size in points.
+     */
+    public float getEditorFontSize() {
+        return fontSize;
+    }
+
+    /**
+     * Updates the editor font size across all open tabs.
+     * @param size New font size in points (clamped between 8 and 36).
+     */
+    public void setEditorFontSize(float size) {
+        float clamped = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
+        if (Float.compare(clamped, this.fontSize) == 0) {
+            return;
+        }
+        this.fontSize = clamped;
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            EditorTab tab = (EditorTab) tabbedPane.getComponentAt(i);
+            tab.applyFontSize(clamped);
+        }
+    }
+
+    /**
+     * Increases the editor font size by one step.
+     */
+    public void increaseFontSize() {
+        setEditorFontSize(fontSize + FONT_SIZE_STEP);
+    }
+
+    /**
+     * Decreases the editor font size by one step.
+     */
+    public void decreaseFontSize() {
+        setEditorFontSize(fontSize - FONT_SIZE_STEP);
+    }
+
+    /**
+     * Resets the editor font size to the default size.
+     */
+    public void resetFontSize() {
+        setEditorFontSize(DEFAULT_FONT_SIZE);
     }
 }

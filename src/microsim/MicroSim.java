@@ -48,7 +48,7 @@ public class MicroSim extends JFrame {
 
     public static MicroSim self; // Static reference for global access
 	public static final String SYSTEM = Utils.getOperatingSystem();
-    public static final String VERSION = "1.1.2";
+    public static final String VERSION = "1.1.3";
 
     public final String BASE_TITLE = "8 Bits Microprocessor Simulator";
     private final Dimension DIMENSION = new Dimension(1050, 600);

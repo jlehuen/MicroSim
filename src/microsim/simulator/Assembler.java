@@ -301,6 +301,30 @@ public class Assembler {
                 case "HLT":
                     code[addressCounter++] = Opcodes.HALT;
                     break;
+                case "IN":
+                case "OUT":
+                    String[] ioParts = operandsString.split(",", 2);
+                    Operand ioOp1;
+                    Operand ioOp2;
+                    if (ioParts.length == 2) {
+                        ioOp1 = getValue(ioParts[0].trim(), lineNumber);
+                        ioOp2 = getValue(ioParts[1].trim(), lineNumber);
+                    } else if (!operandsString.trim().isEmpty()) {
+                        // Forme abrégée : IN <byte> / OUT <byte> équivalent à IN AL, <byte> / OUT AL, <byte>
+                        ioOp1 = new Operand(Operand.Type.REGISTER, 0);
+                        ioOp2 = getValue(operandsString.trim(), lineNumber);
+                    } else {
+                        throw new IllegalArgumentException(instruction.toUpperCase() + " requires a port number or a register and a port number on line " + lineNumber);
+                    }
+                    if (ioOp1.type != Operand.Type.REGISTER || (ioOp2.type != Operand.Type.NUMBER && ioOp2.type != Operand.Type.LABEL)) {
+                        String instrUpper = instruction.toUpperCase();
+                        throw new IllegalArgumentException(instrUpper + " requires a register and a device number (e.g. " + instrUpper + " AL, 0x01 or " + instrUpper + " 0x01) on line " + lineNumber);
+                    }
+                    int ioOpCode = instruction.equalsIgnoreCase("IN") ? Opcodes.IN_REG_NUMBER : Opcodes.OUT_REG_NUMBER;
+                    code[addressCounter++] = ioOpCode;
+                    addressCounter = addOperand(code, labelReferences, ioOp1, addressCounter, lineNumber);
+                    addressCounter = addOperand(code, labelReferences, ioOp2, addressCounter, lineNumber);
+                    break;
                 case "MOV":
                 case "ADD":
                 case "SUB":
@@ -312,8 +336,6 @@ public class Assembler {
                 case "SHR":
                 case "MUL":
                 case "DIV":
-                case "IN":
-                case "OUT":
                     String[] parts = operandsString.split(",", 2);
                     if (parts.length != 2) {
                         throw new IllegalArgumentException(instruction.toUpperCase() + " requires two operands separated by a comma on line " + lineNumber);
@@ -506,26 +528,6 @@ public class Assembler {
                                 opCode = Opcodes.XOR_NUMBER_WITH_REG;
                             } else {
                                 throw new IllegalArgumentException("XOR does not support this operands on line " + lineNumber);
-                            }
-                            code[addressCounter++] = opCode;
-                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
-                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
-                            break;
-                        case "IN":
-                            if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
-                                opCode = Opcodes.IN_REG_NUMBER;
-                            } else {
-                                throw new IllegalArgumentException("IN requires a register and a device number (e.g. IN AL, 0x01) on line " + lineNumber);
-                            }
-                            code[addressCounter++] = opCode;
-                            addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);
-                            addressCounter = addOperand(code, labelReferences, op2, addressCounter, lineNumber);
-                            break;
-                        case "OUT":
-                            if (op1.type == Operand.Type.REGISTER && (op2.type == Operand.Type.NUMBER || op2.type == Operand.Type.LABEL)) {
-                                opCode = Opcodes.OUT_REG_NUMBER;
-                            } else {
-                                throw new IllegalArgumentException("OUT requires a register and a device number (e.g. OUT AL, 0x02) on line " + lineNumber);
                             }
                             code[addressCounter++] = opCode;
                             addressCounter = addOperand(code, labelReferences, op1, addressCounter, lineNumber);

@@ -12,6 +12,7 @@ package microsim.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
@@ -23,12 +24,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.text.BadLocationException;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -129,7 +137,83 @@ public class EditorTab extends JPanel {
         gutter.setBookmarkIcon(createBreakpointIcon());
         add(scrollPane, BorderLayout.CENTER);
 
+        applyFontSize(parentPanel.getEditorFontSize());
+        configureFontSizePopupMenu();
         updateSyntaxStyle();
+    }
+
+    private void configureFontSizePopupMenu() {
+        JPopupMenu popup = textArea.getPopupMenu();
+        popup.addSeparator();
+
+        JMenu fontSizeMenu = new JMenu("Font Size");
+
+        JMenuItem increaseItem = new JMenuItem("Increase (+2)");
+        increaseItem.addActionListener(e -> parentPanel.increaseFontSize());
+        fontSizeMenu.add(increaseItem);
+
+        JMenuItem decreaseItem = new JMenuItem("Decrease (-2)");
+        decreaseItem.addActionListener(e -> parentPanel.decreaseFontSize());
+        fontSizeMenu.add(decreaseItem);
+
+        JMenuItem resetItem = new JMenuItem("Reset (" + Math.round(parentPanel.getDefaultFontSize()) + " pt)");
+        resetItem.addActionListener(e -> parentPanel.resetFontSize());
+        fontSizeMenu.add(resetItem);
+
+        fontSizeMenu.addSeparator();
+
+        int[] presetSizes = {10, 12, 14, 16, 18, 20, 24};
+        ButtonGroup sizeGroup = new ButtonGroup();
+        JRadioButtonMenuItem[] presetItems = new JRadioButtonMenuItem[presetSizes.length];
+        for (int i = 0; i < presetSizes.length; i++) {
+            int size = presetSizes[i];
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(size + " pt");
+            item.addActionListener(e -> parentPanel.setEditorFontSize(size));
+            sizeGroup.add(item);
+            fontSizeMenu.add(item);
+            presetItems[i] = item;
+        }
+
+        popup.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                float currentSize = parentPanel.getEditorFontSize();
+                boolean matched = false;
+                for (int i = 0; i < presetSizes.length; i++) {
+                    if (Math.abs(currentSize - presetSizes[i]) < 0.01f) {
+                        presetItems[i].setSelected(true);
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    sizeGroup.clearSelection();
+                }
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {}
+
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent e) {}
+        });
+
+        popup.add(fontSizeMenu);
+    }
+
+    /**
+     * Applies the given font size to the text area and its line number gutter.
+     * @param size Font size in points.
+     */
+    public void applyFontSize(float size) {
+        Font currentFont = textArea.getFont();
+        if (currentFont != null) {
+            textArea.setFont(currentFont.deriveFont(size));
+        }
+        Gutter gutter = scrollPane.getGutter();
+        if (gutter != null && gutter.getLineNumberFont() != null) {
+            gutter.setLineNumberFont(gutter.getLineNumberFont().deriveFont(size));
+        }
     }
 
     private static Icon createBreakpointIcon() {
