@@ -38,7 +38,6 @@ public class VisualizationFrame extends AbstractDevice {
 
         setTitle(TITLE_STRING);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setAlwaysOnTop(true);
         setResizable(false);
 
         setLayout(new BorderLayout());

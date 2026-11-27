@@ -13,6 +13,12 @@ package microsim;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Locale;
 
 import javax.swing.JFrame;
@@ -49,7 +55,24 @@ public class MicroSim extends JFrame {
 
     public static MicroSim self; // Static reference for global access
 	public static final String SYSTEM = Utils.getOperatingSystem();
-    public static final String VERSION = "1.1.3";
+    public static final String VERSION = loadVersion();
+
+    private static String loadVersion() {
+        try (InputStream is = MicroSim.class.getResourceAsStream("/VERSION")) {
+            if (is != null) {
+                String v = new String(is.readAllBytes(), StandardCharsets.UTF_8).trim();
+                if (!v.isEmpty()) return v;
+            }
+        } catch (IOException ignored) {}
+        try {
+            Path p = Paths.get("VERSION");
+            if (Files.isRegularFile(p)) {
+                String v = Files.readString(p, StandardCharsets.UTF_8).trim();
+                if (!v.isEmpty()) return v;
+            }
+        } catch (IOException ignored) {}
+        return "unknown";
+    }
 
     public final String BASE_TITLE = "8 Bits Microprocessor Simulator";
     private final Dimension DIMENSION = new Dimension(1050, 600);
@@ -75,6 +98,7 @@ public class MicroSim extends JFrame {
      * Constructs the main frame and all its components.
      */
     public MicroSim() {
+        self = this;
 
         setTitle(BASE_TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -125,7 +149,6 @@ public class MicroSim extends JFrame {
         getContentPane().add(verticalSplitPane, BorderLayout.CENTER);
 
         setVisible(true);
-        self = this;
     }
 
     /**

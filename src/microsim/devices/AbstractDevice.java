@@ -10,21 +10,25 @@
 
 package microsim.devices;
 
-import javax.swing.JFrame;
+import javax.swing.JDialog;
+
+import microsim.MicroSim;
 
 /**
  * The AbstractDevice class serves as a base class for all simulated hardware
- * device windows in the application. It extends JFrame and provides a common
- * method to toggle the visibility of the device window.
+ * device windows in the application. It extends JDialog (non-modal, owned by
+ * the main MicroSim frame) so device windows stay above the main window without
+ * blocking modal dialogs (such as JFileChooser or JOptionPane) or covering
+ * other applications.
  */
-public abstract class AbstractDevice extends JFrame {
+public abstract class AbstractDevice extends JDialog {
 
     /**
      * Default constructor for the AbstractDevice.
-     * Initializes the JFrame.
+     * Initializes a non-modal JDialog owned by the main MicroSim frame.
      */
     public AbstractDevice() {
-        super();
+        super(MicroSim.self, false);
     }
 
     /**

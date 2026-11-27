@@ -52,7 +52,6 @@ public class MatrixFrame extends AbstractDevice {
 
         setTitle(TITLE_STRING);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setAlwaysOnTop(true);
         setResizable(false);
         setVisible(false);
     }

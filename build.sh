@@ -53,7 +53,7 @@ find . -name ".DS_Store" -delete
 # -----------------------------------------------------------------------
 
 echo "Création du fichier JAR..."
-$JAR cfm "$DIST_DIR/$JAR_NAME" $MANIFEST -C class . -C data .
+$JAR cfm "$DIST_DIR/$JAR_NAME" $MANIFEST -C class . -C data . VERSION
 
 # -----------------------------------------------------------------------
 # Copier les bibliothèques dans le répertoire de distribution

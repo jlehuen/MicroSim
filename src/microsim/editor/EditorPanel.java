@@ -418,15 +418,17 @@ public class EditorPanel extends JPanel {
             lastDirectory = file.getParentFile();
             String filePath = file.getAbsolutePath();
 
-            FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
-            String[] extensions = selectedFilter.getExtensions();
-            String extensionToAppend = extensions.length > 0 ? "." + extensions[0] : "";
+            if (fileChooser.getFileFilter() instanceof FileNameExtensionFilter) {
+                FileNameExtensionFilter selectedFilter = (FileNameExtensionFilter) fileChooser.getFileFilter();
+                String[] extensions = selectedFilter.getExtensions();
+                String extensionToAppend = extensions.length > 0 ? "." + extensions[0] : "";
 
-            int dotIndex = filePath.lastIndexOf('.');
-            if (dotIndex > 0 && dotIndex > filePath.lastIndexOf(File.separator)) {
-                filePath = filePath.substring(0, dotIndex);
+                int dotIndex = filePath.lastIndexOf('.');
+                if (dotIndex > 0 && dotIndex > filePath.lastIndexOf(File.separator)) {
+                    filePath = filePath.substring(0, dotIndex);
+                }
+                file = new File(filePath + extensionToAppend);
             }
-            file = new File(filePath + extensionToAppend);
 
             try {
                 tab.saveTo(file);

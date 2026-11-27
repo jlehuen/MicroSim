@@ -146,9 +146,8 @@ public class MemoryFrame extends AbstractDevice {
         pack();
         setTitle(TITLE_STRING);
         setLocation(1040, 210);
-        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         setResizable(false);
-        setAlwaysOnTop(true);
     }
 
     private JLabel createLegendItem(String text, Color bg, Color fg) {
